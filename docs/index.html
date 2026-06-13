@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gajae Code documentation hub — getting started, architecture, the harness, bridge & RPC, skills, receipts, and troubleshooting." />
+  <meta property="og:title" content="Documentation | Gajae Code" />
+  <meta property="og:description" content="Guides and references for Gajae Code (gjc): shape, act, prove." />
+  <meta property="og:type" content="website" />
+  <title>Documentation | Gajae Code</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar">
+    <a class="docs-topbar__brand" href="../index.html"><span aria-hidden="true">🦀</span> Gajae Code</a>
+    <button class="docs-burger" id="docsBurger" aria-label="Toggle docs menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="docs-sidebar__overlay" id="sidebarOverlay"></div>
+
+  <div class="docs">
+    <nav class="docs-sidebar" id="sidebar" aria-label="Documentation">
+      <a class="docs-sidebar__brand" href="../index.html"><span aria-hidden="true">🦀</span> Gajae Code</a>
+      <div class="docs-nav-section">
+        <p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link is-active" href="index.html">Docs Home</a>
+        <a class="docs-nav-link" href="getting-started.html">Getting Started</a>
+      </div>
+      <div class="docs-nav-section">
+        <p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link" href="architecture.html">Architecture</a>
+        <a class="docs-nav-link" href="harness.html">The Harness</a>
+        <a class="docs-nav-link" href="skills.html">Skills &amp; Agents</a>
+        <a class="docs-nav-link" href="receipts.html">Receipts &amp; Proof</a>
+      </div>
+      <div class="docs-nav-section">
+        <p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link" href="bridge-rpc.html">Bridge &amp; RPC</a>
+        <a class="docs-nav-link" href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section">
+        <p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link" href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="../index.html">← Back to site</a>
+      </div>
+    </nav>
+
+    <main class="docs-main">
+      <div class="docs-content">
+        <div class="doc-hero">
+          <p class="doc-hero__eyebrow">Documentation</p>
+          <h1>Gajae Code docs</h1>
+          <p>Everything you need to run <code>gjc</code> — an external coding-agent harness built around a single, reviewable loop: shape intent, act through reviewed plans, and prove the result with durable evidence.</p>
+        </div>
+
+        <div class="doc-body">
+          <p>New here? Start with <a href="getting-started.html">Getting Started</a>, then read <a href="architecture.html">Architecture</a> to understand how the pieces fit together.</p>
+
+          <div class="doc-cards">
+            <a class="card" href="getting-started.html">
+              <div class="card__icon" aria-hidden="true">🚀</div>
+              <h3 class="card__title">Getting Started</h3>
+              <p class="card__text">Install with Bun, launch in your repo, and run your first shape → act → prove loop.</p>
+            </a>
+            <a class="card" href="architecture.html">
+              <div class="card__icon" aria-hidden="true">🏗️</div>
+              <h3 class="card__title">Architecture</h3>
+              <p class="card__text">The CLI, agent loop, provider boundary, tool registry, and native layer.</p>
+            </a>
+            <a class="card" href="harness.html">
+              <div class="card__icon" aria-hidden="true">⚙️</div>
+              <h3 class="card__title">The Harness</h3>
+              <p class="card__text">Running gjc as an external runner beside Codex CLI, Claude Code, and others.</p>
+            </a>
+            <a class="card" href="bridge-rpc.html">
+              <div class="card__icon" aria-hidden="true">🔌</div>
+              <h3 class="card__title">Bridge &amp; RPC</h3>
+              <p class="card__text">The stdio RPC protocol and the fail-closed, TLS-only HTTPS bridge.</p>
+            </a>
+            <a class="card" href="skills.html">
+              <div class="card__icon" aria-hidden="true">🧩</div>
+              <h3 class="card__title">Skills &amp; Agents</h3>
+              <p class="card__text">The four workflow skills and four role agents that make up the surface.</p>
+            </a>
+            <a class="card" href="receipts.html">
+              <div class="card__icon" aria-hidden="true">🧾</div>
+              <h3 class="card__title">Receipts &amp; Proof</h3>
+              <p class="card__text">The evidence model behind durable, verifiable completion.</p>
+            </a>
+            <a class="card" href="gajae-remote.html">
+              <div class="card__icon" aria-hidden="true">🛰️</div>
+              <h3 class="card__title">Gajae Remote</h3>
+              <p class="card__text">Driving sessions programmatically and the automated triage pattern.</p>
+            </a>
+            <a class="card" href="troubleshooting.html">
+              <div class="card__icon" aria-hidden="true">🩺</div>
+              <h3 class="card__title">Troubleshooting</h3>
+              <p class="card__text">Common install, launch, and runtime issues with fixes.</p>
+            </a>
+          </div>
+
+          <div class="callout callout--warn" style="margin-top:2.5rem">
+            <span class="callout__icon" aria-hidden="true">⚠️</span>
+            <p>Gajae Code is an experimental, beta-stage project. Expect rough edges and verify outputs before relying on it for important work.</p>
+          </div>
+
+          <div class="doc-pager">
+            <a class="doc-pager--prev" href="../index.html"><span>Home</span><strong>← Gajae Code site</strong></a>
+            <a class="doc-pager--next" href="getting-started.html"><span>Next</span><strong>Getting Started →</strong></a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

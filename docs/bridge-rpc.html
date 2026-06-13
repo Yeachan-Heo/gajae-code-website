@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Bounded remote control for Gajae Code sessions through bridge mode, RPC commands, scoped authority, and client SDKs." />
+  <title>Bridge & RPC · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link " href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link is-active" href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link " href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Bridge & RPC</h1><p>Bounded remote control for Gajae Code sessions through bridge mode, RPC commands, scoped authority, and client SDKs.</p></section>
+
+      <section class="docs-section"><h2>Bridge mode</h2><p>Bridge mode exposes an agent session over a controlled local service. It is designed for automation and UI clients that need to observe state, submit prompts, or integrate with external workflows without pretending a terminal is an API.</p></section>
+      <section class="docs-section"><h2>RPC principles</h2><ul><li><strong>Scoped commands:</strong> client authority is explicit instead of ambient.</li><li><strong>Bounded observations:</strong> clients ask for structured state rather than raw process dumps.</li><li><strong>Fail-closed defaults:</strong> missing or invalid authority should deny action, not widen it.</li><li><strong>Idempotent control:</strong> request identity matters when automating repeated actions.</li></ul></section>
+      <section class="docs-section"><h2>Client surfaces</h2><p>The repository includes client-oriented packages and Python integration points for driving sessions from automation. Use them to build dashboards, triage bots, or lightweight steering interfaces while keeping the PC-side session authoritative.</p></section>
+
+<nav class="doc-pager"><a href="receipts.html">← Receipts</a><a href="gajae-remote.html">Gajae Remote →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Use the Gajae Code harness to run coding-agent sessions with observable lifecycle, submit gates, and workspace-aware control." />
+  <title>Harness · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link is-active" href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link " href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Harness</h1><p>Use the Gajae Code harness to run coding-agent sessions with observable lifecycle, submit gates, and workspace-aware control.</p></section>
+
+      <section class="docs-section"><h2>Why a harness?</h2><p>A coding model is useful only when it can be steered, observed, paused, and verified. The harness turns an agent run into a managed session with lifecycle state, owner liveness, branch context, and submission gates.</p>
+        <div class="callout"><strong>Design intent:</strong> do not rely on a terminal screenshot or a half-remembered prompt. Track whether the owner is live, whether the session is ready for input, and which workspace/branch the work belongs to.</div></section>
+      <section class="docs-section"><h2>Typical loop</h2><pre><code>gjc
+/skill:deep-interview
+/skill:ralplan
+gjc ultragoal "implement, verify, and report evidence"</code></pre><p>The exact commands depend on the task, but the pattern stays the same: make the task explicit, let the agent work in context, then require validation and a terminal verdict.</p></section>
+      <section class="docs-section"><h2>Operational guardrails</h2><ul><li>Use dedicated worktrees for risky implementation and review work.</li><li>Keep branch metadata aligned with the actual checkout.</li><li>Submit follow-up prompts only after the session is observable and ready.</li><li>Retire completed sessions instead of leaving stale panes behind.</li></ul></section>
+
+<nav class="doc-pager"><a href="architecture.html">← Architecture</a><a href="skills.html">Skills →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>

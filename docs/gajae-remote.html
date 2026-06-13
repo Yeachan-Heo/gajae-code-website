@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A high-level design for a thin phone steering wheel that observes and nudges PC-side Gajae Code sessions without becoming a remote shell." />
+  <title>Gajae Remote · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link " href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link is-active" href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link " href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Gajae Remote</h1><p>A high-level design for a thin phone steering wheel that observes and nudges PC-side Gajae Code sessions without becoming a remote shell.</p></section>
+
+      <section class="docs-section"><h2>Thin steering wheel</h2><p>Gajae Remote is the product direction for checking session status, reading bounded summaries, and submitting short prompts from a phone while the actual coding authority stays on the PC.</p></section>
+      <section class="docs-section"><h2>Authority boundary</h2><div class="callout"><strong>Not a shell:</strong> a mobile client should not expose raw tool results, environment variables, diffs, secrets, system prompts, or host command execution. It should show the smallest useful session view.</div><ul><li>PC-side owner remains the source of truth.</li><li>Phone clients get summarized state and explicit submit endpoints.</li><li>Pairing and scopes should be narrow, revocable, and auditable.</li></ul></section>
+      <section class="docs-section"><h2>Useful states</h2><p>Idle, working, blocked, disconnected, and rejected-submit states are more useful on mobile than raw transcript streaming. The remote view should tell the operator what action is safe and what action is unavailable.</p></section>
+
+<nav class="doc-pager"><a href="bridge-rpc.html">← Bridge & RPC</a><a href="troubleshooting.html">Troubleshooting →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>

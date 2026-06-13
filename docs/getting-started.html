@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Install Gajae Code with Bun and run your first shape, act, prove loop in any repository or git worktree." />
+  <meta property="og:title" content="Getting Started | Gajae Code" />
+  <meta property="og:description" content="Install, launch, and run your first Gajae Code session." />
+  <meta property="og:type" content="website" />
+  <title>Getting Started | Gajae Code</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar">
+    <a class="docs-topbar__brand" href="../index.html"><span aria-hidden="true">🦀</span> Gajae Code</a>
+    <button class="docs-burger" id="docsBurger" aria-label="Toggle docs menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="docs-sidebar__overlay" id="sidebarOverlay"></div>
+
+  <div class="docs">
+    <nav class="docs-sidebar" id="sidebar" aria-label="Documentation">
+      <a class="docs-sidebar__brand" href="../index.html"><span aria-hidden="true">🦀</span> Gajae Code</a>
+      <div class="docs-nav-section">
+        <p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link" href="index.html">Docs Home</a>
+        <a class="docs-nav-link is-active" href="getting-started.html">Getting Started</a>
+      </div>
+      <div class="docs-nav-section">
+        <p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link" href="architecture.html">Architecture</a>
+        <a class="docs-nav-link" href="harness.html">The Harness</a>
+        <a class="docs-nav-link" href="skills.html">Skills &amp; Agents</a>
+        <a class="docs-nav-link" href="receipts.html">Receipts &amp; Proof</a>
+      </div>
+      <div class="docs-nav-section">
+        <p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link" href="bridge-rpc.html">Bridge &amp; RPC</a>
+        <a class="docs-nav-link" href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section">
+        <p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link" href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="../index.html">← Back to site</a>
+      </div>
+    </nav>
+
+    <main class="docs-main">
+      <div class="docs-content">
+        <div class="doc-hero">
+          <p class="doc-hero__eyebrow">Start</p>
+          <h1>Getting Started</h1>
+          <p>Install Gajae Code, launch it in a repository or worktree, and run your first reviewable loop.</p>
+        </div>
+
+        <div class="doc-body">
+          <h2>Requirements</h2>
+          <p>Gajae Code (<code>gjc</code>) is distributed as a Bun package. You need <a href="https://bun.sh" target="_blank" rel="noopener noreferrer">Bun</a> installed. <code>tmux</code> is optional but recommended for leader/worker sessions, and <code>git</code> is required to use worktree isolation.</p>
+
+          <h2>Install</h2>
+          <p>Install the CLI globally with Bun:</p>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="bun install -g gajae-code">Copy</button>
+            </div>
+            <div class="code-block__body"><code>bun install -g gajae-code</code></div>
+          </div>
+          <p>The scoped package is also published as <code>@gajae-code/coding-agent</code>.</p>
+
+          <h3>Windows (native install)</h3>
+          <p>On a clean Windows 11 machine, install Bun first, then install <code>gjc</code> with Bun's global installer:</p>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="powershell -c &quot;irm bun.sh/install.ps1|iex&quot;">Copy</button>
+            </div>
+            <div class="code-block__body"><code># 1. Install Bun
+powershell -c "irm bun.sh/install.ps1|iex"
+
+# 2. Restart the terminal so PATH refreshes, then confirm Bun
+bun --version
+
+# 3. Install and verify gjc
+bun install -g gajae-code
+gjc --version
+gjc --smoke-test</code></div>
+          </div>
+          <p><code>bun install -g</code> places the <code>gjc</code> launcher in <code>%USERPROFILE%\.bun\bin</code>. That directory must be on <code>PATH</code>. Bun's installer adds it automatically, but the change only applies to terminals started after installation — restart PowerShell if <code>gjc</code> is "not recognized".</p>
+
+          <h2>Verify</h2>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="gjc --version && gjc --smoke-test">Copy</button>
+            </div>
+            <div class="code-block__body"><code>gjc --version &amp;&amp; gjc --smoke-test</code></div>
+          </div>
+
+          <h2>Quick start</h2>
+          <p>Run <code>gjc</code> directly in the checkout you want to work in, use a tmux-backed leader session, or point it at an isolated worktree for risky or reviewable work:</p>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="gjc">Copy</button>
+            </div>
+            <div class="code-block__body"><code># Run directly in the current checkout
+gjc
+
+# Use a tmux-backed leader session
+gjc --tmux
+
+# Use an isolated worktree for risky or reviewable work
+gjc --tmux --worktree ../my-task-worktree</code></div>
+          </div>
+
+          <h2>Your first loop</h2>
+          <p>Inside a session, use the public workflow surface to go from intent to a proven result:</p>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="/skill:deep-interview clarify ambiguous requirements">Copy</button>
+            </div>
+            <div class="code-block__body"><code>/skill:deep-interview clarify ambiguous requirements
+/skill:ralplan build and critique the implementation plan
+gjc ultragoal create-goals --brief-file &lt;approved-plan&gt;
+gjc ultragoal complete-goals</code></div>
+          </div>
+          <p>Add <code>gjc team ...</code> only when coordinated tmux workers materially help with implementation or verification.</p>
+
+          <h2>Configuration</h2>
+          <p>Provider retry budgets live in <code>~/.gjc/config.yml</code>:</p>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="retry:&#10;  requestMaxRetries: 4&#10;  streamMaxRetries: 100&#10;  maxRetries: 3&#10;  maxDelayMs: 300000">Copy</button>
+            </div>
+            <div class="code-block__body"><code>retry:
+  requestMaxRetries: 4
+  streamMaxRetries: 100
+  maxRetries: 3
+  maxDelayMs: 300000</code></div>
+          </div>
+          <p><code>requestMaxRetries</code> applies before a stream is established. <code>streamMaxRetries</code> applies only to replay-safe transient stream failures. Invalid auth, unsupported models/providers, malformed requests, context overflow, user aborts, and permanent quota failures remain fail-fast.</p>
+
+          <div class="callout callout--safe">
+            <span class="callout__icon" aria-hidden="true">🦀</span>
+            <p>The default dark theme is the red-claw identity; light-appearance terminals default to the bundled blue-crab theme. Explicit user theme settings always win.</p>
+          </div>
+
+          <div class="doc-pager">
+            <a class="doc-pager--prev" href="index.html"><span>Prev</span><strong>← Docs Home</strong></a>
+            <a class="doc-pager--next" href="architecture.html"><span>Next</span><strong>Architecture →</strong></a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

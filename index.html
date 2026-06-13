@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gajae Code (gjc) is an external coding-agent harness: shape intent with interviews, act through reviewed plans and tmux-native execution, and prove the result with durable evidence. Bridge/RPC control plane, focused skills, and worktree-isolated workers." />
+  <meta name="keywords" content="Gajae Code, gjc, coding agent, autonomous agent, AI agent, CLI, developer tools, tmux, git worktree, RPC, bridge, agent harness" />
+  <meta name="author" content="Gajae Code" />
+  <meta name="theme-color" content="#ff5347" />
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://yeachan-heo.github.io/gajae-code-website/" />
+  <meta property="og:title" content="Gajae Code — Encode intention. Decode software." />
+  <meta property="og:description" content="An external coding-agent harness for interviews, reviewed plans, tmux-native execution, and durable verification. Shape · act · prove." />
+  <meta property="og:image" content="https://yeachan-heo.github.io/gajae-code-website/assets/hero.png" />
+  <meta property="og:image:alt" content="Gajae Code autonomous coding-agent hero illustration" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Gajae Code — Encode intention. Decode software." />
+  <meta name="twitter:description" content="An external coding-agent harness: shape intent, act through reviewed plans, and prove the result with durable evidence." />
+  <meta name="twitter:image" content="https://yeachan-heo.github.io/gajae-code-website/assets/hero.png" />
+
+  <title>Gajae Code — Encode intention. Decode software.</title>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#top" class="nav__logo">
+        <span class="nav__logo-mark" aria-hidden="true">🦀</span>
+        <span>Gajae Code</span>
+      </a>
+      <button class="nav__hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="nav__links" id="navLinks">
+        <a href="#pillars" class="nav__link">Method</a>
+        <a href="#features" class="nav__link">Features</a>
+        <a href="#architecture" class="nav__link">Architecture</a>
+        <a href="#skills" class="nav__link">Skills</a>
+        <a href="docs/index.html" class="nav__link nav__link--cta">Docs</a>
+        <a href="https://github.com/Yeachan-Heo/gajae-code" class="btn btn--primary" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+    <div class="nav__overlay" id="navOverlay"></div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero" id="top">
+    <div class="hero__content">
+      <div class="hero__text">
+        <span class="hero__badge">🦀 v0.4.5 · beta · MIT licensed</span>
+        <h1 class="hero__title"><span class="gradient-text">Gajae Code</span></h1>
+        <p class="hero__tagline">Encode intention. Decode software.</p>
+        <p class="hero__description">
+          An external coding-agent harness for interviews, reviewed plans, tmux-native
+          execution, and durable verification. Run <code>gjc</code> from any repo or
+          worktree and give your agent a small, explicit workflow surface.
+        </p>
+        <div class="hero__pills">
+          <span class="pill"><strong>shape</strong> · interview</span>
+          <span class="pill"><strong>act</strong> · reviewed plans</span>
+          <span class="pill"><strong>prove</strong> · evidence</span>
+        </div>
+        <div class="hero__cta">
+          <a href="#install" class="btn btn--primary btn--lg">Get Started</a>
+          <a href="docs/index.html" class="btn btn--secondary btn--lg">Read the Docs</a>
+          <a href="https://github.com/Yeachan-Heo/gajae-code" class="btn btn--secondary btn--lg" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+        </div>
+      </div>
+      <div class="hero__visual">
+        <div class="hero__illustration">
+          <img src="assets/hero.png" alt="Gajae Code autonomous coding-agent hero illustration" width="520" height="520" loading="eager" />
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- What is it / quick terminal -->
+  <section class="section section--tight" id="overview">
+    <div class="grid grid--2" style="align-items:center;gap:3rem">
+      <div class="reveal">
+        <span class="section__eyebrow">What is Gajae Code?</span>
+        <h2 class="section__title" style="text-align:left">A focused harness, not a hidden plugin</h2>
+        <p class="card__text" style="font-size:1.05rem;margin-bottom:1rem">
+          Gajae Code (<code>gjc</code>) runs from the repository or worktree you choose,
+          then gives the agent a deliberately small workflow: clarify before guessing,
+          plan before mutation, and track every goal to completion with evidence.
+        </p>
+        <p class="card__text" style="font-size:1.05rem">
+          It runs <em>beside</em> your existing tools — start it alongside Codex CLI,
+          Claude Code, OpenCode, or Claw Code when you want structured planning,
+          persistent evidence, tmux-backed workers, or an isolated worktree.
+        </p>
+      </div>
+      <div class="terminal reveal" aria-label="Recommended workflow example">
+        <div class="terminal__bar">
+          <div class="terminal__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span class="terminal__label">recommended workflow</span>
+        </div>
+        <div class="terminal__body">
+<pre><code><span class="tok-comment"># run gjc beside your repo or in a worktree</span>
+<span class="tok-prompt">$</span> <span class="tok-cmd">gjc</span> <span class="tok-flag">--tmux</span> <span class="tok-flag">--worktree</span> ../my-task
+
+<span class="tok-comment"># inside the session: shape -&gt; act -&gt; prove</span>
+<span class="tok-prompt">&gt;</span> /skill:deep-interview <span class="tok-comment"># clarify intent</span>
+<span class="tok-prompt">&gt;</span> /skill:ralplan        <span class="tok-comment"># plan &amp; critique</span>
+<span class="tok-prompt">&gt;</span> gjc ultragoal create-goals --brief-file plan.md
+<span class="tok-prompt">&gt;</span> gjc ultragoal complete-goals</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pillars: shape · act · prove -->
+  <div class="bg-alt-wrap">
+    <section class="section" id="pillars">
+      <div class="section__header reveal">
+        <span class="section__eyebrow">The method</span>
+        <h2 class="section__title">Shape · Act · Prove</h2>
+        <p class="section__subtitle">One small loop, done well. No sprawling skill zoo — Gajae Code improves by making this method better.</p>
+      </div>
+      <div class="pillars reveal">
+        <div class="pillar">
+          <span class="pillar__num">01 — Shape</span>
+          <h3 class="pillar__title">Interview before guessing</h3>
+          <p class="pillar__text"><code>deep-interview</code> turns vague requests into concrete requirements, boundaries, and explicit non-goals before any code is touched.</p>
+        </div>
+        <div class="pillar">
+          <span class="pillar__num">02 — Act</span>
+          <h3 class="pillar__title">Plan before mutation</h3>
+          <p class="pillar__text"><code>ralplan</code> builds and critiques the implementation plan, then <code>ultragoal</code> carries the approved plan through execution with tmux-backed workers when parallelism helps.</p>
+        </div>
+        <div class="pillar">
+          <span class="pillar__num">03 — Prove</span>
+          <h3 class="pillar__title">Finish with evidence</h3>
+          <p class="pillar__text"><code>ultragoal</code> tracks goals, revisions, checks, and completion evidence so a finished task ships with a verifiable trail, not a hopeful claim.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Workflow flow -->
+  <section class="section" id="workflow">
+    <div class="section__header reveal">
+      <span class="section__eyebrow">Workflow surface</span>
+      <h2 class="section__title">A path you can read</h2>
+      <p class="section__subtitle">The default workflow is intentionally explicit. You always know what stage you are in.</p>
+    </div>
+    <div class="flow reveal">
+      <div class="flow__step">
+        <h4>deep-interview</h4>
+        <p>Clarify ambiguous requirements before planning or code changes.</p>
+      </div>
+      <div class="flow__arrow" aria-hidden="true">→</div>
+      <div class="flow__step">
+        <h4>ralplan</h4>
+        <p>Build and critique an implementation plan before mutation.</p>
+      </div>
+      <div class="flow__arrow" aria-hidden="true">→</div>
+      <div class="flow__step">
+        <h4>ultragoal</h4>
+        <p>Track goals through execution, revision, verification, and evidence.</p>
+      </div>
+      <div class="flow__arrow" aria-hidden="true">→</div>
+      <div class="flow__step">
+        <h4>team <span style="opacity:.6">(optional)</span></h4>
+        <p>Coordinate tmux-backed workers when parallel execution is worth it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <div class="bg-alt-wrap">
+    <section class="section" id="features">
+      <div class="section__header reveal">
+        <span class="section__eyebrow">Capabilities</span>
+        <h2 class="section__title">Built for reviewable autonomy</h2>
+        <p class="section__subtitle">Everything you need to run an agent you can actually trust with a repository.</p>
+      </div>
+      <div class="grid grid--3 reveal">
+        <article class="card">
+          <div class="card__icon" aria-hidden="true">🎯</div>
+          <h3 class="card__title">Interview-first intent</h3>
+          <p class="card__text">Requirements are clarified up front with <code>deep-interview</code>, so the agent works from a shared, concrete understanding instead of a guess.</p>
+        </article>
+        <article class="card">
+          <div class="card__icon" aria-hidden="true">🗺️</div>
+          <h3 class="card__title">Reviewed plans</h3>
+          <p class="card__text"><code>ralplan</code> drafts and critiques the approach through planner, architect, and critic perspectives before a single file is mutated.</p>
+        </article>
+        <article class="card">
+          <div class="card__icon" aria-hidden="true">🧾</div>
+          <h3 class="card__title">Durable evidence</h3>
+          <p class="card__text"><code>ultragoal</code> records goals, revisions, checks, and completion evidence under <code>.gjc/</code> — a verifiable trail for every task.</p>
+        </article>
+        <article class="card">
+          <div class="card__icon" aria-hidden="true">🪟</div>
+          <h3 class="card__title">tmux-native execution</h3>
+          <p class="card__text">Run a leader session with <code>--tmux</code> and coordinate workers without losing visibility into what each lane is doing.</p>
+        </article>
+        <article class="card">
+          <div class="card__icon" aria-hidden="true">🌿</div>
+          <h3 class="card__title">Worktree isolation</h3>
+          <p class="card__text">Point <code>gjc</code> at an isolated git worktree for risky or reviewable work, keeping your primary checkout clean.</p>
+        </article>
+        <article class="card">
+          <div class="card__icon" aria-hidden="true">🔌</div>
+          <h3 class="card__title">Remote control plane</h3>
+          <p class="card__text">Drive a session over a stdio <code>RPC</code> protocol or a fail-closed, TLS-only <code>bridge</code> for programmatic and remote orchestration.</p>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <!-- Architecture -->
+  <section class="section" id="architecture">
+    <div class="section__header reveal">
+      <span class="section__eyebrow">Architecture</span>
+      <h2 class="section__title">A layered runtime</h2>
+      <p class="section__subtitle">From CLI launch to model streams, every layer has a clear responsibility.</p>
+    </div>
+    <div class="layers reveal">
+      <div class="layer">
+        <div class="layer__name">CLI &amp; modes<span>coding-agent</span></div>
+        <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team</code>) and dispatches interactive, print, RPC, and bridge modes.</div>
+      </div>
+      <div class="layer">
+        <div class="layer__name">Agent runtime<span>agent</span></div>
+        <div class="layer__desc">A stateful turn loop transforms context, calls the model stream, executes tool calls, appends results, and emits lifecycle events.</div>
+      </div>
+      <div class="layer">
+        <div class="layer__name">Provider boundary<span>ai</span></div>
+        <div class="layer__desc">A model registry, provider implementations, auth, streaming, usage accounting, and retry/overflow handling sit behind one clean interface.</div>
+      </div>
+      <div class="layer">
+        <div class="layer__name">Tools<span>read · edit · bash · lsp</span></div>
+        <div class="layer__desc">A built-in tool registry for file, code, and runtime operations — reading, editing, AST tools, search, LSP, the browser, subagents, and more.</div>
+      </div>
+      <div class="layer">
+        <div class="layer__name">Native &amp; TUI<span>natives · tui</span></div>
+        <div class="layer__desc">Rust N-API helpers accelerate search, diff, syntax, and shell work; the terminal UI framework renders the interactive experience.</div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:2rem" class="reveal">
+      <a href="docs/architecture.html" class="btn btn--secondary">Explore the architecture →</a>
+    </p>
+  </section>
+
+  <!-- Install -->
+  <div class="bg-alt-wrap">
+    <section class="section" id="install">
+      <div class="section__header reveal">
+        <span class="section__eyebrow">Get started</span>
+        <h2 class="section__title">Up and running in two steps</h2>
+        <p class="section__subtitle">Install with Bun, then launch in your repository.</p>
+      </div>
+      <div class="install-grid reveal">
+        <div class="install-step">
+          <div class="install-step__label"># 1 · install globally with Bun</div>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="bun install -g gajae-code">Copy</button>
+            </div>
+            <div class="code-block__body"><code>bun install -g gajae-code</code></div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="install-step__label"># 2 · verify the install</div>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="gjc --version && gjc --smoke-test">Copy</button>
+            </div>
+            <div class="code-block__body"><code>gjc --version &amp;&amp; gjc --smoke-test</code></div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="install-step__label"># 3 · launch in the current checkout</div>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="gjc">Copy</button>
+            </div>
+            <div class="code-block__body"><code>gjc</code></div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="install-step__label"># 4 · or use a tmux-backed worktree</div>
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="code-block__copy" data-copy="gjc --tmux --worktree ../my-task-worktree">Copy</button>
+            </div>
+            <div class="code-block__body"><code>gjc --tmux --worktree ../my-task-worktree</code></div>
+          </div>
+        </div>
+      </div>
+      <p style="text-align:center;margin-top:2rem" class="reveal">
+        <a href="docs/getting-started.html" class="btn btn--secondary">Full getting-started guide →</a>
+        &nbsp;
+        <span class="card__text" style="display:inline">Also available as <code>@gajae-code/coding-agent</code>.</span>
+      </p>
+    </section>
+  </div>
+
+  <!-- Skills & agents -->
+  <section class="section" id="skills">
+    <div class="section__header reveal">
+      <span class="section__eyebrow">Workflow surface</span>
+      <h2 class="section__title">Four skills, four role agents</h2>
+      <p class="section__subtitle">A small, fixed surface — no default skill sprawl.</p>
+    </div>
+    <div class="grid grid--2 reveal">
+      <div>
+        <h3 style="margin-bottom:1rem;font-size:1.15rem">Workflow skills</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Skill</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code>deep-interview</code></td><td>Clarifies ambiguous requirements before planning or code changes.</td></tr>
+              <tr><td><code>ralplan</code></td><td>Builds and critiques an implementation plan before mutation.</td></tr>
+              <tr><td><code>ultragoal</code></td><td>Tracks goals through execution, revision, verification, and evidence.</td></tr>
+              <tr><td><code>team</code></td><td>Coordinates tmux-backed workers when parallel execution is worth it.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:1rem;font-size:1.15rem">Role agents</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Agent</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code>executor</code></td><td>Bounded implementation, fixes, and refactors.</td></tr>
+              <tr><td><code>architect</code></td><td>Read-only architecture and code-review assessment.</td></tr>
+              <tr><td><code>planner</code></td><td>Read-only sequencing and acceptance criteria.</td></tr>
+              <tr><td><code>critic</code></td><td>Read-only plan critique and actionability review.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:2rem" class="reveal">
+      <a href="docs/skills.html" class="btn btn--secondary">Skills reference →</a>
+    </p>
+  </section>
+
+  <!-- Safety / proof / receipts -->
+  <div class="bg-alt-wrap">
+    <section class="section" id="safety">
+      <div class="section__header reveal">
+        <span class="section__eyebrow">Safety &amp; proof</span>
+        <h2 class="section__title">Trust comes from evidence</h2>
+        <p class="section__subtitle">Autonomy is only useful when the result is reviewable. Gajae Code is built to leave a trail.</p>
+      </div>
+      <div class="safety-grid reveal">
+        <div class="safety-item">
+          <div class="safety-item__mark" aria-hidden="true">✓</div>
+          <div>
+            <h4>Plan-before-mutation</h4>
+            <p>Approaches are reviewed and critiqued before any file changes, reducing wasted runs and surprise edits.</p>
+          </div>
+        </div>
+        <div class="safety-item">
+          <div class="safety-item__mark" aria-hidden="true">🧾</div>
+          <div>
+            <h4>Completion evidence</h4>
+            <p>Goals, revisions, checks, and verification results are recorded as durable artifacts you can read after the fact.</p>
+          </div>
+        </div>
+        <div class="safety-item">
+          <div class="safety-item__mark" aria-hidden="true">🌿</div>
+          <div>
+            <h4>Isolated worktrees</h4>
+            <p>Risky work runs in a dedicated git worktree, so your primary checkout stays clean and the diff stays scoped.</p>
+          </div>
+        </div>
+        <div class="safety-item">
+          <div class="safety-item__mark" aria-hidden="true">🔒</div>
+          <div>
+            <h4>Fail-closed remote control</h4>
+            <p>Bridge mode is HTTPS-only with a mandatory bearer token, and session-control endpoints are disabled by default.</p>
+          </div>
+        </div>
+      </div>
+      <p style="text-align:center;margin-top:2rem" class="reveal">
+        <a href="docs/receipts.html" class="btn btn--secondary">How receipts &amp; proof work →</a>
+      </p>
+    </section>
+  </div>
+
+  <!-- Docs links -->
+  <section class="section" id="docs">
+    <div class="section__header reveal">
+      <span class="section__eyebrow">Documentation</span>
+      <h2 class="section__title">Dive deeper</h2>
+      <p class="section__subtitle">Guides and references for every layer of Gajae Code.</p>
+    </div>
+    <div class="grid grid--3 reveal">
+      <a class="card" href="docs/getting-started.html">
+        <div class="card__icon" aria-hidden="true">🚀</div>
+        <h3 class="card__title">Getting Started</h3>
+        <p class="card__text">Install, launch, and run your first shape → act → prove loop.</p>
+      </a>
+      <a class="card" href="docs/architecture.html">
+        <div class="card__icon" aria-hidden="true">🏗️</div>
+        <h3 class="card__title">Architecture</h3>
+        <p class="card__text">How the CLI, agent loop, provider boundary, and tools fit together.</p>
+      </a>
+      <a class="card" href="docs/harness.html">
+        <div class="card__icon" aria-hidden="true">⚙️</div>
+        <h3 class="card__title">The Harness</h3>
+        <p class="card__text">Running gjc as an external runner beside your other agents.</p>
+      </a>
+      <a class="card" href="docs/bridge-rpc.html">
+        <div class="card__icon" aria-hidden="true">🔌</div>
+        <h3 class="card__title">Bridge &amp; RPC</h3>
+        <p class="card__text">The remote-control surfaces: stdio RPC and the fail-closed HTTPS bridge.</p>
+      </a>
+      <a class="card" href="docs/skills.html">
+        <div class="card__icon" aria-hidden="true">🧩</div>
+        <h3 class="card__title">Skills &amp; Agents</h3>
+        <p class="card__text">The four workflow skills and four role agents in detail.</p>
+      </a>
+      <a class="card" href="docs/receipts.html">
+        <div class="card__icon" aria-hidden="true">🧾</div>
+        <h3 class="card__title">Receipts &amp; Proof</h3>
+        <p class="card__text">The evidence model behind durable, verifiable completion.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section">
+    <div class="cta-band reveal">
+      <h2>Give your agent a workflow it can prove</h2>
+      <p>Install Gajae Code, run it beside the tools you already use, and ship work with a trail you can read.</p>
+      <div class="cta-band__actions">
+        <a href="#install" class="btn btn--primary btn--lg">Get Started</a>
+        <a href="https://github.com/Yeachan-Heo/gajae-code" class="btn btn--secondary btn--lg" target="_blank" rel="noopener noreferrer">Star on GitHub</a>
+        <a href="https://discord.gg/sj4exxQ9v" class="btn btn--secondary btn--lg" target="_blank" rel="noopener noreferrer">Join Discord</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <a href="#top" class="nav__logo">
+            <span class="nav__logo-mark" aria-hidden="true">🦀</span>
+            <span>Gajae Code</span>
+          </a>
+          <p>An external coding-agent harness for interviews, reviewed plans, tmux-native execution, and durable verification.</p>
+        </div>
+        <div class="footer__cols">
+          <div class="footer__col">
+            <h5>Docs</h5>
+            <a href="docs/index.html">Documentation Hub</a>
+            <a href="docs/getting-started.html">Getting Started</a>
+            <a href="docs/architecture.html">Architecture</a>
+            <a href="docs/bridge-rpc.html">Bridge &amp; RPC</a>
+          </div>
+          <div class="footer__col">
+            <h5>Reference</h5>
+            <a href="docs/skills.html">Skills &amp; Agents</a>
+            <a href="docs/receipts.html">Receipts &amp; Proof</a>
+            <a href="docs/gajae-remote.html">Gajae Remote</a>
+            <a href="docs/troubleshooting.html">Troubleshooting</a>
+          </div>
+          <div class="footer__col">
+            <h5>Project</h5>
+            <a href="https://github.com/Yeachan-Heo/gajae-code" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://www.npmjs.com/package/gajae-code" target="_blank" rel="noopener noreferrer">npm</a>
+            <a href="https://discord.gg/sj4exxQ9v" target="_blank" rel="noopener noreferrer">Discord</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>MIT License &copy; <span data-year>2026</span> Gajae Code</span>
+        <span>Encode intention. Decode software.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

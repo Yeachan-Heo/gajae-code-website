@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Common Gajae Code setup, session, bridge, and CI problems with practical recovery checks." />
+  <title>Troubleshooting · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link " href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link is-active" href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Troubleshooting</h1><p>Common Gajae Code setup, session, bridge, and CI problems with practical recovery checks.</p></section>
+
+      <section class="docs-section"><h2>Install and runtime</h2><ul><li>Confirm Bun and Node are on <code>PATH</code>.</li><li>Run <code>gjc --help</code> to confirm the CLI entrypoint resolves.</li><li>If native helpers fail, rebuild from a clean checkout and inspect platform-specific build output.</li></ul></section>
+      <section class="docs-section"><h2>Session control</h2><ul><li>If a session stops accepting prompts, verify owner liveness before submitting again.</li><li>If branch metadata looks wrong, stop and correct the checkout instead of continuing in the wrong workspace.</li><li>Retire stale sessions after preserving their terminal outcome.</li></ul></section>
+      <section class="docs-section"><h2>Bridge/RPC</h2><ul><li>Check endpoint URL, TLS/bearer configuration, and command scopes.</li><li>Treat denied scopes as a safety feature, not as a reason to widen authority blindly.</li><li>Prefer structured observations over log scraping.</li></ul></section>
+
+<nav class="doc-pager"><a href="gajae-remote.html">← Gajae Remote</a><span></span></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>
