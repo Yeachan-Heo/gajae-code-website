@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="A high-level design for a thin phone steering wheel that observes and nudges PC-side Gajae Code sessions without becoming a remote shell." />
+  <meta name="description" content="Gajae Remote v0 design: a thin phone steering wheel for PC-side GJC sessions with gateway-only scopes and bounded transmitted data." />
   <title>Gajae Remote · Gajae Code Docs</title>
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="stylesheet" href="style.css" />
@@ -27,6 +27,7 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes MCP Bridge</a>
         <a class="docs-nav-link is-active" href="gajae-remote.html">Gajae Remote</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
@@ -37,13 +38,19 @@
   </aside>
 
     <main class="docs-main">
-      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Gajae Remote</h1><p>A high-level design for a thin phone steering wheel that observes and nudges PC-side Gajae Code sessions without becoming a remote shell.</p></section>
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Gajae Remote v0</h1><p>A thin phone steering wheel for already-running PC-side <code>gjc</code> sessions. It observes bounded state and submits one-line instructions without becoming a shell, file editor, or remote desktop.</p></section>
 
-      <section class="docs-section"><h2>Thin steering wheel</h2><p>Gajae Remote is the product direction for checking session status, reading bounded summaries, and submitting short prompts from a phone while the actual coding authority stays on the PC.</p></section>
-      <section class="docs-section"><h2>Authority boundary</h2><div class="callout"><strong>Not a shell:</strong> a mobile client should not expose raw tool results, environment variables, diffs, secrets, system prompts, or host command execution. It should show the smallest useful session view.</div><ul><li>PC-side owner remains the source of truth.</li><li>Phone clients get summarized state and explicit submit endpoints.</li><li>Pairing and scopes should be narrow, revocable, and auditable.</li></ul></section>
-      <section class="docs-section"><h2>Useful states</h2><p>Idle, working, blocked, disconnected, and rejected-submit states are more useful on mobile than raw transcript streaming. The remote view should tell the operator what action is safe and what action is unavailable.</p></section>
+      <section class="docs-section"><h2>Authority boundary</h2><div class="callout"><strong>PC stays authoritative:</strong> the gateway and phone are observers plus one-line submitters. File edits, shell execution, workflow-gate answers, approval prompts, raw transcripts, tool arguments/results, diffs, secrets, environment, and system prompts stay on the PC.</div><ul><li>Phone clients may list active sessions, open one bounded session view, submit one line through the owner submit path, and see idle/working/blocked/offline status.</li><li>The phone cannot bypass <code>readyForSubmit</code> or submit while the owner runtime is busy.</li><li>Held-back content is shown as a neutral “withheld on PC” marker, not as a redacted blob.</li></ul></section>
 
-<nav class="doc-pager"><a href="bridge-rpc.html">← Bridge & RPC</a><a href="troubleshooting.html">Troubleshooting →</a></nav>
+      <section class="docs-section"><h2>Gateway-only scopes</h2><p>v0 reuses the bridge transport posture — TLS, bearer tokens, fail-closed defaults — but it does <strong>not</strong> give phone bearers bridge/RPC command authority.</p><ul><li>Allowed gateway scopes: <code>remote:view</code> and <code>remote:submit</code>.</li><li>These are not aliases for <code>message:read</code> or <code>prompt</code>.</li><li>Phone bearers must not authorize bridge calls such as <code>get_messages</code>, <code>get_last_assistant_text</code>, <code>get_state</code> with <code>systemPrompt</code>/<code>tools</code>, <code>new_session</code>, <code>switch_session</code>, <code>branch</code>, <code>set_model</code>, shell, host, control, or admin surfaces.</li></ul></section>
+
+      <section class="docs-section"><h2>Transmitted-data allowlist</h2><p>Only a typed projection leaves the PC. Session summaries expose <code>sessionId</code>, a sanitized derived name, harness, status, last activity, and branch. Open-session views expose bounded lifecycle, owner liveness, blockers, observed signals, git delta enum, risk enum, submit readiness, and submit-unavailable reason.</p><p>Everything else is withheld by default: raw pane output, full transcript/message bodies, tool args/results, file contents, diffs, system prompt, env, tokens, secrets, and absolute paths beyond safe metadata.</p></section>
+
+      <section class="docs-section"><h2>v0 architecture</h2><p>The new piece is a PC-side Gajae Remote gateway. It enumerates harness-control-plane session state, observes each owner through bounded control-plane data, and proxies one-line submits through the same owner submit path used locally.</p><ul><li>Network/auth posture: bridge mode’s TLS + bearer + fail-closed model.</li><li>Session/liveness source: harness control-plane state, leases, heartbeat, and bounded observation.</li><li>Client first target: mobile web, following the local server + SPA pattern already used by <code>packages/stats</code>.</li><li>Hosted relay is deferred to v1 and needs separate ADR-level trust-model review.</li></ul></section>
+
+      <section class="docs-section"><h2>Failure states</h2><ul><li><strong>Offline:</strong> owner lease dead or gateway unreachable; submit disabled.</li><li><strong>Expired pairing:</strong> token expired/revoked; re-pair on PC.</li><li><strong>Busy:</strong> <code>readyForSubmit == false</code>; show reason and disable submit.</li><li><strong>Rejected submit:</strong> typed error such as <code>scope_denied</code>.</li><li><strong>Withheld output:</strong> show “withheld on PC”.</li></ul></section>
+
+<nav class="doc-pager"><a href="hermes-mcp-bridge.html">← Hermes MCP Bridge</a><a href="troubleshooting.html">Troubleshooting →</a></nav>
     </main>
   </div>
   <script src="../js/main.js"></script>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Hermes MCP bridge docs for Gajae Code coordinator integrations." />
+  <title>Hermes MCP Bridge · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link " href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link is-active" href="hermes-mcp-bridge.html">Hermes MCP Bridge</a>
+        <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link " href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Hermes MCP Bridge</h1><p><code>gjc mcp-serve coordinator</code> exposes a GJC-native outward MCP adapter for Hermes-style coordinators. <code>gjc mcp-serve hermes</code> is a compatibility alias for the same bridge.</p></section>
+
+      <section class="docs-section"><h2>What it is</h2><p>The coordinator bridge is a core GJC contract with multiple adapters, not an MCP-only product direction. Hermes is one coordinator preset. The bridge lets external coordinators register visible sessions, read polling status, send bounded turns, answer questions, and write reports while keeping mutation classes fail-closed until configured.</p></section>
+
+      <section class="docs-section"><h2>Standard setup</h2><div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="gjc setup hermes --root /path/to/repo --profile my-bot --repo gajae-code">Copy</button></div><div class="code-block__body"><code>gjc setup hermes --root /path/to/repo --profile my-bot --repo gajae-code</code></div></div><p>The default mode is render-only. Install mode writes a portable Hermes MCP setup package with explicit roots, repo identity, and session command configuration.</p></section>
+
+      <section class="docs-section"><h2>Coordinator turn model</h2><p>Hermes coordinators should treat turns, not terminal scrollback, as the unit of work. The bridge stores durable turn/question/report state and exposes bounded polling snapshots. Use <code>gjc_coordinator_register_session</code> to attach an already-visible tmux-backed GJC pane instead of creating a hidden session.</p></section>
+
+      <section class="docs-section"><h2>Event watch surface</h2><p><code>gjc_coordinator_watch_events</code> is the long-poll event journal surface for Hermes-style agents. It returns bounded event records, <code>latest_seq</code>, timeout status, and explicit transport metadata (<code>mcp: long_poll</code>, no push subscriptions). Consumers should poll by sequence number and avoid treating terminal scrollback as authoritative state.</p></section>
+
+      <section class="docs-section"><h2>Safety posture</h2><ul><li>Read-only by default.</li><li>Mutation classes require explicit startup and per-call authorization.</li><li>Workdir roots, repo identity, safe session tokens, and tmux target liveness are validated before state writes.</li><li>Generated GJC-native worktree commands preserve project/session identity better than unmanaged external worktrees.</li></ul></section>
+
+<nav class="doc-pager"><a href="bridge-rpc.html">← Bridge & RPC</a><a href="gajae-remote.html">Gajae Remote →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>
