@@ -70,7 +70,7 @@ gjc rlm --data ./datasets/DATA.md           # point at a data description</code>
         <ul>
           <li><strong>Steer-by-default while busy.</strong> <code>busyPromptMode</code> defaults to <code>steer</code>: pressing Enter on a normal prompt interrupts the active turn. Queueing for the next turn moves to the explicit Ctrl+Enter follow-up keystroke (or <code>busyPromptMode: "queue"</code>).</li>
           <li><strong><code>goal({op:"pause"})</code>.</strong> The agent can now park a goal whose remaining work is blocked on human input, instead of dropping it or leaving it re-firing the autonomous-continuation steer every turn.</li>
-          <li><strong>Intel macOS native binaries.</strong> <code>darwin-x64</code> standalone binaries are now part of release coverage, with clearer installer guidance when older releases lack the asset.</li>
+          <li><strong>Release unblock.</strong> Deprecated GitHub Actions Intel macOS (<code>macos-13</code> / <code>darwin-x64</code>) release binaries are excluded from CI; Intel macOS users should install through npm/Bun or build from source.</li>
         </ul>
       </section>
 
