@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Use gjc rlm for opt-in research and REPL-style notebook sessions with Python, read, and web search tools." />
+  <title>RLM research mode · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+        <a class="docs-nav-link " href="whats-new.html">What's new (0.6.0)</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
+        <a class="docs-nav-link is-active" href="rlm.html">RLM research mode</a>
+        <a class="docs-nav-link " href="computer-use.html">Computer tool</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link " href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes MCP Bridge</a>
+        <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link " href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Mode guide</p><h1><code>gjc rlm</code> research mode</h1><p>Run a notebook-style research session with a persistent Python kernel, live notebook capture, and a synthesized report — without giving the session write/edit tools.</p></section>
+
+      <section class="docs-section"><h2>Start a research session</h2>
+        <pre><code>gjc rlm                                    # open an interactive research session
+gjc rlm "What drives the spike in orders?"  # seed the session with a question
+gjc rlm --data ./datasets/DATA.md           # load a project/data description</code></pre>
+        <p>Use <code>gjc rlm</code> when the task is exploration: analyze data, inspect files, search the web, compute statistics, make plots, and produce a report. Use a normal <code>gjc</code> session when the task is implementation or repository mutation.</p>
+      </section>
+
+      <section class="docs-section"><h2>What tools does RLM get?</h2>
+        <p>RLM is intentionally constrained. It exposes a hard-gated research toolset rather than the full coding-agent mutation surface.</p>
+        <ul>
+          <li><code>python</code> — persistent Python kernel for analysis, plotting, and computation.</li>
+          <li><code>read</code> — inspect files, docs, images metadata, archives, URLs, and data sources.</li>
+          <li><code>web_search</code> — gather current external information when needed.</li>
+          <li>Inspection-only bash prefixes, <code>goal</code>, and <code>complete_research</code> support session control and completion.</li>
+        </ul>
+        <div class="callout"><strong>Boundary:</strong> RLM does not expose normal repository mutation tools such as <code>edit</code>, <code>write</code>, <code>task</code>, or browser automation. The allowlist is asserted after tool-registry assembly so leaked tools fail the launch.</div>
+      </section>
+
+      <section class="docs-section"><h2>Artifacts</h2>
+        <p>Each RLM run writes durable research artifacts under <code>.gjc/rlm/&lt;session&gt;/</code>:</p>
+        <ul>
+          <li><code>notebook.ipynb</code> — every executed Python cell, written live with atomic temp-rename updates and post-write validation.</li>
+          <li><code>report.md</code> — synthesized when the session exits.</li>
+          <li>metadata and state files used to resume/report the research session.</li>
+        </ul>
+      </section>
+
+      <section class="docs-section"><h2>Recommended loop</h2>
+        <pre><code># 1. Create a small data brief if useful
+cat DATA.md
+
+# 2. Start research
+gjc rlm --data DATA.md "Find the strongest signal and explain the evidence"
+
+# 3. Let the agent compute/search/read, then ask it to complete the report
+# 4. Review .gjc/rlm/&lt;session&gt;/report.md and notebook.ipynb</code></pre>
+      </section>
+
+<nav class="doc-pager"><a href="whats-new.html">← What's new</a><a href="computer-use.html">Computer tool →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Use the Gajae Code computer tool for opt-in desktop screenshot and input control on Apple Silicon macOS." />
+  <title>Computer tool · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+        <a class="docs-nav-link " href="whats-new.html">What's new (0.6.0)</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
+        <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
+        <a class="docs-nav-link is-active" href="computer-use.html">Computer tool</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link " href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes MCP Bridge</a>
+        <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link " href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Tool guide</p><h1><code>computer</code> desktop-control tool</h1><p>Tell your GJC session to use the <code>computer</code> tool when it needs to see the local screen, click, type, scroll, or drive a desktop app.</p></section>
+
+      <section class="docs-section"><h2>How to use it</h2>
+        <p>There is no separate <code>gjc computer</code> subcommand. Start a normal GJC session, enable the tool on a supported host, then ask the agent to use the computer tool.</p>
+        <pre><code># 1. Launch GJC from the repo/workspace where you want the agent to work
+gjc
+
+# 2. In your prompt, be explicit
+"Use the computer tool to inspect the app window, click the login button, and type the test account."
+
+# 3. Keep the kill-switch available
+# Default: Control+Option+Command+Escape</code></pre>
+      </section>
+
+      <section class="docs-section"><h2>What it can do</h2>
+        <p>The tool mirrors the OpenAI computer-use action set:</p>
+        <ul>
+          <li><code>screenshot</code> — capture the current primary display.</li>
+          <li><code>click</code>, <code>double_click</code>, <code>move</code>, <code>drag</code>, <code>scroll</code> — pointer control.</li>
+          <li><code>type</code>, <code>keypress</code> — keyboard input.</li>
+          <li><code>wait</code> and <code>batch</code> — bounded timing and grouped actions.</li>
+        </ul>
+        <p>The screenshot's pixel dimensions are the coordinate space. Rust owns the Retina/HiDPI transform to macOS logical points, so the agent should use coordinates from the most recent screenshot.</p>
+      </section>
+
+      <section class="docs-section"><h2>Platform and permissions</h2>
+        <ul>
+          <li><strong>Platform:</strong> Apple Silicon macOS only in v0.6.0. Linux/Windows are deferred behind the same schema.</li>
+          <li><strong>Permissions:</strong> Screen Recording and Accessibility are required. Missing permissions are surfaced as explicit errors rather than silent black screenshots.</li>
+          <li><strong>Safety:</strong> the global kill-switch is outside model control and can stop queued input, release held buttons/keys, and suspend further computer actions.</li>
+        </ul>
+        <div class="callout callout--warn"><span class="callout__icon" aria-hidden="true">⚠️</span><p>This is an experimental, opt-in surface. Use it for local desktop coordination where visual feedback matters, and verify important actions before relying on them.</p></div>
+      </section>
+
+      <section class="docs-section"><h2>Prompt examples</h2>
+        <pre><code>Use the computer tool to take a screenshot and tell me what app is frontmost.
+
+Use the computer tool to click the first empty row in the spreadsheet and type this CSV row.
+
+Use the computer tool to open the browser window, inspect the error banner, and stop after the screenshot.</code></pre>
+        <p>Keep prompts concrete: name the visible app, the action to perform, and the stop condition.</p>
+      </section>
+
+<nav class="doc-pager"><a href="rlm.html">← RLM research mode</a><a href="architecture.html">Architecture →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>
