@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="What's new in Gajae Code v0.6.0 — the opt-in rlm research mode and the experimental computer desktop-control tool." />
+  <title>What's new (0.6.0) · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+        <a class="docs-nav-link is-active" href="whats-new.html">What's new (0.6.0)</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link " href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes MCP Bridge</a>
+        <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link " href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>What's new in v0.6.0</h1><p>Two new opt-in capability surfaces — a research/REPL mode and a desktop-control tool — plus interaction refinements. Both new surfaces are off by default and gated.</p></section>
+
+      <section class="docs-section"><h2>🔬 Research mode — <code>gjc rlm</code></h2>
+        <p>A Jupyter-notebook-style research session layered over the existing agent loop, backed by the shared persistent Python kernel. It is built for exploring data and questions, not mutating your repository.</p>
+        <pre><code>gjc rlm                                    # interactive research session
+gjc rlm "What drives the spike in orders?"  # seed an initial question
+gjc rlm --data ./datasets/DATA.md           # point at a data description</code></pre>
+        <ul>
+          <li><strong>Hard-gated toolset.</strong> Only <code>python</code>, <code>read</code>, and <code>web_search</code> are exposed (plus inspection-only <code>bash</code> prefixes, <code>goal</code>, and a <code>complete_research</code> tool). The allowlist is asserted <em>after</em> the tool registry is assembled, so a leaked <code>edit</code>/<code>write</code>/<code>task</code>/<code>browser</code> tool fails the launch loudly instead of silently mutating your repo.</li>
+          <li><strong>Live notebook.</strong> Every executed cell streams into <code>.gjc/rlm/&lt;session&gt;/notebook.ipynb</code> via single-queue atomic temp-rename writes with post-write validation.</li>
+          <li><strong>Synthesized report.</strong> A <code>.gjc/rlm/&lt;session&gt;/report.md</code> is generated on session exit.</li>
+          <li><strong>Optional data context.</strong> Auto-loads a project-root <code>DATA.md</code> (override with <code>--data &lt;path&gt;</code>).</li>
+        </ul>
+        <div class="callout"><strong>v1 scope:</strong> interactive sessions ship today. Autonomous goal-arg runs, <code>--resume</code>, managed per-workspace venv provisioning, and an optional completion gate are deferred follow-ups.</div>
+      </section>
+
+      <section class="docs-section"><h2>🖥️ Desktop control — the <code>computer</code> tool <span style="opacity:.6">(experimental)</span></h2>
+        <p>A model-agnostic tool that lets the agent drive a real macOS desktop using the OpenAI computer-use action set: <code>screenshot</code>, <code>click</code>, <code>double_click</code>, <code>move</code>, <code>drag</code>, <code>scroll</code>, <code>type</code>, <code>keypress</code>, and <code>wait</code>.</p>
+        <ul>
+          <li><strong>Native + HiDPI-safe.</strong> Backed by fresh Rust <code>pi-natives</code> bindings (<code>ComputerController</code> / <code>computerScreenshot</code>). The returned screenshot's pixel dimensions <em>are</em> the action coordinate space; Rust owns the transform to macOS logical points.</li>
+          <li><strong>Apple Silicon macOS.</strong> v1 is macOS-only; Linux/Windows are deferred behind the same tool schema.</li>
+          <li><strong>User-only kill-switch.</strong> A supervisor-enforced global hotkey (default <code>Control+Option+Command+Escape</code>) aborts queued actions, releases held keys/buttons, and suspends further input outside model control. Reset is user-only.</li>
+          <li><strong>TCC preflighted.</strong> Accessibility + Screen Recording grants are checked up front; a missing grant returns a clear "grant then retry" error rather than a silent black frame.</li>
+        </ul>
+        <div class="callout callout--warn"><span class="callout__icon" aria-hidden="true">⚠️</span><p>Off by default. Enable per session with <code>computer.enabled=true</code> on a supported host. This surface is an experimental preview and is still stabilizing.</p></div>
+      </section>
+
+      <section class="docs-section"><h2>🔧 Interaction & lifecycle</h2>
+        <ul>
+          <li><strong>Steer-by-default while busy.</strong> <code>busyPromptMode</code> defaults to <code>steer</code>: pressing Enter on a normal prompt interrupts the active turn. Queueing for the next turn moves to the explicit Ctrl+Enter follow-up keystroke (or <code>busyPromptMode: "queue"</code>).</li>
+          <li><strong><code>goal({op:"pause"})</code>.</strong> The agent can now park a goal whose remaining work is blocked on human input, instead of dropping it or leaving it re-firing the autonomous-continuation steer every turn.</li>
+          <li><strong>Intel macOS native binaries.</strong> <code>darwin-x64</code> standalone binaries are now part of release coverage, with clearer installer guidance when older releases lack the asset.</li>
+        </ul>
+      </section>
+
+      <section class="docs-section"><h2>Upgrade</h2>
+        <pre><code>bun install -g gajae-code        # or: @gajae-code/coding-agent
+gjc --version &amp;&amp; gjc --smoke-test</code></pre>
+        <p>See the full <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.6.0">v0.6.0 release notes</a> on GitHub.</p>
+      </section>
+
+<nav class="doc-pager"><a href="getting-started.html">← Getting started</a><a href="skills.html">Skills →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>

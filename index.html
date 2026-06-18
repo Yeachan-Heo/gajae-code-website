@@ -46,6 +46,7 @@
         <span></span>
       </button>
       <div class="nav__links" id="navLinks">
+        <a href="#whats-new" class="nav__link">What's new</a>
         <a href="#pillars" class="nav__link">Method</a>
         <a href="#features" class="nav__link">Features</a>
         <a href="#architecture" class="nav__link">Architecture</a>
@@ -61,7 +62,7 @@
   <header class="hero" id="top">
     <div class="hero__content">
       <div class="hero__text">
-        <span class="hero__badge">🦀 v0.5.4 · beta · MIT licensed</span>
+        <span class="hero__badge">🦀 v0.6.0 · beta · MIT licensed</span>
         <h1 class="hero__title"><span class="gradient-text">Gajae Code</span></h1>
         <p class="hero__tagline">Encode intention. Decode software.</p>
         <p class="hero__description">
@@ -121,6 +122,27 @@
 <span class="tok-prompt">&gt;</span> gjc ultragoal complete-goals</code></pre>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- New in 0.6.0 -->
+  <section class="section" id="whats-new">
+    <div class="section__header reveal">
+      <span class="section__eyebrow">New in v0.6.0</span>
+      <h2 class="section__title">Two new opt-in surfaces</h2>
+      <p class="section__subtitle">Research mode and desktop control — both off by default, gated, and built on the same reviewable agent loop.</p>
+    </div>
+    <div class="grid grid--2 reveal" style="gap:2.5rem;align-items:start">
+      <article class="card">
+        <img src="assets/rlm.png" alt="gjc rlm research mode — Research. Experiment. Iterate." style="width:100%;border-radius:12px;margin-bottom:1.25rem" loading="lazy" />
+        <h3 class="card__title"><code>gjc rlm</code> — research / REPL mode</h3>
+        <p class="card__text">A Jupyter-notebook-style research session over a persistent Python kernel. The toolset is hard-gated to <code>python</code> + <code>read</code> + <code>web_search</code> (asserted after registry assembly, so no <code>edit</code>/<code>write</code> can leak in). Every cell streams into <code>.gjc/rlm/&lt;session&gt;/notebook.ipynb</code> and a <code>report.md</code> is synthesized on exit.</p>
+      </article>
+      <article class="card">
+        <img src="assets/computer-use.png" alt="computer-use desktop control — See. Click. Type. Control." style="width:100%;border-radius:12px;margin-bottom:1.25rem" loading="lazy" />
+        <h3 class="card__title"><code>computer</code> — desktop control <span style="opacity:.6">(experimental)</span></h3>
+        <p class="card__text">A model-agnostic tool that drives a real Apple Silicon macOS desktop via the OpenAI computer-use action set — screenshot, click, type, scroll, and more. Native, HiDPI-safe coordinates, TCC-preflighted, and protected by a user-only kill-switch outside model control. Off by default; enable per session with <code>computer.enabled=true</code>.</p>
+      </article>
     </div>
   </section>
 
@@ -220,6 +242,16 @@
           <div class="card__icon" aria-hidden="true">🔌</div>
           <h3 class="card__title">Remote control plane</h3>
           <p class="card__text">Drive sessions through bounded RPC/bridge surfaces, Hermes-compatible MCP coordination, and a gateway-scoped Remote design that keeps phone clients out of raw transcript, shell, and system-prompt authority.</p>
+        </article>
+        <article class="card">
+          <div class="card__icon" aria-hidden="true">🔬</div>
+          <h3 class="card__title">Research mode <span style="opacity:.6">(rlm)</span></h3>
+          <p class="card__text">Run <code>gjc rlm</code> for a notebook-style research session over a persistent Python kernel, with a hard-gated read-only toolset, a live <code>.ipynb</code>, and a synthesized report on exit.</p>
+        </article>
+        <article class="card">
+          <div class="card__icon" aria-hidden="true">🖥️</div>
+          <h3 class="card__title">Desktop control <span style="opacity:.6">(experimental)</span></h3>
+          <p class="card__text">The opt-in <code>computer</code> tool drives a real Apple Silicon macOS desktop via the OpenAI computer-use action set — native, HiDPI-safe, TCC-preflighted, and behind a user-only kill-switch.</p>
         </article>
       </div>
     </section>
