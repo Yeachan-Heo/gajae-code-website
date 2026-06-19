@@ -54,7 +54,8 @@
       <section class="docs-section"><h2>Typical loop</h2><pre><code>gjc
 /skill:deep-interview
 /skill:ralplan
-gjc ultragoal "implement, verify, and report evidence"</code></pre><p>The exact commands depend on the task, but the pattern stays the same: make the task explicit, let the agent work in context, then require validation and a terminal verdict.</p></section>
+gjc ultragoal create-goals --brief "implement, verify, and report evidence"
+gjc ultragoal complete-goals</code></pre>
       <section class="docs-section"><h2>Operational guardrails</h2><ul><li>Use dedicated worktrees for risky implementation and review work.</li><li>Keep branch metadata aligned with the actual checkout.</li><li>Submit follow-up prompts only after the session is observable and ready.</li><li>Retire completed sessions instead of leaving stale panes behind.</li></ul></section>
 
 <nav class="doc-pager"><a href="architecture.html">← Architecture</a><a href="skills.html">Skills →</a></nav>
