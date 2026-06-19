@@ -403,3 +403,178 @@ body {
   margin-left: 0.4rem;
   vertical-align: middle;
 }
+
+/* Backward-compatible styles for docs pages using the older markup */
+
+.docs-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.docs-menu {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+aside.docs-sidebar {
+  width: 276px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 20%), rgba(16, 12, 10, 0.94);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1rem 2rem;
+  transition: transform 0.3s ease;
+}
+
+.docs-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  padding: 0.5rem 0.6rem 1.25rem;
+}
+
+.docs-brand:hover {
+  color: var(--text-primary);
+}
+
+.docs-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.docs-hero {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.docs-hero .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-light);
+}
+
+.docs-hero h1 {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  margin: 0.6rem 0 0.8rem;
+}
+
+.docs-hero p {
+  font-size: 1.12rem;
+  color: var(--text-secondary);
+  max-width: 60ch;
+}
+
+.docs-section {
+  margin-bottom: 2rem;
+}
+
+.docs-section h2 {
+  font-size: 1.5rem;
+  margin: 2.75rem 0 1rem;
+  padding-top: 0.5rem;
+}
+
+.docs-section p,
+.docs-section ul,
+.docs-section ol {
+  color: var(--text-secondary);
+  margin-bottom: 1.1rem;
+  font-size: 1.02rem;
+}
+
+.docs-section li {
+  margin-bottom: 0.5rem;
+}
+
+.docs-section li::marker {
+  color: var(--accent);
+}
+
+.docs-section a {
+  color: var(--accent-light);
+  text-decoration: underline;
+  text-decoration-color: rgba(var(--accent-rgb), 0.4);
+  text-underline-offset: 3px;
+}
+
+.docs-section a:hover {
+  color: var(--accent);
+}
+
+.docs-section code {
+  font-family: var(--font-mono);
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--accent-light);
+  padding: 0.12rem 0.42rem;
+  border-radius: 5px;
+  font-size: 0.88em;
+}
+
+.docs-section pre {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  overflow-x: auto;
+  margin: 0 0 1.5rem;
+}
+
+.docs-section pre code {
+  background: none;
+  color: #ffe7e2;
+  padding: 0;
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .docs-shell .docs-sidebar {
+    transform: translateX(-100%);
+    padding-top: 1.25rem;
+  }
+  .docs-shell .docs-sidebar.active {
+    transform: translateX(0);
+  }
+  .docs-shell .docs-main {
+    margin-left: 0;
+    padding: 5rem 1.25rem 4rem;
+  }
+}
+
+/* Center content for older docs pages that lack .docs-content wrapper */
+.docs-shell .docs-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.docs-shell .docs-main > * {
+  width: 100%;
+  max-width: 820px;
+}

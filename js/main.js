@@ -128,15 +128,26 @@
     var burger = document.getElementById('docsBurger');
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
+
+    // Backward-compatible: older docs pages use .docs-menu and #docs-sidebar
+    if (!burger) {
+      burger = document.querySelector('.docs-menu');
+    }
+    if (!sidebar) {
+      sidebar = document.getElementById('docs-sidebar');
+    }
+
     if (!burger || !sidebar) return;
 
     function close() {
       sidebar.classList.remove('active');
       if (overlay) overlay.classList.remove('active');
+      burger.setAttribute('aria-expanded', 'false');
     }
     burger.addEventListener('click', function () {
       var open = sidebar.classList.toggle('active');
       if (overlay) overlay.classList.toggle('active', open);
+      burger.setAttribute('aria-expanded', String(open));
     });
     if (overlay) overlay.addEventListener('click', close);
     sidebar.querySelectorAll('a').forEach(function (a) {

@@ -1,0 +1,4 @@
+.gjc/
+artifacts/
+.DS_Store
+*.log

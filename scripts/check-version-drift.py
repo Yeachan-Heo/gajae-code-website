@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BADGE_RE = re.compile(r"hero__badge[^>]*>[^<]*v(?P<version>\d+\.\d+\.\d+)")
+VERSION_RE = re.compile(r"(v?)(?P<version>\d+\.\d+\.\d+)")
 
 
 def read_product_version(source: Path) -> str:
@@ -20,25 +20,28 @@ def read_product_version(source: Path) -> str:
     return module.read_product_version(source)
 
 
-def read_website_version() -> str:
-    text = (ROOT / "index.html").read_text()
-    match = BADGE_RE.search(text)
-    if not match:
-        raise SystemExit("could not find hero badge product version in index.html")
-    return match.group("version")
+def find_drift(source: Path) -> tuple[str, list[str]]:
+    product_version = read_product_version(source)
+    targets = [ROOT / "index.html", *sorted((ROOT / "docs").glob("*.html"))]
+    drift: list[str] = []
+    for target in targets:
+        text = target.read_text()
+        for m in VERSION_RE.finditer(text):
+            if m.group("version") != product_version:
+                drift.append(
+                    f"{target.relative_to(ROOT)} has {m.group(0)}, product source has v{product_version}"
+                )
+    return product_version, drift
 
 
 def main() -> None:
     if len(sys.argv) != 2:
         raise SystemExit("usage: check-version-drift.py <gajae-code checkout>")
     source = Path(sys.argv[1]).resolve()
-    product_version = read_product_version(source)
-    website_version = read_website_version()
-    if website_version != product_version:
-        raise SystemExit(
-            f"website version drift: index.html has v{website_version}, product source has v{product_version}"
-        )
-    print(f"website version matches product source: v{website_version}")
+    product_version, drift = find_drift(source)
+    if drift:
+        raise SystemExit("website version drift:\n" + "\n".join(drift))
+    print(f"website version matches product source: v{product_version}")
 
 
 if __name__ == "__main__":

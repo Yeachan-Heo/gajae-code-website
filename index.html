@@ -62,7 +62,7 @@
   <header class="hero" id="top">
     <div class="hero__content">
       <div class="hero__text">
-        <span class="hero__badge">🦀 v0.6.0 · beta · MIT licensed</span>
+        <span class="hero__badge">🦀 v0.6.1 · beta · MIT licensed</span>
         <h1 class="hero__title"><span class="gradient-text">Gajae Code</span></h1>
         <p class="hero__tagline">Encode intention. Decode software.</p>
         <p class="hero__description">
@@ -112,8 +112,9 @@
           <span class="terminal__label">recommended workflow</span>
         </div>
         <div class="terminal__body">
-<pre><code><span class="tok-comment"># run gjc beside your repo or in a worktree</span>
-<span class="tok-prompt">$</span> <span class="tok-cmd">gjc</span> <span class="tok-flag">--tmux</span> <span class="tok-flag">--worktree</span> ../my-task
+<span class="tok-comment"># run gjc beside your repo; create a worktree from a new branch</span>
+<span class="tok-prompt">$</span> <span class="tok-cmd">gjc</span> <span class="tok-flag">--tmux</span> <span class="tok-flag">--worktree</span> my-task-branch
+
 
 <span class="tok-comment"># inside the session: shape -&gt; act -&gt; prove</span>
 <span class="tok-prompt">&gt;</span> /skill:deep-interview <span class="tok-comment"># clarify intent</span>
@@ -125,10 +126,10 @@
     </div>
   </section>
 
-  <!-- New in 0.6.0 -->
+  <!-- New in 0.6.1 -->
   <section class="section" id="whats-new">
     <div class="section__header reveal">
-      <span class="section__eyebrow">New in v0.6.0</span>
+      <span class="section__eyebrow">New in v0.6.1</span>
       <h2 class="section__title">Two new opt-in surfaces</h2>
       <p class="section__subtitle">Research mode and desktop control — both off by default, gated, and built on the same reviewable agent loop.</p>
     </div>
@@ -236,7 +237,8 @@
         <article class="card">
           <div class="card__icon" aria-hidden="true">🌿</div>
           <h3 class="card__title">Worktree isolation</h3>
-          <p class="card__text">Point <code>gjc</code> at an isolated git worktree for risky or reviewable work, keeping your primary checkout clean.</p>
+          <p class="card__text">Have <code>gjc</code> create an isolated git worktree from a new branch for risky or reviewable work, keeping your primary checkout clean.</p>
+
         </article>
         <article class="card">
           <div class="card__icon" aria-hidden="true">🔌</div>
@@ -267,7 +269,7 @@
     <div class="layers reveal">
       <div class="layer">
         <div class="layer__name">CLI &amp; modes<span>coding-agent</span></div>
-        <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team</code>) and dispatches interactive, print, RPC, and bridge modes.</div>
+        <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team</code>, <code>rlm</code>) and dispatches interactive, print, RPC, and bridge modes.</div>
       </div>
       <div class="layer">
         <div class="layer__name">Agent runtime<span>agent</span></div>
@@ -331,13 +333,13 @@
           </div>
         </div>
         <div class="install-step">
-          <div class="install-step__label"># 4 · or use a tmux-backed worktree</div>
+          <div class="install-step__label"># 4 · or create a worktree from a new branch</div>
           <div class="code-block">
             <div class="code-block__header">
               <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <button class="code-block__copy" data-copy="gjc --tmux --worktree ../my-task-worktree">Copy</button>
+              <button class="code-block__copy" data-copy="gjc --tmux --worktree my-task-branch">Copy</button>
             </div>
-            <div class="code-block__body"><code>gjc --tmux --worktree ../my-task-worktree</code></div>
+            <div class="code-block__body"><code>gjc --tmux --worktree my-task-branch</code></div>
           </div>
         </div>
       </div>
@@ -418,7 +420,7 @@
           <div class="safety-item__mark" aria-hidden="true">🌿</div>
           <div>
             <h4>Isolated worktrees</h4>
-            <p>Risky work runs in a dedicated git worktree, so your primary checkout stays clean and the diff stays scoped.</p>
+            <p>Risky work runs in a dedicated git worktree that <code>gjc</code> creates from a new branch, so your primary checkout stays clean and the diff stays scoped.</p>
           </div>
         </div>
         <div class="safety-item">
