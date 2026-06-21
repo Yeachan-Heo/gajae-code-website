@@ -116,6 +116,61 @@
     els.forEach(function (el) { io.observe(el); });
   }
 
+
+  /* ---- Live package/repo metadata ---- */
+  var LIVE_META = {
+    npmLatest: 'https://registry.npmjs.org/gajae-code/latest',
+    npmDownloads: 'https://api.npmjs.org/downloads/point/last-week/gajae-code',
+    githubRepo: 'https://api.github.com/repos/Yeachan-Heo/gajae-code'
+  };
+
+  function formatCompactNumber(value) {
+    var number = Number(value);
+    if (!Number.isFinite(number) || number < 0) return null;
+    if (typeof Intl !== 'undefined' && Intl.NumberFormat) {
+      return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(number);
+    }
+    return String(Math.round(number));
+  }
+
+  function setText(selector, value) {
+    if (value == null || value === '') return;
+    document.querySelectorAll(selector).forEach(function (el) {
+      el.textContent = value;
+      el.classList.add('is-live');
+    });
+  }
+
+  function fetchJson(url) {
+    return fetch(url, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store'
+    }).then(function (res) {
+      if (!res.ok) throw new Error('metadata request failed: ' + res.status);
+      return res.json();
+    });
+  }
+
+  function initLiveStats() {
+    if (!('fetch' in window)) return;
+
+    fetchJson(LIVE_META.npmLatest).then(function (data) {
+      if (data && typeof data.version === 'string') {
+        setText('[data-live-version]', 'v' + data.version);
+      }
+    }).catch(function () { /* keep static fallback */ });
+
+    fetchJson(LIVE_META.npmDownloads).then(function (data) {
+      var formatted = data && formatCompactNumber(data.downloads);
+      setText('[data-live-downloads]', formatted);
+    }).catch(function () { /* keep static fallback */ });
+
+    fetchJson(LIVE_META.githubRepo).then(function (data) {
+      var formatted = data && formatCompactNumber(data.stargazers_count);
+      setText('[data-live-stars]', formatted);
+    }).catch(function () { /* keep static fallback */ });
+  }
+
   /* ---- Current year ---- */
   function initYear() {
     document.querySelectorAll('[data-year]').forEach(function (el) {
@@ -163,6 +218,7 @@
     initNavScroll();
     initCopy();
     initReveal();
+    initLiveStats();
     initYear();
     initDocsSidebar();
   }
