@@ -6,7 +6,7 @@ Static GitHub Pages website for [Gajae Code](https://github.com/Yeachan-Heo/gaja
 
 - `index.html` — landing page using the Gajae Code hero assets.
 - `css/styles.css` — shared dark red-claw design system.
-- `js/main.js` — mobile navigation, copy buttons, scroll reveal, and docs sidebar behavior.
+- `js/main.js` — mobile navigation, copy buttons, scroll reveal, live npm/GitHub metadata, and docs sidebar behavior.
 - `docs/` — static documentation pages:
   - getting started
   - architecture
@@ -25,6 +25,10 @@ No build step is required.
 python3 -m http.server 8080
 open http://localhost:8080
 ```
+
+## Live metadata
+
+The homepage fetches the current `gajae-code` package version, weekly npm downloads, and GitHub stars directly in the browser from public npm/GitHub APIs. The static fallback text remains readable if those unauthenticated requests fail.
 
 ## Deployment
 

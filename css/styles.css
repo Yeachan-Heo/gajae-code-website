@@ -441,6 +441,8 @@ h1, h2, h3, h4 {
 .hero__text > *:nth-child(3) { animation-delay: 0.25s; }
 .hero__text > *:nth-child(4) { animation-delay: 0.35s; }
 .hero__text > *:nth-child(5) { animation-delay: 0.45s; }
+.hero__text > *:nth-child(6) { animation-delay: 0.55s; }
+.hero__text > *:nth-child(7) { animation-delay: 0.65s; }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(28px); }
@@ -510,6 +512,48 @@ h1, h2, h3, h4 {
   color: var(--accent-light);
 }
 
+.hero__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 170px));
+  gap: 0.8rem;
+  margin: -0.6rem 0 1.9rem;
+}
+
+.live-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(var(--accent-rgb), 0.28);
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.12), rgba(255, 255, 255, 0.03));
+  color: var(--text-primary);
+  text-decoration: none;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.live-stat:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.18), rgba(255, 255, 255, 0.05));
+}
+
+.live-stat__value {
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent-light);
+}
+
+.live-stat__label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .hero__cta {
   display: flex;
   flex-wrap: wrap;
@@ -561,6 +605,7 @@ h1, h2, h3, h4 {
   }
   .hero__description { margin-left: auto; margin-right: auto; }
   .hero__pills, .hero__cta { justify-content: center; }
+  .hero__stats { justify-content: center; margin-left: auto; margin-right: auto; }
   .hero__visual { order: -1; }
   .hero__illustration { max-width: 380px; }
 }
@@ -1149,4 +1194,11 @@ table.data tr:hover {
     scroll-behavior: auto !important;
   }
   .reveal { opacity: 1; transform: none; }
+}
+
+@media (max-width: 520px) {
+  .hero__stats {
+    grid-template-columns: 1fr;
+    max-width: 260px;
+  }
 }
