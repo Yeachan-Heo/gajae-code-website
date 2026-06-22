@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="What's new in Gajae Code v0.6.1 — the opt-in rlm research mode and the experimental computer desktop-control tool." />
+  <meta name="description" content="What's new in Gajae Code v0.7.0 — the notifications SDK and managed Telegram control plane for answering and steering sessions from your phone." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
-  <title>What's new (v0.6.1) · Gajae Code Docs</title>
+  <title>What's new (v0.7.0) · Gajae Code Docs</title>
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link is-active" href="whats-new.html">What's new (v0.6.1)</a>
+        <a class="docs-nav-link is-active" href="whats-new.html">What's new (v0.7.0)</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -47,7 +47,21 @@
   </aside>
 
     <main class="docs-main">
-      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>What's new in v0.6.1</h1><p>Two new opt-in capability surfaces — a research/REPL mode and a desktop-control tool — plus interaction refinements. Both new surfaces are off by default and gated.</p></section>
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>What's new in v0.7.0</h1><p>A notifications SDK and a managed Telegram control plane: get action-needed signals out of any session and answer or steer from your phone, without scraping the terminal or running RPC.</p></section>
+
+      <section class="docs-section"><h2>📲 Notifications SDK &amp; Telegram control plane</h2>
+        <p>Every running session can expose one loopback WebSocket endpoint that emits <strong>action-needed</strong> signals and accepts <strong>replies</strong> over a small, transport-agnostic JSON protocol. Telegram, Discord, Slack, or your own client all speak the same contract — no upstream change is needed for a new integration.</p>
+        <pre><code>gjc notify setup     # one-time: pair a private Telegram chat
+# sessions then auto-connect when notifications are enabled</code></pre>
+        <ul>
+          <li><strong>Configure-once Telegram UX.</strong> A managed reference daemon pairs exactly one private chat, enforces one <code>getUpdates</code> poller per bot token (no Telegram 409 conflicts), and routes replies back to the exact session.</li>
+          <li><strong>Threaded per-session surface.</strong> Each session gets its own topic with an identity header, streamed context updates (last message, task, goal, token/model usage, diff), live turn output, typing indicators, and agent image streaming.</li>
+          <li><strong>Answer asks remotely.</strong> Tap an inline button or reply in the thread; the first valid answer wins in both interactive and unattended modes. Markdown tables render natively and button labels are clean (no double-numbering).</li>
+          <li><strong>Daemon control plane with safe reload.</strong> New sessions attach to the existing daemon owner, and the control plane reloads without dropping in-flight sessions or losing connection-drop recovery.</li>
+          <li><strong>Strict, fail-closed trust model.</strong> Only the paired chat receives anything; groups/channels never see session names or actions. Redaction strips idle summaries and streamed content, while <em>asks stay readable</em> so remote prompts remain answerable.</li>
+        </ul>
+        <div class="callout"><strong>Off unless configured.</strong> No endpoint exists until notifications are enabled and a token is present. The Telegram daemon is a reference client of the generic SDK, not the upstream topology.</div>
+      </section>
 
       <section class="docs-section"><h2>🔬 Research mode — <code>gjc rlm</code></h2>
         <p>A Jupyter-notebook-style research session layered over the existing agent loop, backed by the shared persistent Python kernel. It is built for exploring data and questions, not mutating your repository.</p>
@@ -85,7 +99,7 @@ gjc rlm --data ./datasets/DATA.md           # point at a data description</code>
       <section class="docs-section"><h2>Upgrade</h2>
         <pre><code>bun install -g gajae-code        # or: @gajae-code/coding-agent
 gjc --version &amp;&amp; gjc --smoke-test</code></pre>
-        <p>See the full <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.6.1">v0.6.1 release notes</a> on GitHub.</p>
+        <p>See the full <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.7.0">v0.7.0 release notes</a> on GitHub.</p>
       </section>
 
 <nav class="doc-pager"><a href="getting-started.html">← Getting started</a><a href="skills.html">Skills →</a></nav>
