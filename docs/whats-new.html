@@ -52,7 +52,7 @@
       <section class="docs-section"><h2>📲 Notifications SDK &amp; Telegram control plane</h2>
         <p>Every running session can expose one loopback WebSocket endpoint that emits <strong>action-needed</strong> signals and accepts <strong>replies</strong> over a small, transport-agnostic JSON protocol. Telegram, Discord, Slack, or your own client all speak the same contract — no upstream change is needed for a new integration.</p>
         <pre><code>gjc notify setup     # one-time: pair a private Telegram chat
-# sessions then auto-connect when notifications are enabled</code></pre>
+# sessions then auto-connect when notifications are enabled</code></pre><p><a href="telegram-onboarding.html">Follow the Telegram onboarding guide →</a></p>
         <ul>
           <li><strong>Configure-once Telegram UX.</strong> A managed reference daemon pairs exactly one private chat, enforces one <code>getUpdates</code> poller per bot token (no Telegram 409 conflicts), and routes replies back to the exact session.</li>
           <li><strong>Threaded per-session surface.</strong> Each session gets its own topic with an identity header, streamed context updates (last message, task, goal, token/model usage, diff), live turn output, typing indicators, and agent image streaming.</li>
