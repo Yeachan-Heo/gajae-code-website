@@ -578,3 +578,19 @@ aside.docs-sidebar {
   width: 100%;
   max-width: 820px;
 }
+
+/* ---- Inline badge (e.g. "Recommended for starters") ---- */
+.badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  background: rgba(var(--accent-rgb), 0.16);
+  color: var(--accent-light);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
+}
