@@ -62,7 +62,7 @@
   <header class="hero" id="top">
     <div class="hero__content">
       <div class="hero__text">
-        <span class="hero__badge">🦀 v0.7.0 · beta · MIT licensed</span>
+        <span class="hero__badge">🦀 v0.7.1 · beta · MIT licensed</span>
         <h1 class="hero__title"><span class="gradient-text">Gajae Code</span></h1>
         <p class="hero__tagline">Encode intention. Decode software.</p>
         <p class="hero__description">
@@ -126,15 +126,15 @@
     </div>
   </section>
 
-  <!-- New in 0.7.0 -->
+  <!-- New in 0.7.1 -->
   <section class="section" id="whats-new">
     <div class="section__header reveal">
-      <span class="section__eyebrow">New in v0.7.0</span>
+      <span class="section__eyebrow">New in v0.7.1</span>
       <h2 class="section__title">Mobile answers for coding agents</h2>
       <p class="section__subtitle">Gajae-Code now ships a configure-once notifications SDK and managed Telegram reference daemon so asks, context updates, attachments, inline approvals, and free-text replies can reach your phone without terminal scraping.</p>
     </div>
     <a class="card reveal" href="docs/telegram-onboarding.html" style="margin:0 auto 2rem;max-width:980px;overflow:hidden;display:block">
-      <img src="assets/telegram-mobile-hero.png" alt="Gajae Code 0.7.0 mobile answers for coding agents hero illustration" style="width:100%;border-radius:20px;display:block" loading="lazy" />
+      <img src="assets/telegram-mobile-hero.png" alt="Gajae Code 0.7.1 mobile answers for coding agents hero illustration" style="width:100%;border-radius:20px;display:block" loading="lazy" />
       <p class="card__text" style="margin-top:1rem">The Telegram flow creates a threaded per-session mobile surface with live/finalized output, image attachments, inline buttons, typing indicators, and double-check acknowledgements. <code>gjc daemon</code> keeps one safe long-poll owner per bot token so sessions attach cleanly instead of tripping Telegram 409 conflicts.</p>
     </a>
     <div class="grid grid--2 reveal" style="gap:2.5rem;align-items:start">
@@ -244,10 +244,10 @@
           <p class="card__text">Have <code>gjc</code> create an isolated git worktree from a new branch for risky or reviewable work, keeping your primary checkout clean.</p>
 
         </article>
-        <a class="card" href="docs/gajae-remote.html">
-          <div class="card__icon" aria-hidden="true">🔌</div>
-          <h3 class="card__title">Remote control plane</h3>
-          <p class="card__text">Drive sessions through bounded RPC/bridge surfaces, Hermes-compatible MCP coordination, and a gateway-scoped Remote design that keeps phone clients out of raw transcript, shell, and system-prompt authority.</p>
+        <a class="card" href="docs/hermes-mcp-bridge.html">
+          <div class="card__icon" aria-hidden="true">🧭</div>
+          <h3 class="card__title">Hermes integration</h3>
+          <p class="card__text">Drive sessions from a Hermes-style coordinator through the GJC-native MCP bridge and the <code>gjc-delegation</code> skill — bounded polling turns, fail-closed mutation gates, and whole-workflow delegation.</p>
         </a>
         <a class="card" href="docs/rlm.html">
           <div class="card__icon" aria-hidden="true">🔬</div>
@@ -517,10 +517,11 @@
           <div class="footer__col">
             <h5>Reference</h5>
             <a href="docs/telegram-onboarding.html">Telegram onboarding</a>
+            <a href="docs/hermes-mcp-bridge.html">Hermes integration</a>
             <a href="docs/skills.html">Skills &amp; Agents</a>
-            <a href="docs/receipts.html">Receipts &amp; Proof</a>
-            <a href="docs/gajae-remote.html">Gajae Remote</a>
             <a href="docs/troubleshooting.html">Troubleshooting</a>
+            <a href="docs/rlm.html">RLM research mode</a>
+            <a href="docs/browser-use.html">Browser tool</a>
           </div>
           <div class="footer__col">
             <h5>Project</h5>

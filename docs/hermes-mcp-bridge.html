@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Hermes MCP bridge docs for Gajae Code coordinator integrations." />
+  <meta name="description" content="Comprehensive Hermes integration guide for Gajae Code: the coordinator MCP bridge, the gjc-delegation skill, the RPC host-tool boundary, operator loop, and verification." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
-  <title>Hermes MCP Bridge · Gajae Code Docs</title>
+  <title>Hermes integration · Gajae Code Docs</title>
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,11 +22,12 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html">What's new (v0.7.0)</a>
+        <a class="docs-nav-link " href="whats-new.html">What's new (v0.7.1)</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
         <a class="docs-nav-link " href="computer-use.html">Computer tool</a>
+        <a class="docs-nav-link " href="browser-use.html">Browser tool</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
         <a class="docs-nav-link " href="architecture.html">Architecture</a>
@@ -36,7 +37,7 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
-        <a class="docs-nav-link is-active" href="hermes-mcp-bridge.html">Hermes MCP Bridge</a>
+        <a class="docs-nav-link is-active" href="hermes-mcp-bridge.html">Hermes integration</a>
         <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
@@ -47,17 +48,90 @@
   </aside>
 
     <main class="docs-main">
-      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Hermes MCP Bridge</h1><p><code>gjc mcp-serve coordinator</code> exposes a GJC-native outward MCP adapter for Hermes-style coordinators. <code>gjc mcp-serve hermes</code> is a compatibility alias for the same bridge.</p></section>
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Hermes integration</h1><p>How a Hermes-style coordinator drives Gajae Code. Two first-class paths share one core contract: the GJC-native coordinator <strong>MCP bridge</strong> and the host-facing <strong>gjc-delegation skill</strong>. An <strong>RPC host-tool</strong> boundary covers the reverse direction.</p></section>
 
-      <section class="docs-section"><h2>What it is</h2><p>The coordinator bridge is a core GJC contract with multiple adapters, not an MCP-only product direction. Hermes is one coordinator preset. The bridge lets external coordinators register visible sessions, read polling status, send bounded turns, answer questions, and write reports while keeping mutation classes fail-closed until configured.</p></section>
+      <section class="docs-section"><h2>Pick an integration path</h2><ul><li><strong>Coordinator MCP bridge</strong> — run <code>gjc mcp-serve coordinator</code> and let an external coordinator register sessions, send bounded turns, answer questions, and write reports. <a href="#mcp-bridge">Jump to MCP bridge →</a></li><li><strong>gjc-delegation skill (plugin)</strong> — install the generated <code>gajae-code</code> plugin so a host agent can delegate whole workflows (<code>plan</code>/<code>execute</code>/<code>team</code>) with one tool call. <a href="#skill">Jump to skill →</a></li><li><strong>RPC host tools</strong> — when Hermes/OpenClaw needs GJC to call <em>its</em> tools, MCP servers, and skills, expose them as RPC <code>customTools</code> instead of importing GJC's MCP internals. <a href="#rpc">Jump to RPC boundary →</a></li></ul></section>
 
-      <section class="docs-section"><h2>Standard setup</h2><div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="gjc setup hermes --root /path/to/repo --profile my-bot --repo gajae-code">Copy</button></div><div class="code-block__body"><code>gjc setup hermes --root /path/to/repo --profile my-bot --repo gajae-code</code></div></div><p>The default mode is render-only. Install mode writes a portable Hermes MCP setup package with explicit roots, repo identity, and session command configuration.</p></section>
+      <section class="docs-section"><h2>Core contract and adapters</h2><p>The coordinator bridge is intentionally a core contract with multiple adapters, not an MCP-only or Hermes-only product direction. Hermes is one compatibility preset, not a privileged integration mode.</p><ul><li><code>packages/coding-agent/src/coordinator/contract.ts</code> owns transport-neutral server metadata and tool names.</li><li><code>gjc mcp-serve coordinator</code> is the outward MCP adapter for external agents.</li><li><code>gjc coordinator</code> is the read-only CLI/debug adapter for humans and scripts that need to inspect the same contract without starting MCP transport.</li><li><code>gjc setup hermes</code> is the compatibility setup adapter that renders coordinator config and operator guidance.</li></ul><p>This bridge is separate from GJC's client-side MCP runtime. <code>gjc mcp-serve hermes</code> is accepted as a compatibility alias for the same coordinator bridge.</p></section>
 
-      <section class="docs-section"><h2>Coordinator turn model</h2><p>Hermes coordinators should treat turns, not terminal scrollback, as the unit of work. The bridge stores durable turn/question/report state and exposes bounded polling snapshots. Use <code>gjc_coordinator_register_session</code> to attach an already-visible tmux-backed GJC pane instead of creating a hidden session.</p></section>
+      <section class="docs-section" id="mcp-bridge"><h2>Path A · Coordinator MCP bridge</h2><p>The bridge lets an external coordinator list sessions, start worktree/tmux-oriented sessions, queue bounded follow-up prompts, read status/tail/artifacts, handle structured questions, and write coordination reports without scraping terminal scrollback.</p></section>
 
-      <section class="docs-section"><h2>Event watch surface</h2><p><code>gjc_coordinator_watch_events</code> is the long-poll event journal surface for Hermes-style agents. It returns bounded event records, <code>latest_seq</code>, timeout status, and explicit transport metadata (<code>mcp: long_poll</code>, no push subscriptions). Consumers should poll by sequence number and avoid treating terminal scrollback as authoritative state.</p></section>
+      <section class="docs-section"><h2>Standard setup</h2><p>Use <code>gjc setup hermes</code> to render or install a portable MCP setup package for any controller that accepts Hermes-compatible MCP config. The default mode is render-only and writes no files.</p><div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="gjc setup hermes --root /path/to/repo --profile my-bot --repo gajae-code">Copy</button></div><div class="code-block__body"><code>gjc setup hermes --root /path/to/repo --profile my-bot --repo gajae-code</code></div></div><p>To install into a Hermes profile, opt in to mutation classes and pass an install target:</p><div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="gjc setup hermes --root /path/to/repo --profile my-bot --repo gajae-code --mutation sessions,questions,reports --profile-dir /path/to/hermes/profile --install">Copy</button></div><div class="code-block__body"><code>gjc setup hermes \
+  --root /path/to/repo \
+  --profile my-bot \
+  --repo gajae-code \
+  --mutation sessions,questions,reports \
+  --profile-dir /path/to/hermes/profile \
+  --install</code></div></div><p>The generated setup is model-agnostic and worktree-isolated. By default it renders <code>GJC_COORDINATOR_MCP_SESSION_COMMAND</code> as <code>gjc --worktree</code>, so spawned sessions launch inside a GJC-managed sibling worktree while GJC still records the original repo as the project identity for tmux/session resume. Provider/model examples are examples only; GJC does not hard-code any provider as the Hermes default. Run a non-mutating smoke check with <code>gjc setup hermes --root /path/to/repo --smoke</code>.</p></section>
 
-      <section class="docs-section"><h2>Safety posture</h2><ul><li>Read-only by default.</li><li>Mutation classes require explicit startup and per-call authorization.</li><li>Workdir roots, repo identity, safe session tokens, and tmux target liveness are validated before state writes.</li><li>Generated GJC-native worktree commands preserve project/session identity better than unmanaged external worktrees.</li></ul></section>
+      <section class="docs-section"><h2>Safety model</h2><p>The bridge is read-only and fail-closed by default.</p><div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="export GJC_COORDINATOR_MCP_WORKDIR_ROOTS=&quot;/path/to/repo:/path/to/worktrees&quot;">Copy</button></div><div class="code-block__body"><code>export GJC_COORDINATOR_MCP_WORKDIR_ROOTS="/path/to/repo:/path/to/worktrees"</code></div></div><p>Mutating tools require both startup opt-in and per-call consent:</p><div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="export GJC_COORDINATOR_MCP_MUTATIONS=&quot;sessions,questions,reports&quot;">Copy</button></div><div class="code-block__body"><code>export GJC_COORDINATOR_MCP_MUTATIONS="sessions,questions,reports"</code></div></div><ul><li>Every mutating MCP call must also include <code>allow_mutation: true</code>. Missing startup opt-in or per-call consent returns an error instead of falling back to shell or terminal relay.</li><li>Workdir roots, repo identity, safe session tokens, and tmux target liveness are validated before state writes.</li><li>Artifact reads are canonicalized, symlink escapes are rejected, and returned content is byte-capped by <code>GJC_COORDINATOR_MCP_ARTIFACT_BYTE_CAP</code>.</li><li>Optional namespace variables <code>GJC_COORDINATOR_MCP_PROFILE</code> and <code>GJC_COORDINATOR_MCP_REPO</code> prevent cross-profile/cross-repo enumeration; a missing namespace never widens into global session enumeration.</li></ul><p><code>gjc setup hermes</code> renders <code>GJC_COORDINATOR_MCP_WORKDIR_ROOTS</code> with the host platform path delimiter (<code>:</code> on POSIX, <code>;</code> on Windows). Prefer the GJC-native worktree command over creating an unmanaged Hermes-side worktree, so session listing/resume can still group the session under the source project.</p></section>
+
+      <section class="docs-section"><h2>Tool surface</h2><p><strong>Read tools:</strong> <code>gjc_coordinator_list_sessions</code>, <code>gjc_coordinator_read_status</code>, <code>gjc_coordinator_read_tail</code>, <code>gjc_coordinator_list_questions</code>, <code>gjc_coordinator_list_artifacts</code>, <code>gjc_coordinator_read_artifact</code>, <code>gjc_coordinator_read_coordination_status</code>, <code>gjc_coordinator_read_turn</code>, <code>gjc_coordinator_await_turn</code>, <code>gjc_coordinator_watch_events</code>.</p><p><strong>Mutating tools:</strong> <code>gjc_coordinator_start_session</code>, <code>gjc_coordinator_register_session</code>, <code>gjc_coordinator_send_prompt</code>, <code>gjc_coordinator_submit_question_answer</code>, <code>gjc_coordinator_report_status</code>, <code>gjc_delegate_plan</code>, <code>gjc_delegate_execute</code>, <code>gjc_delegate_team</code>.</p><p>Use <code>gjc_coordinator_register_session</code> to attach an already-visible tmux-backed GJC pane as the coordinator-authoritative session instead of creating a hidden <code>gjc-coordinator-*</code> session. The <code>gjc_delegate_*</code> tools are covered in <a href="#skill">Path B</a>.</p></section>
+
+      <section class="docs-section"><h2>Coordinator turn model</h2><p>Treat turns, not terminal scrollback, as the unit of work. The bridge stores durable turn/question/report state and exposes bounded polling snapshots.</p><ol><li>Call <code>gjc_coordinator_start_session</code> with <code>allow_mutation: true</code>.</li><li>Call <code>gjc_coordinator_send_prompt</code> with <code>allow_mutation: true</code>.</li><li>Store the returned <code>turn_id</code>.</li><li>Poll <code>gjc_coordinator_read_turn</code>, or call bounded <code>gjc_coordinator_await_turn</code>, until the turn is terminal.</li><li>If <code>gjc_coordinator_list_questions</code> shows a question for that turn, answer with <code>gjc_coordinator_submit_question_answer</code>.</li><li>Use <code>gjc_coordinator_report_status</code> with <code>session_id</code> and <code>turn_id</code> to write explicit completion/failure evidence (<code>status: "cancelled"</code> for policy cancellation; <code>status: "failed"</code> plus <code>blocker</code> for provider/tool/task failures).</li></ol><p>A session may have only one active turn by default; a second prompt is rejected with <code>active_turn_exists</code> unless the caller passes <code>queue: true</code> or <code>force: true</code>. Queued turns are durable and promoted when the active turn reaches a terminal report. <code>force</code> supersedes and audits the previous active turn.</p></section>
+
+      <section class="docs-section"><h2>Event watch surface</h2><p><code>gjc_coordinator_watch_events</code> is the long-poll event journal surface — a bounded read tool, not an unbounded stream. Inputs are <code>after_seq</code> (default <code>0</code>), optional <code>session_id</code>/<code>event_types</code>, <code>timeout_ms</code> capped at 30000, and <code>limit</code> capped at 100. The response includes <code>events</code>, <code>latest_seq</code>, <code>timed_out</code>, and explicit transport metadata <code>transport: { "mcp": "long_poll", "push_subscriptions": false }</code>. Persist <code>latest_seq</code> and resume safely after restart. A timeout with no events is not failure. The coordinator MCP bridge is a durable polling/await surface; it does not expose push subscriptions, so poll <code>gjc_coordinator_read_coordination_status</code>, <code>gjc_coordinator_read_turn</code>, or bounded <code>gjc_coordinator_await_turn</code>.</p></section>
+
+      <section class="docs-section"><h2>Controller config snippet</h2><div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="gjc mcp-serve coordinator --check --json">Copy</button></div><div class="code-block__body"><code>{
+  "mcp_servers": {
+    "gjc_coordinator": {
+      "command": "gjc",
+      "args": ["mcp-serve", "coordinator"],
+      "env": {
+        "GJC_COORDINATOR_MCP_WORKDIR_ROOTS": "/path/to/repo",
+        "GJC_COORDINATOR_MCP_PROFILE": "team-a",
+        "GJC_COORDINATOR_MCP_REPO": "project",
+        "GJC_COORDINATOR_MCP_SESSION_COMMAND": "gjc --worktree"
+      },
+      "enabled": true
+    }
+  }
+}</code></div></div><p>Smoke-check the contract with <code>gjc mcp-serve coordinator --check --json</code>. Expect <code>ok: true</code>, server name <code>gjc-coordinator-mcp</code>, and the GJC-named tool list.</p></section>
+
+      <section class="docs-section" id="skill"><h2>Path B · The gjc-delegation skill</h2><p>The generated <code>gajae-code</code> plugin exposes the coordinator MCP server plus a host-facing skill so a host agent can delegate whole workflows to GJC and receive durable turn status plus artifacts. Each delegate tool starts (or reuses) a session and sends one workflow-tagged turn that runs a GJC skill to completion.</p><div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="/plugin marketplace add ./plugins">Copy</button></div><div class="code-block__body"><code># Claude Code
+/plugin marketplace add ./plugins
+
+# Codex
+codex plugin marketplace add ./plugins</code></div></div><p>Then install the <code>gajae-code</code> plugin. The plugin files are generated by <code>bun run generate-plugins</code> from the coordinator contract; do not hand-edit them.</p>
+      <table class="docs-table">
+        <thead><tr><th>Tool</th><th>GJC skill</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>gjc_delegate_plan</code></td><td><code>/skill:ralplan</code></td><td>Delegate consensus planning to a pending-approval plan.</td></tr>
+          <tr><td><code>gjc_delegate_execute</code></td><td><code>/skill:ultragoal</code></td><td>Delegate execution to completion with verification.</td></tr>
+          <tr><td><code>gjc_delegate_team</code></td><td><code>/skill:team</code></td><td>Delegate parallel team execution with internal tmux workers.</td></tr>
+        </tbody>
+      </table>
+      <p>Pass <code>cwd</code> and <code>task</code>; set <code>allow_mutation: true</code> only when the <code>sessions</code> mutation class is enabled and the user has approved changes. Each delegate returns a durable <code>turn_id</code> and emits a <code>delegation.started</code> event. Poll the <code>turn_id</code> with <code>gjc_coordinator_await_turn</code> or watch <code>gjc_coordinator_watch_events</code> — turn state is the source of truth, not terminal scrollback. Prefer these over manual <code>start_session</code> + <code>send_prompt</code> when delegating a whole workflow; drop to the manual tools only for fine-grained control they do not cover.</p>
+      <div class="callout"><strong>Fail-closed by default:</strong> the bundled MCP config sets <code>GJC_COORDINATOR_MCP_WORKDIR_ROOTS</code> to the host project directory and does <strong>not</strong> set <code>GJC_COORDINATOR_MCP_MUTATIONS</code>. Delegation is read-only until the user enables a mutation class and passes <code>allow_mutation: true</code> per call. <code>GJC_COORDINATOR_MCP_REPO</code> is a namespace label only, never a filesystem path.</div></section>
+
+      <section class="docs-section"><h2>Operator core loop</h2><p>For a Hermes-style coordinator operating the bridge directly:</p><ol><li>Find an existing session with <code>list_sessions</code>, or <code>start_session</code> when a new session is required and mutation is enabled.</li><li>Send exactly one bounded task prompt with <code>send_prompt</code> and store the returned <code>turn_id</code>.</li><li>Prefer <code>watch_events</code> with the stored <code>latest_seq</code> for event-driven progress; fall back to <code>read_turn</code>/<code>await_turn</code> until terminal. If a second task is needed while one turn is active, pass <code>queue: true</code>.</li><li>If GJC asks a structured question, list with <code>list_questions</code> and answer with <code>submit_question_answer</code>.</li><li>Use <code>report_status</code> for coordinator-visible status and final reports; use <code>read_tail</code> only as advisory debug output.</li></ol><p>Do not report completion to the user until the GJC turn is terminal, and do not infer completion from terminal scrollback alone. When an operator needs a human-visible, channel-routed pane (Clawhip/OpenClaw style), use the documented visible routed-session fallback rather than inventing a private terminal protocol — keep private channel ids, mention targets, tokens, and routing policy in the host deployment, not in portable setup output.</p></section>
+
+      <section class="docs-section" id="rpc"><h2>Path C · RPC host-tool boundary</h2><p>When Hermes/OpenClaw needs GJC to call the host's own tools, MCP servers, and skills, the supported boundary is RPC mode — not direct imports from GJC's runtime MCP implementation. Use <code>@gajae-code/coding-agent/modes</code>:</p><ul><li><code>RpcClient</code> to spawn and drive <code>gjc --mode rpc</code>.</li><li><code>defineRpcClientTool()</code> and <code>RpcClientOptions.customTools</code> to expose host-owned tools.</li><li><code>RpcClient#setCustomTools()</code> to refresh the host tool list after the host reloads capabilities.</li></ul><div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="import { RpcClient, defineRpcClientTool } from &quot;@gajae-code/coding-agent/modes&quot;;">Copy</button></div><div class="code-block__body"><code>import { RpcClient, defineRpcClientTool } from "@gajae-code/coding-agent/modes";
+
+const client = new RpcClient({
+  cwd: repoPath,
+  customTools: [
+    defineRpcClientTool({
+      name: "openclaw_skill_search",
+      description: "Search OpenClaw skills visible to this session",
+      parameters: {
+        type: "object",
+        properties: { query: { type: "string" } },
+        required: ["query"],
+        additionalProperties: false,
+      },
+      async execute(args, context) {
+        context.sendUpdate("Searching OpenClaw skill registry…");
+        return await searchOpenClawSkills(String(args.query));
+      },
+    }),
+  ],
+});
+
+await client.start();
+await client.promptAndWait("Use the host skill search when it helps.");</code></div></div><p>Treat MCP as a host implementation detail: the host discovers its MCP servers and skills, converts selected capabilities into RPC <code>customTools</code>, GJC calls them through <code>host_tool_call</code> frames, and the host returns <code>host_tool_result</code>. This keeps host credentials, approvals, and policy out of GJC. Do <strong>not</strong> import quarantined paths such as <code>@gajae-code/coding-agent/runtime-mcp</code>, <code>/mcp</code>, <code>/capability/mcp</code>, <code>/config/mcp-schema</code>, or <code>/discovery/mcp-json</code>. Good first host tools are small and policy-preserving: <code>openclaw_skill_search</code>, <code>openclaw_skill_read</code>, <code>openclaw_mcp_call</code>, <code>hermes_route_message</code>.</p></section>
+
+      <section class="docs-section"><h2>Verification checklist</h2><ul><li><code>gjc mcp-serve coordinator --check --json</code> returns <code>ok: true</code> with the GJC-named tool list.</li><li>A read-only call (e.g. <code>gjc_coordinator_list_sessions</code>) succeeds before any mutation class is enabled.</li><li>A mutating call without <code>allow_mutation: true</code> (or without startup opt-in) fails closed instead of relaying to shell.</li><li>A delegate tool returns a durable <code>turn_id</code> and emits <code>delegation.started</code>; the terminal turn state — not scrollback — confirms completion.</li><li>For RPC: GJC emits <code>host_tool_call</code>, the host returns <code>host_tool_result</code>, and direct imports from quarantined MCP paths still fail. See <code>packages/coding-agent/test/rpc-host-tools.test.ts</code>.</li></ul></section>
 
 <nav class="doc-pager"><a href="bridge-rpc.html">← Bridge & RPC</a><a href="gajae-remote.html">Gajae Remote →</a></nav>
     </main>

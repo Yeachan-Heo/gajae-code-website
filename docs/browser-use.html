@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Use the Gajae Code browser tool to open, reuse, and script Puppeteer tabs against headless Chromium or CDP-attached apps and saved Chrome profiles." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
+  <title>Browser tool · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+        <a class="docs-nav-link " href="whats-new.html">What's new (v0.7.1)</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
+        <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
+        <a class="docs-nav-link " href="computer-use.html">Computer tool</a>
+        <a class="docs-nav-link is-active" href="browser-use.html">Browser tool</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link " href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes integration</a>
+        <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link " href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Tool guide</p><h1><code>browser</code> tool</h1><p>Open, reuse, close, and script Puppeteer tabs against headless Chromium, a CDP-attached app, or a saved Chrome profile. Tabs live in a process-global map and are reused by name across later calls and in-process subagents until closed.</p></section>
+
+      <section class="docs-section"><h2>How to use it</h2>
+        <p>There is no separate <code>gjc browser</code> subcommand. Start a normal GJC session and ask the agent to use the browser tool. The agent drives three actions — <code>open</code>, <code>run</code>, and <code>close</code> — against named tabs.</p>
+        <pre><code># Launch GJC from your repo/workspace
+gjc
+
+# Then prompt the agent, e.g.
+"Use the browser tool to open example.com and extract the main article text."</code></pre>
+        <p>For static pages (articles, docs, JSON, PDFs), prefer the <code>read</code> tool. Reach for the browser when you need JS execution, authentication, or interactive actions.</p>
+      </section>
+
+      <section class="docs-section"><h2>Actions</h2>
+        <ul>
+          <li><strong><code>open</code></strong> — acquire or reuse a named tab (defaults to <code>"main"</code>). Optional <code>url</code> navigates after the tab is ready; <code>viewport</code>, <code>wait_until</code>, and <code>dialogs</code> ("accept"/"dismiss") tune the page. The <code>app</code> field selects the browser kind.</li>
+          <li><strong><code>run</code></strong> — execute an async JS body with <code>page</code>, <code>browser</code>, <code>tab</code>, <code>display</code>, <code>assert</code>, and <code>wait</code> in scope. <code>display(value)</code> calls and the return value become tool output.</li>
+          <li><strong><code>close</code></strong> — release one tab, or every tab with <code>all: true</code>. <code>kill: true</code> also terminates a spawned-app process tree (and only a GJC-launched Chrome profile process).</li>
+        </ul>
+      </section>
+
+      <section class="docs-section"><h2>Browser kinds</h2>
+        <ul>
+          <li><strong>Headless</strong> (no <code>app</code>) — local Chromium with stealth patches applied; a fresh page per tab. Default viewport is <code>1365×768</code> at <code>deviceScaleFactor 1.25</code>.</li>
+          <li><strong>Spawned app</strong> (<code>app.path</code>) — reuses an existing CDP-enabled process for that executable when possible, otherwise spawns it with remote debugging. No stealth patches.</li>
+          <li><strong>Connected browser</strong> (<code>app.cdp_url</code>) — attaches to an existing CDP endpoint. No process ownership; <code>close</code> only disconnects.</li>
+          <li><strong>Saved Chrome profile</strong> (<code>app.browser: "chrome"</code> + <code>path</code> + <code>user_data_dir</code> + <code>profile_directory</code>) — automate with cookies and login state without risking the daily Chrome process.</li>
+        </ul>
+      </section>
+
+      <section class="docs-section"><h2>The <code>tab</code> helper API</h2>
+        <p>Inside <code>run</code>, prefer the structured <code>tab</code> helpers over raw Puppeteer; drop to <code>page</code> only when needed.</p>
+        <ul>
+          <li><code>tab.goto(url, { waitUntil? })</code>, <code>tab.url()</code>, <code>tab.title()</code></li>
+          <li><code>tab.observe({ includeAll?, viewportOnly? })</code> — accessibility snapshot with stable numeric element ids; <code>tab.id(n)</code> resolves an id to an <code>ElementHandle</code>.</li>
+          <li><code>tab.click</code>, <code>tab.type</code>, <code>tab.fill</code>, <code>tab.press</code>, <code>tab.select</code>, <code>tab.scroll</code>, <code>tab.drag</code>, <code>tab.scrollIntoView</code>, <code>tab.uploadFile</code></li>
+          <li><code>tab.waitFor(selector)</code>, <code>tab.waitForUrl(pattern)</code>, <code>tab.waitForResponse(pattern)</code>, <code>tab.evaluate(fn, …args)</code></li>
+          <li><code>tab.screenshot({ selector?, fullPage?, save?, silent? })</code> — attaches an image unless <code>silent</code>; <code>tab.extract(format = "markdown")</code> returns Readability content.</li>
+        </ul>
+        <p>Selectors accept CSS plus Puppeteer query handlers such as <code>aria/Sign in</code>, <code>text/Continue</code>, <code>xpath/…</code>, and <code>pierce/…</code>. After a <code>tab.goto()</code> or any navigation, re-run <code>tab.observe()</code> — prior element ids are invalidated.</p>
+      </section>
+
+      <section class="docs-section"><h2>Saved Chrome profile example</h2>
+        <pre><code>{
+  "action": "open",
+  "name": "work-browser",
+  "app": {
+    "browser": "chrome",
+    "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "user_data_dir": "~/Library/Application Support/Google/Chrome",
+    "profile_directory": "Profile 10",
+    "background": true,
+    "no_focus": true,
+    "target": "example.com"
+  }
+}</code></pre>
+        <ul>
+          <li>CDP binds to <code>0.7.1.1</code>; never expose a logged-in profile's CDP port publicly — a CDP client has full browser-account access.</li>
+          <li>A matching already-running profile is reused only when its localhost CDP endpoint responds; a profile running normally without CDP is refused rather than killed or relaunched.</li>
+          <li><code>kill: true</code> terminates only the Chrome profile process that GJC launched.</li>
+        </ul>
+      </section>
+
+      <section class="docs-section"><h2>Limits</h2>
+        <ul>
+          <li>Tool timeout: default <code>30</code>s, clamped to the browser range (max <code>30</code>s).</li>
+          <li>Headless first run may download Chromium into the Puppeteer cache; launch prefers a detected system Chrome, then <code>PUPPETEER_EXECUTABLE_PATH</code>, then download.</li>
+          <li>Stealth patches apply to headless mode only; spawned and externally connected browsers are left untouched.</li>
+          <li>Screenshots sent to the model are downscaled (max 1024×1024); <code>save</code> or <code>browser.screenshotDir</code> persists full resolution.</li>
+        </ul>
+      </section>
+
+<nav class="doc-pager"><a href="computer-use.html">← Computer tool</a><a href="architecture.html">Architecture →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>
