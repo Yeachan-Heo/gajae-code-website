@@ -16,7 +16,7 @@ for f in htmls:
         try: target.relative_to(root.resolve())
         except ValueError: continue
         if not target.exists(): errors.append(f'{f.relative_to(root)} broken href {href}')
-for asset in ['assets/hero.png','assets/character.png','css/styles.css','js/main.js','docs/style.css']:
+for asset in ['assets/hero.png','assets/character.png','assets/telegram-mobile-hero.png','css/styles.css','js/main.js','docs/style.css']:
     if not (root/asset).exists(): errors.append(f'missing {asset}')
 if errors:
     print('\n'.join(errors)); sys.exit(1)
