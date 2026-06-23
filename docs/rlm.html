@@ -50,10 +50,28 @@
       <section class="docs-hero"><p class="eyebrow">Mode guide</p><h1><code>gjc rlm</code> research mode</h1><p>Run a notebook-style research session with a persistent Python kernel, live notebook capture, and a synthesized report — without giving the session write/edit tools.</p></section>
 
       <section class="docs-section"><h2>Start a research session</h2>
-        <pre><code>gjc rlm                                    # open an interactive research session
-gjc rlm "What drives the spike in orders?"  # seed the session with a question
-gjc rlm --data ./datasets/DATA.md           # load a project/data description</code></pre>
-        <p>Use <code>gjc rlm</code> when the task is exploration: analyze data, inspect files, search the web, compute statistics, make plots, and produce a report. Use a normal <code>gjc</code> session when the task is implementation or repository mutation.</p>
+        <p><code>gjc rlm</code> is for <strong>research</strong>, not implementation: analyze data, inspect files, search the web, compute statistics, make plots, and produce a report. It runs in two ways from the same command.</p>
+        <pre><code># Interactive — open a REPL-style research session you drive cell by cell
+gjc rlm
+
+# Interactive with a seed question
+gjc rlm "What drives the spike in orders?"
+
+# Autonomous (one-shot) — hand it a task and let it research end to end
+gjc rlm "task: extract alpha and visualize with data ./BTCUSD.parquet and write a PDF report with visualizations"
+
+# Load an optional data/project brief
+gjc rlm --data ./DATA.md "task: find the strongest signal and explain the evidence"</code></pre>
+        <p>Use a normal <code>gjc</code> session instead when the task is implementation or repository mutation.</p>
+      </section>
+
+      <section class="docs-section"><h2>Autonomous vs interactive</h2>
+        <ul>
+          <li><strong>Autonomous (one-shot).</strong> Prefix your prompt with <code>task:</code> to set an explicit objective. RLM plans, runs Python cells, reads your data, iterates on the analysis, and synthesizes the final deliverable on its own — no further input needed. Ideal for "analyze this dataset and produce a report" jobs.</li>
+          <li><strong>Interactive.</strong> Launch with no <code>task:</code> and steer the session like a notebook — ask a question, inspect the result, ask the next one. You can still ask it to write a report at any point.</li>
+        </ul>
+        <h3 style="font-size:1.1rem;margin:1.25rem 0 .5rem"><code>--data</code> is optional</h3>
+        <p><code>--data DATA.md</code> loads a short brief describing your dataset, columns, conventions, and goals so the agent starts with context. It is <strong>optional</strong> — if you point RLM at a data file directly in the task (e.g. <code>...with data ./BTCUSD.parquet...</code>), it will read and profile the data itself before analyzing, even without a <code>DATA.md</code>.</p>
       </section>
 
       <section class="docs-section"><h2>What tools does RLM get?</h2>
@@ -77,14 +95,30 @@ gjc rlm --data ./datasets/DATA.md           # load a project/data description</c
       </section>
 
       <section class="docs-section"><h2>Recommended loop</h2>
-        <pre><code># 1. Create a small data brief if useful
+        <pre><code># 1. (Optional) jot a short data brief
 cat DATA.md
 
-# 2. Start research
-gjc rlm --data DATA.md "Find the strongest signal and explain the evidence"
+# 2a. Autonomous: hand RLM a task and walk away
+gjc rlm "task: find the strongest signal and explain the evidence with data ./DATA.parquet"
 
-# 3. Let the agent compute/search/read, then ask it to complete the report
-# 4. Review .gjc/rlm/&lt;session&gt;/report.md and notebook.ipynb</code></pre>
+# 2b. Or interactive: drive it cell by cell
+gjc rlm
+&gt; profile ./DATA.parquet, then test which signals predict forward returns
+
+# 3. Review the outputs under .gjc/rlm/&lt;session&gt;/ (notebook.ipynb, report.md)
+#    plus any files the agent was asked to write (e.g. a PDF report)</code></pre>
+      </section>
+
+      <section class="docs-section"><h2>Example: one-shot alpha report</h2>
+        <p>This report was produced by a single autonomous run — no <code>DATA.md</code>, just a task pointing at a data file:</p>
+        <pre><code>gjc rlm "task: extract alpha and visualize with data &lt;Datapath&gt; and write report with pdf with visualizations"</code></pre>
+        <p>From that one prompt, RLM profiled ~6.8M one-minute BTC/USD bars, computed information coefficients across 41 signals and 205 signal-horizon pairs, ran cost/capacity analysis, generated 20 figures, and assembled a 22-page PDF with an executive summary, conclusions, and an appendix — entirely on its own.</p>
+        <figure style="margin:1.25rem 0">
+          <object data="../assets/rlm-alpha-report-example.pdf" type="application/pdf" width="100%" height="640" style="border:1px solid var(--border);border-radius:12px;display:block">
+            <p style="padding:1rem">Your browser can't display the embedded PDF. <a href="../assets/rlm-alpha-report-example.pdf">Download the example report (PDF, 3.8&nbsp;MB)</a>.</p>
+          </object>
+          <figcaption style="font-size:.85rem;color:var(--text-secondary);margin-top:.5rem">Example RLM deliverable — <a href="../assets/rlm-alpha-report-example.pdf">alpha_report_btcusd.pdf</a> (22 pages, 20 figures). Generated one-shot from raw OHLCV data.</figcaption>
+        </figure>
       </section>
 
 <nav class="doc-pager"><a href="whats-new.html">← What's new</a><a href="computer-use.html">Computer tool →</a></nav>

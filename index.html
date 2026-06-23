@@ -138,16 +138,16 @@
       <p class="card__text" style="margin-top:1rem">The Telegram flow creates a threaded per-session mobile surface with live/finalized output, image attachments, inline buttons, typing indicators, and double-check acknowledgements. <code>gjc daemon</code> keeps one safe long-poll owner per bot token so sessions attach cleanly instead of tripping Telegram 409 conflicts.</p>
     </div>
     <div class="grid grid--2 reveal" style="gap:2.5rem;align-items:start">
-      <article class="card">
+      <a class="card" href="docs/rlm.html">
         <img src="assets/rlm.png" alt="gjc rlm research mode — Research. Experiment. Iterate." style="width:100%;border-radius:12px;margin-bottom:1.25rem" loading="lazy" />
         <h3 class="card__title"><code>gjc rlm</code> — research / REPL mode</h3>
         <p class="card__text">A Jupyter-notebook-style research session over a persistent Python kernel. The toolset is hard-gated to <code>python</code> + <code>read</code> + <code>web_search</code> (asserted after registry assembly, so no <code>edit</code>/<code>write</code> can leak in). Every cell streams into <code>.gjc/rlm/&lt;session&gt;/notebook.ipynb</code> and a <code>report.md</code> is synthesized on exit.</p>
-      </article>
-      <article class="card">
+      </a>
+      <a class="card" href="docs/computer-use.html">
         <img src="assets/computer-use.png" alt="computer-use desktop control — See. Click. Type. Control." style="width:100%;border-radius:12px;margin-bottom:1.25rem" loading="lazy" />
         <h3 class="card__title"><code>computer</code> — desktop control <span style="opacity:.6">(experimental)</span></h3>
         <p class="card__text">A model-agnostic tool that drives a real Apple Silicon macOS desktop via the OpenAI computer-use action set — screenshot, click, type, scroll, and more. Native, HiDPI-safe coordinates, TCC-preflighted, and protected by a user-only kill-switch outside model control. Off by default; enable per session with <code>computer.enabled=true</code>.</p>
-      </article>
+      </a>
     </div>
   </section>
 
@@ -244,21 +244,21 @@
           <p class="card__text">Have <code>gjc</code> create an isolated git worktree from a new branch for risky or reviewable work, keeping your primary checkout clean.</p>
 
         </article>
-        <article class="card">
+        <a class="card" href="docs/gajae-remote.html">
           <div class="card__icon" aria-hidden="true">🔌</div>
           <h3 class="card__title">Remote control plane</h3>
           <p class="card__text">Drive sessions through bounded RPC/bridge surfaces, Hermes-compatible MCP coordination, and a gateway-scoped Remote design that keeps phone clients out of raw transcript, shell, and system-prompt authority.</p>
-        </article>
-        <article class="card">
+        </a>
+        <a class="card" href="docs/rlm.html">
           <div class="card__icon" aria-hidden="true">🔬</div>
           <h3 class="card__title">Research mode <span style="opacity:.6">(rlm)</span></h3>
           <p class="card__text">Run <code>gjc rlm</code> for a notebook-style research session over a persistent Python kernel, with a hard-gated read-only toolset, a live <code>.ipynb</code>, and a synthesized report on exit.</p>
-        </article>
-        <article class="card">
+        </a>
+        <a class="card" href="docs/computer-use.html">
           <div class="card__icon" aria-hidden="true">🖥️</div>
           <h3 class="card__title">Desktop control <span style="opacity:.6">(experimental)</span></h3>
           <p class="card__text">The opt-in <code>computer</code> tool drives a real Apple Silicon macOS desktop via the OpenAI computer-use action set — native, HiDPI-safe, TCC-preflighted, and behind a user-only kill-switch.</p>
-        </article>
+        </a>
       </div>
     </section>
   </div>
