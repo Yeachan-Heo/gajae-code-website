@@ -54,25 +54,27 @@
 
       <section class="docs-section"><h2>Core contract and adapters</h2><p>The coordinator bridge is intentionally a core contract with multiple adapters, not an MCP-only or Hermes-only product direction. Hermes and OpenClaw are compatibility presets, not privileged integration modes.</p><ul><li><code>packages/coding-agent/src/coordinator/contract.ts</code> owns transport-neutral server metadata and tool names.</li><li><code>gjc mcp-serve coordinator</code> is the outward MCP adapter for external agents.</li><li><code>gjc coordinator</code> is the read-only CLI/debug adapter for humans and scripts that need to inspect the same contract without starting MCP transport.</li><li><code>gjc setup hermes</code> is the compatibility setup adapter that renders coordinator config and operator guidance.</li></ul><p>This bridge is separate from GJC's client-side MCP runtime. <code>gjc mcp-serve hermes</code> is accepted as a compatibility alias for the same coordinator bridge.</p></section>
 
-      <section class="docs-section" id="routed-session"><h2>Path 1 · Visible routed-session (gjc tmux, skill-based) <span class="badge">Recommended for starters</span></h2><p>This is the recommended way to get going. When a human or chatops router (Clawhip, Hermes, OpenClaw) must <em>watch</em> the work, receive stale-session alerts, and inject follow-up prompts into the same visible pane, drive an interactive <code>gjc</code> session in a routed tmux pane and inject <code>/skill:</code> prompts — rather than inventing a private terminal protocol. It is the simplest, most observable lane and needs no MCP server or plugin to start. Move to the Coordinator MCP bridge (Path 2/3) once you need pure machine control and durable turn state. Full reference: <code>docs/gjc-session-clawhip-routing.md</code> in the gajae-code repo.</p>
-        <p>The router command is host-owned. GJC does <strong>not</strong> ship these scripts — <code>create-gjc-session</code>, <code>prompt-gjc-session</code>, and <code>tail-gjc-session</code> are an illustrative naming convention you implement in your own operator repo. A Clawhip-style wrapper is usually three small helpers:</p>
-        <div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="create-gjc-session <session-name> <worktree-path> [channel-id] [mention]">Copy</button></div><div class="code-block__body"><code># create.sh — register a routed tmux session and start interactive gjc in the worktree
-create-gjc-session &lt;session-name&gt; &lt;worktree-path&gt; [channel-id] [mention]
+      <section class="docs-section" id="routed-session"><h2>Path 1 · Visible routed-session (gjc tmux, skill-based) <span class="badge">Recommended for starters</span></h2><p>This is the recommended way to get going. When a human or chatops router (Clawhip, Hermes, OpenClaw) must <em>watch</em> the work, receive stale-session alerts, and inject follow-up prompts into the same visible pane, drive an interactive <code>gjc</code> session in a routed tmux pane and inject <code>/skill:</code> prompts — rather than inventing a private terminal protocol. It is the simplest, most observable lane. Move to the Coordinator MCP bridge (Path 2/3) once you need pure machine control and durable turn state.</p>
+        <p>The public <code>gjc-session</code> plugin skill publishes this helper flow for operator repos. It is not a fifth bundled workflow skill; Gajae Code still has four core workflow skills. The published helpers are:</p>
+        <div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="scripts/gjc-session/create.sh <session-name> <worktree-path>">Copy</button></div><div class="code-block__body"><code># create — register a routed tmux session and start interactive gjc in the worktree
+scripts/gjc-session/create.sh &lt;session-name&gt; &lt;worktree-path&gt;
 
-# prompt.sh — inject the real task after the TUI is ready
-prompt-gjc-session &lt;session-name&gt; @/path/to/task.md
+# prompt — inject the real task after the TUI is ready
+scripts/gjc-session/prompt.sh &lt;session-name&gt; @task.md
 
-# tail.sh — inspect bounded pane output before/after prompt delivery
-tail-gjc-session &lt;session-name&gt; [lines]</code></div></div>
-        <p>Concrete deployments implement these with <code>tmux new</code>, <code>tmux send-keys</code>, and <code>tmux capture-pane</code>. Keep that implementation — and any private channel ids, mention targets, socket names, or routing policy — in the host/operator repository, never in portable GJC setup output.</p>
-        <p><strong>Contract:</strong> (1) create or verify a dedicated worktree, (2) register a named tmux session with the router before launching GJC, (3) start interactive <code>gjc</code> in the worktree, (4) wait for TUI readiness, (5) inject the task prompt separately, (6) verify acceptance from real work evidence — not from a visible pasted prompt. Use stable names that include project and artifact id (e.g. <code>gajae-code-issue-905-ctrl-shift-enter-newline</code>).</p>
+# tail — inspect bounded pane output before/after prompt delivery
+scripts/gjc-session/tail.sh &lt;session-name&gt; 80
+
+# owner starter used by create; do not wrap the owner in a short timeout
+scripts/gjc-session/harness-tmux-owner-start.sh</code></div></div>
+        <p><strong>Contract:</strong> (1) create or verify a dedicated worktree, (2) register a stable named tmux session with the router before launching GJC, (3) start interactive <code>gjc</code> in the worktree, (4) wait for TUI readiness, (5) inject the task prompt separately, (6) verify acceptance from real work evidence — not from a visible pasted prompt. Use stable public-safe names that include project and artifact id (e.g. <code>gajae-code-issue-905-ctrl-shift-enter-newline</code>).</p>
         <p>The injected prompt is skill-based, e.g.:</p>
         <div class="code-block"><div class="code-block__header"><button class="code-block__copy" data-copy="/skill:ralplan">Copy</button></div><div class="code-block__body"><code>/skill:ralplan
 
 gjc ultragoal fix issue #905 missed Ctrl+Shift+Enter newline case.
 
 Repo: Yeachan-Heo/gajae-code
-Worktree: /repo/worktrees/gajae-code-issue-905-ctrl-shift-enter-newline
+Worktree: ../worktrees/gajae-code-issue-905-ctrl-shift-enter-newline
 Branch: issue-905-ctrl-shift-enter-newline
 Base: dev
 
