@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html">What's new (v0.7.1)</a>
+        <a class="docs-nav-link " href="whats-new.html">What's new (v0.7.2)</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -104,7 +104,7 @@ gjc
   }
 }</code></pre>
         <ul>
-          <li>CDP binds to <code>0.7.1.1</code>; never expose a logged-in profile's CDP port publicly — a CDP client has full browser-account access.</li>
+          <li>CDP binds to <code>127.0.0.1</code>; never expose a logged-in profile's CDP port publicly — a CDP client has full browser-account access.</li>
           <li>A matching already-running profile is reused only when its localhost CDP endpoint responds; a profile running normally without CDP is refused rather than killed or relaunched.</li>
           <li><code>kill: true</code> terminates only the Chrome profile process that GJC launched.</li>
         </ul>

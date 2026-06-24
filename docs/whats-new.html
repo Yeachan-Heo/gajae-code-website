@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="What's new in Gajae Code v0.7.1 — the notifications SDK and managed Telegram control plane for answering and steering sessions from your phone." />
+  <meta name="description" content="What's new in Gajae Code v0.7.2 — web search that works over proxies and custom endpoints with trustworthy citations, Discord/Slack notification adapters, Telegram attachments, and Intel macOS binaries back in release CI." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
-  <title>What's new (v0.7.1) · Gajae Code Docs</title>
+  <title>What's new (v0.7.2) · Gajae Code Docs</title>
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link is-active" href="whats-new.html">What's new (v0.7.1)</a>
+        <a class="docs-nav-link is-active" href="whats-new.html">What's new (v0.7.2)</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -48,59 +48,42 @@
   </aside>
 
     <main class="docs-main">
-      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>What's new in v0.7.1</h1><p>A notifications SDK and a managed Telegram control plane: get action-needed signals out of any session and answer or steer from your phone, without scraping the terminal or running RPC.</p></section>
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>What's new in v0.7.2</h1><p>Web search you can trust over any endpoint, broader notifications, and Intel macOS binaries back in release CI — plus a round of reliability fixes.</p></section>
 
-      <section class="docs-section"><h2>📲 Notifications SDK &amp; Telegram control plane</h2>
-        <p>Every running session can expose one loopback WebSocket endpoint that emits <strong>action-needed</strong> signals and accepts <strong>replies</strong> over a small, transport-agnostic JSON protocol. Telegram, Discord, Slack, or your own client all speak the same contract — no upstream change is needed for a new integration.</p>
-        <pre><code>gjc notify setup     # one-time: pair a private Telegram chat
-# sessions then auto-connect when notifications are enabled</code></pre><p><a href="telegram-onboarding.html">Follow the Telegram onboarding guide →</a></p>
+      <section class="docs-section"><h2>🔎 Web search you can trust over any endpoint</h2>
+        <p>Native web search now works through proxies and custom OpenAI-compatible endpoints, recovers real citations even when a provider omits structured annotations, and fails closed instead of inventing sources.</p>
         <ul>
-          <li><strong>Configure-once Telegram UX.</strong> A managed reference daemon pairs exactly one private chat, enforces one <code>getUpdates</code> poller per bot token (no Telegram 409 conflicts), and routes replies back to the exact session.</li>
-          <li><strong>Threaded per-session surface.</strong> Each session gets its own topic with an identity header, streamed context updates (last message, task, goal, token/model usage, diff), live turn output, typing indicators, and agent image streaming.</li>
-          <li><strong>Answer asks remotely.</strong> Tap an inline button or reply in the thread; the first valid answer wins in both interactive and unattended modes. Markdown tables render natively and button labels are clean (no double-numbering).</li>
-          <li><strong>Daemon control plane with safe reload.</strong> New sessions attach to the existing daemon owner, and the control plane reloads without dropping in-flight sessions or losing connection-drop recovery.</li>
-          <li><strong>Strict, fail-closed trust model.</strong> Only the paired chat receives anything; groups/channels never see session names or actions. Redaction strips idle summaries and streamed content, while <em>asks stay readable</em> so remote prompts remain answerable.</li>
+          <li><strong>Native search over proxies.</strong> In <code>auto</code> mode, when a model is served through a proxy/custom endpoint and canonical native search credentials are absent, the active model's own credential + <code>baseUrl</code> drive native search, dispatched by wire protocol — Anthropic (<code>anthropic-messages</code>), OpenAI-compatible (<code>openai-responses</code>/<code>completions</code>), or Gemini (Generative Language) — each falling back to DuckDuckGo when the endpoint can't search.</li>
+          <li><strong>Inline citation recovery.</strong> When a search demonstrably ran but the provider returned no structured <code>url_citation</code> annotations, sources are harvested from inline markdown links and bare URLs. Recovery is gated on a real-search signal, so a stray prose URL in a non-search answer is never promoted to a citation.</li>
+          <li><strong>Codex stays on official OpenAI.</strong> The ChatGPT-backed <code>codex</code> native search is selected only for genuine OpenAI/ChatGPT endpoints; custom/proxy OpenAI-compatible models reuse their own credentials instead of local Codex OAuth.</li>
+          <li><strong>Fail-closed Anthropic.</strong> Anthropic falls back to DuckDuckGo when Claude answers from stable knowledge without searching, and on <code>web_search</code> error blocks.</li>
+          <li><strong>Opt-in <code>insane</code> read fallback.</strong> A keyless, opt-in fallback can recover blocked public URLs for <code>read</code> — no TLS impersonation, credential storage, or auto-installed dependencies.</li>
         </ul>
-        <div class="callout"><strong>Off unless configured.</strong> No endpoint exists until notifications are enabled and a token is present. The Telegram daemon is a reference client of the generic SDK, not the upstream topology.</div>
       </section>
 
-      <section class="docs-section"><h2>🔬 Research mode — <code>gjc rlm</code></h2>
-        <p>A Jupyter-notebook-style research session layered over the existing agent loop, backed by the shared persistent Python kernel. It is built for exploring data and questions, not mutating your repository.</p>
-        <pre><code>gjc rlm                                    # interactive research session
-gjc rlm "What drives the spike in orders?"  # seed an initial question
-gjc rlm --data ./datasets/DATA.md           # point at a data description</code></pre>
+      <section class="docs-section"><h2>📲 Notifications: Discord, Slack &amp; Telegram attachments</h2>
+        <p>The configure-once notifications SDK keeps its single action-needed/reply contract — and now reaches more clients with richer payloads.</p>
         <ul>
-          <li><strong>Hard-gated toolset.</strong> Only <code>python</code>, <code>read</code>, and <code>web_search</code> are exposed (plus inspection-only <code>bash</code> prefixes, <code>goal</code>, and a <code>complete_research</code> tool). The allowlist is asserted <em>after</em> the tool registry is assembled, so a leaked <code>edit</code>/<code>write</code>/<code>task</code>/<code>browser</code> tool fails the launch loudly instead of silently mutating your repo.</li>
-          <li><strong>Live notebook.</strong> Every executed cell streams into <code>.gjc/rlm/&lt;session&gt;/notebook.ipynb</code> via single-queue atomic temp-rename writes with post-write validation.</li>
-          <li><strong>Synthesized report.</strong> A <code>.gjc/rlm/&lt;session&gt;/report.md</code> is generated on session exit.</li>
-          <li><strong>Optional data context.</strong> Auto-loads a project-root <code>DATA.md</code> (override with <code>--data &lt;path&gt;</code>).</li>
+          <li><strong>Discord and Slack adapters.</strong> Both join Telegram on the same transport-agnostic contract, so action-needed signals and replies can route to those clients without an upstream change.</li>
+          <li><strong>Telegram attachments.</strong> The Telegram daemon forwards agent images and accepts user-sent photos and files, for inbound and outbound attachments.</li>
+          <li><strong>Threaded Mode verification.</strong> <code>gjc notify setup</code> verifies Telegram Threaded Mode and falls back to a flat private chat when topics are unavailable.</li>
         </ul>
-        <div class="callout"><strong>v1 scope:</strong> interactive sessions ship today. Autonomous goal-arg runs, <code>--resume</code>, managed per-workspace venv provisioning, and an optional completion gate are deferred follow-ups.</div>
+        <div class="callout"><strong>Off unless configured.</strong> No endpoint exists until notifications are enabled and a token is present. The Telegram daemon is a reference client of the generic SDK, not the upstream topology. <a href="telegram-onboarding.html">Follow the Telegram onboarding guide →</a></div>
       </section>
 
-      <section class="docs-section"><h2>🖥️ Desktop control — the <code>computer</code> tool <span style="opacity:.6">(experimental)</span></h2>
-        <p>A model-agnostic tool that lets the agent drive a real macOS desktop using the OpenAI computer-use action set: <code>screenshot</code>, <code>click</code>, <code>double_click</code>, <code>move</code>, <code>drag</code>, <code>scroll</code>, <code>type</code>, <code>keypress</code>, and <code>wait</code>.</p>
+      <section class="docs-section"><h2>🧰 Tooling &amp; platform</h2>
         <ul>
-          <li><strong>Native + HiDPI-safe.</strong> Backed by fresh Rust <code>pi-natives</code> bindings (<code>ComputerController</code> / <code>computerScreenshot</code>). The returned screenshot's pixel dimensions <em>are</em> the action coordinate space; Rust owns the transform to macOS logical points.</li>
-          <li><strong>Apple Silicon macOS.</strong> v1 is macOS-only; Linux/Windows are deferred behind the same tool schema.</li>
-          <li><strong>User-only kill-switch.</strong> A supervisor-enforced global hotkey (default <code>Control+Option+Command+Escape</code>) aborts queued actions, releases held keys/buttons, and suspends further input outside model control. Reset is user-only.</li>
-          <li><strong>TCC preflighted.</strong> Accessibility + Screen Recording grants are checked up front; a missing grant returns a clear "grant then retry" error rather than a silent black frame.</li>
-        </ul>
-        <div class="callout callout--warn"><span class="callout__icon" aria-hidden="true">⚠️</span><p>Off by default. Enable per session with <code>computer.enabled=true</code> on a supported host. This surface is an experimental preview and is still stabilizing.</p></div>
-      </section>
-
-      <section class="docs-section"><h2>🔧 Interaction & lifecycle</h2>
-        <ul>
-          <li><strong>Steer-by-default while busy.</strong> <code>busyPromptMode</code> defaults to <code>steer</code>: pressing Enter on a normal prompt interrupts the active turn. Queueing for the next turn moves to the explicit Ctrl+Enter follow-up keystroke (or <code>busyPromptMode: "queue"</code>).</li>
-          <li><strong><code>goal({op:"pause"})</code>.</strong> The agent can now park a goal whose remaining work is blocked on human input, instead of dropping it or leaving it re-firing the autonomous-continuation steer every turn.</li>
-          <li><strong>Release unblock.</strong> Deprecated GitHub Actions Intel macOS (<code>macos-13</code> / <code>darwin-x64</code>) release binaries are excluded from CI; Intel macOS users should install through npm/Bun or build from source.</li>
+          <li><strong>Intel macOS binaries are back.</strong> Release CI builds standalone <code>darwin-x64</code> binaries again on the supported <code>macos-15-intel</code> runner, so Intel Mac users get prebuilt binaries instead of npm/Bun or source-only installs.</li>
+          <li><strong>C# LSP.</strong> Built-in detection for <code>csharp-ls</code>, with <code>omnisharp</code> preserved as a fallback when <code>csharp-ls</code> is unavailable.</li>
+          <li><strong>tmux session preservation.</strong> GJC-managed tmux sessions survive attach/disconnect instead of being torn down, and launch no longer implicitly attaches.</li>
+          <li><strong>Truncated tool calls rejected.</strong> Incomplete streamed tool calls fail fast instead of executing against a mismatched schema with partial arguments.</li>
         </ul>
       </section>
 
       <section class="docs-section"><h2>Upgrade</h2>
         <pre><code>bun install -g gajae-code        # or: @gajae-code/coding-agent
 gjc --version &amp;&amp; gjc --smoke-test</code></pre>
-        <p>See the full <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.7.1">v0.7.1 release notes</a> on GitHub.</p>
+        <p>See the full <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.7.2">v0.7.2 release notes</a> on GitHub.</p>
       </section>
 
 <nav class="doc-pager"><a href="getting-started.html">← Getting started</a><a href="skills.html">Skills →</a></nav>
