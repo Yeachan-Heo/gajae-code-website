@@ -139,6 +139,7 @@ gjc ultragoal create-goals --brief-file &lt;approved-plan&gt;
 gjc ultragoal complete-goals</code></div>
           </div>
           <p>Add <code>gjc team ...</code> only when coordinated tmux workers materially help with implementation or verification.</p>
+          <p>When a Clawhip or chatops router needs a visible pane, use the <code>gjc-session</code> plugin skill plus <code>scripts/gjc-session/{create,prompt,tail}</code> to create the named worktree-backed session, inject the task after readiness, and capture bounded tail output. Keep <code>gjc-session</code> in the plugin/helper category; the bundled workflow surface above remains four skills.</p>
 
           <h2>Configuration</h2>
           <p>Provider retry budgets live in <code>~/.gjc/config.yml</code>:</p>

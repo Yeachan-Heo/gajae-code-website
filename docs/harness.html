@@ -56,8 +56,11 @@
 /skill:deep-interview
 /skill:ralplan
 gjc ultragoal create-goals --brief "implement, verify, and report evidence"
-gjc ultragoal complete-goals</code></pre>
-      <section class="docs-section"><h2>Operational guardrails</h2><ul><li>Use dedicated worktrees for risky implementation and review work.</li><li>Keep branch metadata aligned with the actual checkout.</li><li>Submit follow-up prompts only after the session is observable and ready.</li><li>Retire completed sessions instead of leaving stale panes behind.</li></ul></section>
+gjc ultragoal complete-goals</code></pre></section>
+      <section class="docs-section"><h2>Visible routed tmux sessions</h2><p>For Clawhip or chatops-visible work, use the public <code>gjc-session</code> plugin skill and <code>scripts/gjc-session/</code> helpers instead of ad hoc shell wrappers. The helper pattern is:</p><pre><code>scripts/gjc-session/create.sh &lt;session-name&gt; &lt;worktree-path&gt;
+scripts/gjc-session/prompt.sh &lt;session-name&gt; @task.md
+scripts/gjc-session/tail.sh &lt;session-name&gt; 80</code></pre><p><code>create</code> gives the pane a stable name and a dedicated worktree, <code>prompt</code> injects the task after readiness, and <code>tail</code> reads bounded output for readiness or evidence checks. <code>harness-tmux-owner-start.sh</code> is the owner starter: keep long-running interactive <code>gjc</code> sessions under tmux ownership, not under short timeout wrappers that can kill the process mid-task.</p></section>
+      <section class="docs-section"><h2>Operational guardrails</h2><ul><li>Use dedicated worktrees for risky implementation and review work.</li><li>Keep branch metadata aligned with the actual checkout.</li><li>Submit follow-up prompts only after the session is observable and ready.</li><li>Use stable, public-safe session names that identify the project and task without exposing private routing IDs.</li><li>Retire completed sessions instead of leaving stale panes behind.</li></ul></section>
 
 <nav class="doc-pager"><a href="architecture.html">← Architecture</a><a href="skills.html">Skills →</a></nav>
     </main>
