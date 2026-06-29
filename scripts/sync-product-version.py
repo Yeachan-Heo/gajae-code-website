@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION_RE = re.compile(r"(v?)(\d+\.\d+\.\d+)")
+VERSION_RE = re.compile(r"v(?P<version>\d+\.\d+\.\d+)")
 
 
 def read_product_version(source: Path) -> str:
@@ -36,7 +36,7 @@ def sync_version(version: str) -> list[Path]:
         if not target.exists():
             continue
         before = target.read_text()
-        after = VERSION_RE.sub(lambda m: f"{m.group(1)}{version}", before)
+        after = VERSION_RE.sub(f"v{version}", before)
         if after != before:
             target.write_text(after)
             changed.append(target)

@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION_RE = re.compile(r"(v?)(?P<version>\d+\.\d+\.\d+)")
+VERSION_RE = re.compile(r"v(?P<version>\d+\.\d+\.\d+)")
 
 
 def read_product_version(source: Path) -> str:
