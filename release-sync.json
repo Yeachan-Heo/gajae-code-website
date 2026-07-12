@@ -1,0 +1,16 @@
+{
+  "generated_content_sha256": "df4f9ae2778f4ecc7323fbd3635f52105599761c87b3e938d8e0d73e6f8caf9d",
+  "release": {
+    "id": 352667056,
+    "published_at": "2026-07-12T04:00:25Z",
+    "tag": "v0.10.0",
+    "url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.10.0",
+    "version": "0.10.0"
+  },
+  "schema_version": 1,
+  "source": {
+    "changelog_path": "packages/coding-agent/CHANGELOG.md",
+    "commit_sha": "9e63d6e74ebbd592998ce26551bb523a5cce5642",
+    "repository": "Yeachan-Heo/gajae-code"
+  }
+}

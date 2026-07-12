@@ -22,6 +22,10 @@
   <meta name="twitter:description" content="An external coding-agent harness: shape intent, act through reviewed plans, and prove the result with durable evidence." />
   <meta name="twitter:image" content="https://yeachan-heo.github.io/gajae-code-website/assets/hero.png" />
 
+  <!-- release-sync:public-release-meta:start -->
+  <meta name="gajae-release" content="352667056:v0.10.0:9e63d6e74ebbd592998ce26551bb523a5cce5642" />
+  <!-- release-sync:public-release-meta:end -->
+
   <title>Gajae Code — Encode intention. Decode software.</title>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
@@ -46,7 +50,7 @@
         <span></span>
       </button>
       <div class="nav__links" id="navLinks">
-        <a href="#whats-new" class="nav__link">What's new</a>
+        <a href="#latest-release" class="nav__link">What's new</a>
         <a href="#pillars" class="nav__link">Method</a>
         <a href="#features" class="nav__link">Features</a>
         <a href="#architecture" class="nav__link">Architecture</a>
@@ -62,7 +66,9 @@
   <header class="hero" id="top">
     <div class="hero__content">
       <div class="hero__text">
-        <span class="hero__badge">🦀 v0.7.2 · beta · MIT licensed</span>
+        <!-- release-sync:homepage-hero-badge:start -->
+        <span class="hero__badge">🦀 v0.10.0 · beta · MIT licensed</span>
+        <!-- release-sync:homepage-hero-badge:end -->
         <h1 class="hero__title"><span class="gradient-text">Gajae Code</span></h1>
         <p class="hero__tagline">Encode intention. Decode software.</p>
         <p class="hero__description">
@@ -112,7 +118,7 @@
           <span class="terminal__label">recommended workflow</span>
         </div>
         <div class="terminal__body">
-<span class="tok-comment"># run gjc beside your repo; create a worktree from a new branch</span>
+<pre><code><span class="tok-comment"># run gjc beside your repo; create a worktree from a new branch</span>
 <span class="tok-prompt">$</span> <span class="tok-cmd">gjc</span> <span class="tok-flag">--tmux</span> <span class="tok-flag">--worktree</span> my-task-branch
 
 
@@ -125,6 +131,20 @@
       </div>
     </div>
   </section>
+
+  <!-- release-sync:homepage-release-strip:start -->
+  <section class="section section--tight" id="latest-release">
+    <div class="section__header reveal">
+      <span class="section__eyebrow">Latest stable · v0.10.0</span>
+      <h2 class="section__title">Gajae Code v0.10.0</h2>
+      <p class="section__subtitle">Published 2026-07-12. Release binaries and npm packages are available.</p>
+      <div class="hero__cta">
+        <a href="docs/whats-new.html" class="btn btn--primary">Read what’s new</a>
+        <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.10.0" class="btn btn--secondary" target="_blank" rel="noopener noreferrer">GitHub Release</a>
+      </div>
+    </div>
+  </section>
+  <!-- release-sync:homepage-release-strip:end -->
 
   <!-- New in 0.7.2 -->
   <section class="section" id="whats-new">

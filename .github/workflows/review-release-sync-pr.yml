@@ -1,0 +1,885 @@
+name: Review release-sync pull requests
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Existing same-repository release-sync pull request number."
+        required: true
+        type: string
+      expected_head_sha:
+        description: "Current 40-character PR head SHA, required to make manual recovery CAS-bound."
+        required: true
+        type: string
+
+concurrency:
+  group: review-release-sync-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: read
+
+jobs:
+  classify:
+    name: Tokenless trusted classification
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    outputs:
+      pr_number: ${{ steps.classify.outputs.pr_number }}
+      base_sha: ${{ steps.classify.outputs.base_sha }}
+      head_sha: ${{ steps.classify.outputs.head_sha }}
+      review_action: ${{ steps.classify.outputs.review_action }}
+      eligible: ${{ steps.classify.outputs.eligible }}
+      auto_merge: ${{ steps.classify.outputs.auto_merge }}
+    env:
+      WEBSITE_REPOSITORY: Yeachan-Heo/gajae-code-website
+      DEFAULT_BRANCH: main
+      BOT_BRANCH: automation/release-sync
+      RELEASE_SYNC_WRITER_APP_SLUG: ${{ vars.RELEASE_SYNC_WRITER_APP_SLUG }}
+      RELEASE_SYNC_WRITER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_WRITER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_AUTO_REVIEW_ENABLED: ${{ vars.RELEASE_SYNC_AUTO_REVIEW_ENABLED }}
+    steps:
+      - name: Check out trusted default-branch repository objects
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check out trusted policy guard code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          path: trusted
+
+      - name: Fetch and normalize the PR tuple without candidate execution
+        id: classify
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          INPUT_EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha }}
+          TRUSTED: ${{ github.workspace }}/trusted
+          TRUSTED_BASE_SHA: ${{ github.sha }}
+          GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          import sys
+          import urllib.request
+          from pathlib import Path
+
+          repository = "Yeachan-Heo/gajae-code-website"
+          owner, name = repository.split("/", 1)
+          event_name = os.environ["EVENT_NAME"]
+          trusted_base_sha = os.environ["TRUSTED_BASE_SHA"]
+          if not re.fullmatch(r"[0-9a-f]{40}", trusted_base_sha):
+              raise SystemExit("github.sha is not an immutable default-branch commit")
+          if (
+              subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip() != trusted_base_sha
+              or subprocess.check_output(["git", "-C", os.environ["TRUSTED"], "rev-parse", "HEAD"], text=True).strip() != trusted_base_sha
+          ):
+              raise SystemExit("trusted repository and guard checkouts are not pinned to github.sha")
+          if os.environ["GITHUB_REPOSITORY"] != repository:
+              raise SystemExit("policy reviewer is production-hardcoded to the canonical website repository")
+          for key in ("RELEASE_SYNC_WRITER_APP_SLUG", "RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG"):
+              if not os.environ[key]:
+                  raise SystemExit(f"missing frozen public identity {key}")
+          for key in ("RELEASE_SYNC_WRITER_APP_ID_PUBLIC", "RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC"):
+              if not re.fullmatch(r"[1-9][0-9]*", os.environ[key]):
+                  raise SystemExit(f"invalid frozen public identity {key}")
+          if os.environ["RELEASE_SYNC_AUTO_REVIEW_ENABLED"] not in {"true", "false"}:
+              raise SystemExit("RELEASE_SYNC_AUTO_REVIEW_ENABLED must be true or false")
+
+          raw_number = os.environ["EVENT_PR_NUMBER"] if event_name == "pull_request_target" else os.environ["INPUT_PR_NUMBER"]
+          if not re.fullmatch(r"[1-9][0-9]{0,9}", raw_number or ""):
+              raise SystemExit("PR number must be a bounded positive integer")
+          pr_number = int(raw_number)
+
+          def api(path: str) -> object:
+              request = urllib.request.Request(
+                  f"https://api.github.com{path}",
+                  headers={
+                      "Accept": "application/vnd.github+json",
+                      "Authorization": f"Bearer {os.environ['GITHUB_READ_TOKEN']}",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                  },
+              )
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  return json.load(response)
+
+          pr = api(f"/repos/{repository}/pulls/{pr_number}")
+
+          def human_fallback(reason: str) -> None:
+              result = {
+                  "auto_merge": False,
+                  "classification": "human-required",
+                  "eligible": False,
+                  "pr_number": pr_number,
+                  "reason": reason,
+                  "review_action": "none",
+              }
+              Path(os.environ["GITHUB_OUTPUT"]).write_text(
+                  f"pr_number={pr_number}\nbase_sha=\nhead_sha=\neligible=false\nauto_merge=false\nreview_action=none\n"
+              )
+              print(json.dumps(result, sort_keys=True))
+              raise SystemExit(0)
+
+          try:
+              base = pr["base"]
+              head = pr["head"]
+              canonical_base = (
+                  base["ref"] == "main"
+                  and base["repo"] is not None
+                  and base["repo"]["full_name"] == repository
+                  and isinstance(base["sha"], str)
+                  and re.fullmatch(r"[0-9a-f]{40}", base["sha"])
+              )
+              canonical_head = (
+                  head["ref"] == "automation/release-sync"
+                  and head["repo"] is not None
+                  and head["repo"]["full_name"] == repository
+                  and isinstance(head["sha"], str)
+                  and re.fullmatch(r"[0-9a-f]{40}", head["sha"])
+              )
+          except (KeyError, TypeError):
+              raise SystemExit("PR response is malformed before trusted classification") from None
+          if not canonical_base or not canonical_head:
+              human_fallback("PR is not the canonical same-repository release-sync branch; human review required")
+          if base["sha"] != trusted_base_sha:
+              raise SystemExit("PR base does not match the immutable trusted default-branch SHA")
+          if event_name == "pull_request_target":
+              if base["sha"] != os.environ["EVENT_BASE_SHA"] or head["sha"] != os.environ["EVENT_HEAD_SHA"]:
+                  raise SystemExit("event PR tuple changed before trusted classification")
+          elif head["sha"] != os.environ["INPUT_EXPECTED_HEAD_SHA"]:
+              raise SystemExit("manual recovery expected_head_sha does not match the current PR head")
+
+          def has_current_writer_provenance(head_sha: str) -> bool:
+              statuses = api(f"/repos/{repository}/commits/{head_sha}/statuses?per_page=100")
+              if not isinstance(statuses, list) or len(statuses) >= 100:
+                  raise SystemExit("Writer provenance status list is malformed or exceeds the bounded policy input")
+              writer = {
+                  "slug": os.environ["RELEASE_SYNC_WRITER_APP_SLUG"],
+                  "id": int(os.environ["RELEASE_SYNC_WRITER_APP_ID_PUBLIC"]),
+              }
+              return any(
+                  isinstance(status, dict)
+                  and status.get("context") == "release-sync/writer-provenance"
+                  and status.get("description") == "Writer-App generated release-sync candidate"
+                  and status.get("state") == "success"
+                  and isinstance(status.get("creator"), dict)
+                  and status["creator"].get("login", "").removesuffix("[bot]") == writer["slug"]
+                  and status["creator"].get("id") == writer["id"]
+                  for status in statuses
+              )
+
+          if not has_current_writer_provenance(head["sha"]):
+              human_fallback("current head lacks authenticated Writer-App provenance; human review required")
+
+          def normalize_reviews(value: object) -> list[dict[str, object]]:
+              if not isinstance(value, list) or len(value) >= 100:
+                  raise SystemExit("review list is malformed or exceeds the bounded policy input")
+              normalized: list[dict[str, object]] = []
+              allowed_states = {"APPROVED", "CHANGES_REQUESTED", "COMMENTED", "DISMISSED", "REQUEST_CHANGES"}
+              for review in value:
+                  if not isinstance(review, dict):
+                      raise SystemExit("review list contains a non-object review")
+                  review_id = review.get("id")
+                  state = review.get("state")
+                  commit_id = review.get("commit_id")
+                  user = review.get("user")
+                  if (
+                      isinstance(review_id, bool) or not isinstance(review_id, int) or review_id <= 0
+                      or not isinstance(state, str) or state not in allowed_states
+                      or not isinstance(commit_id, str) or not commit_id
+                      or not isinstance(user, dict)
+                  ):
+                      raise SystemExit("review list contains an invalid review")
+                  login = user.get("login")
+                  user_id = user.get("id")
+                  if (
+                      not isinstance(login, str) or not login
+                      or isinstance(user_id, bool) or not isinstance(user_id, int) or user_id <= 0
+                  ):
+                      raise SystemExit("review list contains an invalid review identity")
+                  normalized.append({
+                      "id": review_id,
+                      "state": state,
+                      "commit_id": commit_id,
+                      "app": {"slug": login.removesuffix("[bot]"), "id": user_id},
+                  })
+              return normalized
+
+          subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main", base["sha"], head["sha"]])
+          current_main = subprocess.check_output(["git", "rev-parse", "origin/main"], text=True).strip()
+          if current_main != base["sha"]:
+              raise SystemExit("main advanced before trusted classification")
+          control_bytes = subprocess.check_output(["git", "show", f"{base['sha']}:release-sync-control.json"])
+          reviews = api(f"/repos/{repository}/pulls/{pr_number}/reviews?per_page=100")
+          normalized_reviews = normalize_reviews(reviews)
+          actor = pr.get("user") or {}
+          policy_input = {
+              "repository": repository,
+              "pull_request": {
+                  "number": pr_number,
+                  "base_sha": base["sha"],
+                  "head_sha": head["sha"],
+                  "head_ref": head["ref"],
+                  "head_repository": head["repo"]["full_name"],
+                  "draft": bool(pr["draft"]),
+                  "writer_app": {"slug": actor.get("login", "").removesuffix("[bot]"), "id": actor.get("id", 0)},
+              },
+              "reviews": normalized_reviews,
+              "transaction": {
+                  "base_sha": base["sha"],
+                  "control_sha256": hashlib.sha256(control_bytes).hexdigest(),
+                  "head_sha": head["sha"],
+              },
+          }
+          event_path = Path(os.environ["RUNNER_TEMP"]) / "release-sync-policy-input.json"
+          event_path.write_text(json.dumps(policy_input, sort_keys=True, indent=2) + "\n")
+          command = [
+              "python3", str(Path(os.environ["TRUSTED"]) / "scripts/check-review-eligibility.py"),
+              "--trusted-root", os.environ["TRUSTED"], "--repository", os.environ["GITHUB_WORKSPACE"],
+              "--base-sha", base["sha"], "--head-sha", head["sha"], "--event-json", str(event_path),
+              "--writer-app-slug", os.environ["RELEASE_SYNC_WRITER_APP_SLUG"],
+              "--writer-app-id", os.environ["RELEASE_SYNC_WRITER_APP_ID_PUBLIC"],
+              "--reviewer-app-slug", os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG"],
+              "--reviewer-app-id", os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC"],
+              "--auto-review-enabled", os.environ["RELEASE_SYNC_AUTO_REVIEW_ENABLED"],
+          ]
+          guard = subprocess.run(command, text=True, capture_output=True)
+          if guard.returncode != 0:
+              sys.stderr.write(guard.stderr)
+              raise SystemExit("trusted policy guard failed closed")
+          result = json.loads(guard.stdout)
+          required = {"classification", "eligible", "auto_merge", "review_action"}
+          if not required <= set(result) or result["review_action"] not in {"approve", "dismiss", "none"}:
+              raise SystemExit("trusted policy guard returned an invalid result")
+          output = Path(os.environ["GITHUB_OUTPUT"])
+          output.write_text(
+              f"pr_number={pr_number}\nbase_sha={base['sha']}\nhead_sha={head['sha']}\n"
+              f"eligible={'true' if result['eligible'] else 'false'}\n"
+              f"auto_merge={'true' if result['auto_merge'] else 'false'}\n"
+              f"review_action={result['review_action']}\n"
+          )
+          print(json.dumps(result, sort_keys=True))
+          PY
+
+      - name: Record human-review fallback when no App action is permitted
+        if: ${{ steps.classify.outputs.review_action == 'none' || (steps.classify.outputs.review_action == 'approve' && vars.RELEASE_SYNC_AUTO_REVIEW_ENABLED != 'true') }}
+        run: |
+          {
+            echo '### Release-sync policy review'
+            echo
+            echo '- Automated approval was not performed.'
+            echo '- This pull request requires a current human maintainer approval unless a later trusted lifecycle event permits the Policy Reviewer App.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  reconcile-review:
+    name: CAS-bound Policy Reviewer App lifecycle
+    needs: classify
+    if: ${{ needs.classify.outputs.review_action == 'dismiss' || (needs.classify.outputs.review_action == 'approve' && vars.RELEASE_SYNC_AUTO_REVIEW_ENABLED == 'true') }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    environment: release-sync-policy-reviewer
+    env:
+      WEBSITE_REPOSITORY: Yeachan-Heo/gajae-code-website
+      RELEASE_SYNC_WRITER_APP_SLUG: ${{ vars.RELEASE_SYNC_WRITER_APP_SLUG }}
+      RELEASE_SYNC_WRITER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_WRITER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_AUTO_REVIEW_ENABLED: ${{ vars.RELEASE_SYNC_AUTO_REVIEW_ENABLED }}
+    steps:
+      - name: Check out trusted default-branch repository objects
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check out trusted policy guard code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          path: trusted
+
+      - name: Re-fetch tokenless tuple immediately before Reviewer-App mint
+        env:
+          PR_NUMBER: ${{ needs.classify.outputs.pr_number }}
+          BASE_SHA: ${{ needs.classify.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.classify.outputs.head_sha }}
+          EXPECTED_ACTION: ${{ needs.classify.outputs.review_action }}
+          TRUSTED: ${{ github.workspace }}/trusted
+          TRUSTED_BASE_SHA: ${{ github.sha }}
+          GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          import urllib.request
+          from pathlib import Path
+
+          repository = "Yeachan-Heo/gajae-code-website"
+          trusted_base_sha = os.environ["TRUSTED_BASE_SHA"]
+          if not re.fullmatch(r"[0-9a-f]{40}", trusted_base_sha):
+              raise SystemExit("github.sha is not an immutable default-branch commit")
+          if (
+              subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip() != trusted_base_sha
+              or subprocess.check_output(["git", "-C", os.environ["TRUSTED"], "rev-parse", "HEAD"], text=True).strip() != trusted_base_sha
+          ):
+              raise SystemExit("trusted repository and guard checkouts are not pinned to github.sha")
+          pr_number = os.environ["PR_NUMBER"]
+
+          def api(path: str) -> object:
+              request = urllib.request.Request(
+                  f"https://api.github.com{path}",
+                  headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {os.environ['GITHUB_READ_TOKEN']}", "X-GitHub-Api-Version": "2022-11-28"},
+              )
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  return json.load(response)
+
+          pr = api(f"/repos/{repository}/pulls/{pr_number}")
+
+          def has_current_writer_provenance(head_sha: str) -> bool:
+              statuses = api(f"/repos/{repository}/commits/{head_sha}/statuses?per_page=100")
+              if not isinstance(statuses, list) or len(statuses) >= 100:
+                  raise SystemExit("Writer provenance status list is malformed or exceeds the bounded policy input")
+              writer = {
+                  "slug": os.environ["RELEASE_SYNC_WRITER_APP_SLUG"],
+                  "id": int(os.environ["RELEASE_SYNC_WRITER_APP_ID_PUBLIC"]),
+              }
+              return any(
+                  isinstance(status, dict)
+                  and status.get("context") == "release-sync/writer-provenance"
+                  and status.get("description") == "Writer-App generated release-sync candidate"
+                  and status.get("state") == "success"
+                  and isinstance(status.get("creator"), dict)
+                  and status["creator"].get("login", "").removesuffix("[bot]") == writer["slug"]
+                  and status["creator"].get("id") == writer["id"]
+                  for status in statuses
+              )
+          if (
+              pr["base"]["sha"] != os.environ["BASE_SHA"]
+              or pr["base"]["sha"] != trusted_base_sha
+              or pr["head"]["sha"] != os.environ["HEAD_SHA"]
+              or pr["base"]["ref"] != "main"
+              or pr["head"]["ref"] != "automation/release-sync"
+              or pr["head"]["repo"] is None
+              or pr["head"]["repo"]["full_name"] != repository
+          ):
+              raise SystemExit("PR tuple changed before Reviewer-App token mint")
+          if not has_current_writer_provenance(pr["head"]["sha"]):
+              raise SystemExit("current head lacks authenticated Writer-App provenance before Reviewer-App token mint")
+          subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main", os.environ["BASE_SHA"], os.environ["HEAD_SHA"]])
+          if subprocess.check_output(["git", "rev-parse", "origin/main"], text=True).strip() != os.environ["BASE_SHA"]:
+              raise SystemExit("main advanced before Reviewer-App token mint")
+          control_bytes = subprocess.check_output(["git", "show", f"{pr['base']['sha']}:release-sync-control.json"])
+          Path(os.environ["RUNNER_TEMP"]).joinpath("release-sync-reviewer-pretoken.json").write_text(
+              json.dumps({
+                  "number": pr["number"], "base_sha": pr["base"]["sha"], "head_sha": pr["head"]["sha"],
+                  "control_sha256": hashlib.sha256(control_bytes).hexdigest(), "draft": pr["draft"],
+                  "action": os.environ["EXPECTED_ACTION"],
+              }, sort_keys=True, indent=2) + "\n"
+          )
+          PY
+
+      - name: Mint Policy Reviewer App token only for the pending lifecycle action
+        id: reviewer-token
+        uses: actions/create-github-app-token@a8d616148505873a6910f30e1d4a5f0c23a65f96  # v1
+        with:
+          app-id: ${{ secrets.GJ_WEBSITE_POLICY_REVIEWER_APP_ID }}
+          private-key: ${{ secrets.GJ_WEBSITE_POLICY_REVIEWER_PRIVATE_KEY }}
+          owner: Yeachan-Heo
+          repositories: gajae-code-website
+          permission-contents: read
+          permission-pull-requests: write
+          permission-statuses: read
+
+      - name: Re-fetch, list, CAS-check, then dismiss or approve the exact head
+        env:
+          TRUSTED: ${{ github.workspace }}/trusted
+          REVIEWER_TOKEN: ${{ steps.reviewer-token.outputs.token }}
+          EXPECTED_ACTION: ${{ needs.classify.outputs.review_action }}
+          GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          repository = "Yeachan-Heo/gajae-code-website"
+          expected = json.loads(Path(os.environ["RUNNER_TEMP"]).joinpath("release-sync-reviewer-pretoken.json").read_text())
+          trusted = Path(os.environ["TRUSTED"])
+          reviewer_token = os.environ["REVIEWER_TOKEN"]
+          read_token = os.environ["GITHUB_READ_TOKEN"]
+          if os.environ["GITHUB_REPOSITORY"] != repository:
+              raise SystemExit("policy reviewer is production-hardcoded to the canonical website repository")
+
+
+          def api(method: str, path: str, token: str, body: object | None = None) -> object:
+              request = urllib.request.Request(
+                  f"https://api.github.com{path}",
+                  data=None if body is None else json.dumps(body).encode(), method=method,
+                  headers={
+                      "Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}",
+                      "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28",
+                  },
+              )
+              with urllib.request.urlopen(request, timeout=25) as response:
+                  raw = response.read()
+              return json.loads(raw) if raw else {}
+
+          def pull(token: str) -> dict[str, object]:
+              subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main"])
+              if subprocess.check_output(["git", "rev-parse", "origin/main"], text=True).strip() != expected["base_sha"]:
+                  raise SystemExit("main advanced; no Reviewer-App action is safe")
+              value = api("GET", f"/repos/{repository}/pulls/{expected['number']}", token)
+              if (
+                  value["base"]["sha"] != expected["base_sha"]
+                  or value["head"]["sha"] != expected["head_sha"]
+                  or value["base"]["ref"] != "main"
+                  or value["head"]["ref"] != "automation/release-sync"
+                  or value["head"]["repo"] is None
+                  or value["head"]["repo"]["full_name"] != repository
+              ):
+                  raise SystemExit("PR tuple changed; no Reviewer-App action is safe")
+              return value
+
+          def rollback_pr_observation(token: str) -> dict[str, object]:
+              # Approval compensation may survive a main-only advance. It must still target the
+              # same canonical PR, exact head, draft state, and the currently resolved main base.
+              subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main"])
+              current_main = subprocess.check_output(["git", "rev-parse", "origin/main"], text=True).strip()
+              value = api("GET", f"/repos/{repository}/pulls/{expected['number']}", token)
+              try:
+                  if (
+                      value["number"] != expected["number"]
+                      or value["base"]["sha"] != current_main
+                      or value["base"]["ref"] != "main"
+                      or value["base"]["repo"] is None
+                      or value["base"]["repo"]["full_name"] != repository
+                      or value["head"]["sha"] != expected["head_sha"]
+                      or value["head"]["ref"] != "automation/release-sync"
+                      or value["head"]["repo"] is None
+                      or value["head"]["repo"]["full_name"] != repository
+                      or bool(value["draft"]) != bool(expected["draft"])
+                      or not isinstance(value["node_id"], str)
+                  ):
+                      raise ValueError("rollback tuple changed")
+              except (KeyError, TypeError, ValueError) as exc:
+                  raise SystemExit("PR tuple changed; rollback compensation is not safe") from exc
+              return value
+
+          # The reviewer token is deliberately unused until a token-authenticated fetch,
+          # review-list read, and a second tuple fetch agree with the tokenless capture.
+          def normalize_reviews(value: object) -> list[dict[str, object]]:
+              if not isinstance(value, list) or len(value) >= 100:
+                  raise SystemExit("review list is malformed or exceeds the bounded policy input")
+              normalized: list[dict[str, object]] = []
+              allowed_states = {"APPROVED", "CHANGES_REQUESTED", "COMMENTED", "DISMISSED", "REQUEST_CHANGES"}
+              for review in value:
+                  if not isinstance(review, dict):
+                      raise SystemExit("review list contains a non-object review")
+                  review_id = review.get("id")
+                  state = review.get("state")
+                  commit_id = review.get("commit_id")
+                  user = review.get("user")
+                  if (
+                      isinstance(review_id, bool) or not isinstance(review_id, int) or review_id <= 0
+                      or not isinstance(state, str) or state not in allowed_states
+                      or not isinstance(commit_id, str) or not commit_id
+                      or not isinstance(user, dict)
+                  ):
+                      raise SystemExit("review list contains an invalid review")
+                  login = user.get("login")
+                  user_id = user.get("id")
+                  if (
+                      not isinstance(login, str) or not login
+                      or isinstance(user_id, bool) or not isinstance(user_id, int) or user_id <= 0
+                  ):
+                      raise SystemExit("review list contains an invalid review identity")
+                  normalized.append({
+                      "id": review_id,
+                      "state": state,
+                      "commit_id": commit_id,
+                      "app": {"slug": login.removesuffix("[bot]"), "id": user_id},
+                  })
+              return normalized
+
+          def has_current_writer_provenance(head_sha: str) -> bool:
+              statuses = api("GET", f"/repos/{repository}/commits/{head_sha}/statuses?per_page=100", reviewer_token)
+              if not isinstance(statuses, list) or len(statuses) >= 100:
+                  raise SystemExit("Writer provenance status list is malformed or exceeds the bounded policy input")
+              writer = {
+                  "slug": os.environ["RELEASE_SYNC_WRITER_APP_SLUG"],
+                  "id": int(os.environ["RELEASE_SYNC_WRITER_APP_ID_PUBLIC"]),
+              }
+              return any(
+                  isinstance(status, dict)
+                  and status.get("context") == "release-sync/writer-provenance"
+                  and status.get("description") == "Writer-App generated release-sync candidate"
+                  and status.get("state") == "success"
+                  and isinstance(status.get("creator"), dict)
+                  and status["creator"].get("login", "").removesuffix("[bot]") == writer["slug"]
+                  and status["creator"].get("id") == writer["id"]
+                  for status in statuses
+              )
+
+          def policy_decision(pr_value: dict[str, object], reviews_value: list[dict[str, object]], label: str) -> dict[str, object]:
+              if not has_current_writer_provenance(expected["head_sha"]):
+                  raise SystemExit("current head lacks authenticated Writer-App provenance before trusted policy evaluation")
+              actor = pr_value.get("user") or {}
+              if not isinstance(actor, dict):
+                  raise SystemExit("PR author is malformed before trusted policy evaluation")
+              policy_input = {
+                  "repository": repository,
+                  "pull_request": {
+                      "number": expected["number"], "base_sha": expected["base_sha"], "head_sha": expected["head_sha"],
+                      "head_ref": "automation/release-sync", "head_repository": repository, "draft": bool(pr_value["draft"]),
+                      "writer_app": {"slug": actor.get("login", "").removesuffix("[bot]"), "id": actor.get("id", 0)},
+                  },
+                  "reviews": reviews_value,
+                  "transaction": {
+                      "base_sha": expected["base_sha"],
+                      "control_sha256": expected["control_sha256"],
+                      "head_sha": expected["head_sha"],
+                  },
+              }
+              policy_path = Path(os.environ["RUNNER_TEMP"]) / f"release-sync-reviewer-policy-input-{label}.json"
+              policy_path.write_text(json.dumps(policy_input, sort_keys=True, indent=2) + "\n")
+              guard = subprocess.run([
+                  "python3", str(trusted / "scripts/check-review-eligibility.py"),
+                  "--trusted-root", str(trusted), "--repository", os.environ["GITHUB_WORKSPACE"],
+                  "--base-sha", expected["base_sha"], "--head-sha", expected["head_sha"], "--event-json", str(policy_path),
+                  "--writer-app-slug", os.environ["RELEASE_SYNC_WRITER_APP_SLUG"], "--writer-app-id", os.environ["RELEASE_SYNC_WRITER_APP_ID_PUBLIC"],
+                  "--reviewer-app-slug", os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG"], "--reviewer-app-id", os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC"],
+                  "--auto-review-enabled", os.environ["RELEASE_SYNC_AUTO_REVIEW_ENABLED"],
+              ], text=True, capture_output=True)
+              if guard.returncode != 0:
+                  sys.stderr.write(guard.stderr)
+                  raise SystemExit("trusted policy guard failed closed after Reviewer-App mint")
+              try:
+                  result = json.loads(guard.stdout)
+              except json.JSONDecodeError as exc:
+                  raise SystemExit("trusted policy guard returned malformed JSON") from exc
+              required = {
+                  "auto_merge", "classification", "eligible", "pr_number", "reason", "review_action", "reviewer_approval", "token_mint_required",
+              }
+              if (
+                  not isinstance(result, dict)
+                  or set(result) != required
+                  or not isinstance(result["classification"], str)
+                  or not isinstance(result["reason"], str)
+                  or result["review_action"] not in {"approve", "dismiss", "none"}
+                  or result["reviewer_approval"] not in {"current", "missing", "stale", "unknown"}
+                  or not isinstance(result["eligible"], bool)
+                  or not isinstance(result["auto_merge"], bool)
+                  or not isinstance(result["token_mint_required"], bool)
+                  or isinstance(result["pr_number"], bool)
+                  or result["pr_number"] != expected["number"]
+              ):
+                  raise SystemExit("trusted policy guard returned an invalid result")
+              return result
+
+          reviewer_slug = os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG"]
+          reviewer_id = int(os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC"])
+
+          def exact_head_approvals(reviews_value: list[dict[str, object]]) -> list[dict[str, object]]:
+              return [
+                  review for review in reviews_value
+                  if review["state"] == "APPROVED"
+                  and review["commit_id"] == expected["head_sha"]
+                  and review["app"] == {"slug": reviewer_slug, "id": reviewer_id}
+              ]
+
+          def rollback_observation(token: str, pre_action_ids: set[int]) -> dict[str, object]:
+              pull_value = rollback_pr_observation(token)
+              reviews_value = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", token))
+              active = exact_head_approvals(reviews_value)
+              return {
+                  "pull": pull_value,
+                  "active": active,
+                  "new_active": [review for review in active if review["id"] not in pre_action_ids],
+              }
+
+
+          rollback_auto_merge_query = """query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){id number headRefOid baseRefOid autoMergeRequest{enabledAt}}}}"""
+
+          def rollback_graphql_pull(observation: dict[str, object]) -> dict[str, object]:
+              state = api("POST", "/graphql", reviewer_token, {
+                  "query": rollback_auto_merge_query,
+                  "variables": {"owner": "Yeachan-Heo", "name": "gajae-code-website", "number": expected["number"]},
+              })
+              try:
+                  value = state["data"]["repository"]["pullRequest"]
+                  if (
+                      not isinstance(value, dict)
+                      or value.get("id") != observation["node_id"]
+                      or value.get("number") != expected["number"]
+                      or value.get("headRefOid") != expected["head_sha"]
+                      or value.get("baseRefOid") != observation["base"]["sha"]
+                  ):
+                      raise ValueError("rollback GraphQL tuple changed")
+              except (KeyError, TypeError, ValueError) as exc:
+                  raise SystemExit("rollback auto-merge tuple changed; compensation is not safe") from exc
+              return value
+
+          def rollback_auto_merge(observation: dict[str, object]) -> dict[str, object]:
+              compensation: dict[str, object] = {
+                  "attempted": True,
+                  "pr_number": expected["number"],
+                  "head_sha": expected["head_sha"],
+                  "base_sha": observation["base"]["sha"],
+                  "pull_id": observation["node_id"],
+              }
+              try:
+                  current = rollback_graphql_pull(observation)
+                  compensation["observed_auto_merge"] = current.get("autoMergeRequest")
+                  if current.get("autoMergeRequest") is not None:
+                      mutation = """mutation($id:ID!){disablePullRequestAutoMerge(input:{pullRequestId:$id}){pullRequest{id number headRefOid baseRefOid autoMergeRequest{enabledAt}}}}"""
+                      response = api("POST", "/graphql", reviewer_token, {"query": mutation, "variables": {"id": observation["node_id"]}})
+                      disabled = response["data"]["disablePullRequestAutoMerge"]["pullRequest"]
+                      if not isinstance(disabled, dict):
+                          raise ValueError("rollback disable mutation did not return a pull request")
+                      if (
+                          disabled.get("id") != observation["node_id"]
+                          or disabled.get("number") != expected["number"]
+                          or disabled.get("headRefOid") != expected["head_sha"]
+                      ):
+                          raise ValueError("rollback disable mutation did not return the exact PR head")
+                      compensation["mutation_head_sha"] = disabled.get("headRefOid")
+                      compensation["mutation_base_sha"] = disabled.get("baseRefOid")
+                      compensation["mutation_auto_merge"] = disabled.get("autoMergeRequest")
+                  else:
+                      compensation["mutation"] = "not-needed"
+              except (Exception, SystemExit) as exc:
+                  compensation["mutation_error"] = f"{type(exc).__name__}: {exc}"
+              try:
+                  verified_observation = rollback_pr_observation(reviewer_token)
+                  verified = rollback_graphql_pull(verified_observation)
+                  compensation["verified_base_sha"] = verified_observation["base"]["sha"]
+                  compensation["verified_head_sha"] = verified.get("headRefOid")
+                  compensation["verified_auto_merge"] = verified.get("autoMergeRequest")
+                  if verified.get("autoMergeRequest") is not None:
+                      raise RuntimeError("auto-merge remained enabled after Reviewer-App rollback")
+              except (Exception, SystemExit) as exc:
+                  compensation["outcome"] = "failed"
+                  compensation["verification_error"] = f"{type(exc).__name__}: {exc}"
+              else:
+                  compensation["outcome"] = "verified-disabled"
+              return compensation
+
+          def rollback_new_approvals(reason: str, pre_action_ids: set[int]) -> dict[str, object]:
+              rollback: dict[str, object] = {
+                  "attempted": True,
+                  "reason": reason,
+                  "pre_action_approval_ids": sorted(pre_action_ids),
+                  "reviewer_app": {"slug": reviewer_slug, "id": reviewer_id},
+              }
+              review_error = ""
+              try:
+                  # Reconcile by identity rather than a POST response: a timeout may have created
+                  # an approval, and malformed responses never identify every effect to undo.
+                  for _attempt in range(3):
+                      observed_review_state = rollback_observation(reviewer_token, pre_action_ids)
+                      observed = observed_review_state["pull"]
+                      rollback["reconciled_base_sha"] = observed["base"]["sha"]
+                      rollback["reconciled_observation"] = {
+                          "pr_number": observed["number"],
+                          "head_sha": observed["head"]["sha"],
+                          "base_sha": observed["base"]["sha"],
+                      }
+                      active = observed_review_state["active"]
+                      new_active = observed_review_state["new_active"]
+                      rollback["reconciled_active_ids"] = sorted(review["id"] for review in active)
+                      rollback["new_active_exact_head_ids"] = sorted(review["id"] for review in new_active)
+                      if not new_active:
+                          break
+                      for review in new_active:
+                          before_dismissal = rollback_observation(reviewer_token, pre_action_ids)
+                          if review["id"] not in {item["id"] for item in before_dismissal["new_active"]}:
+                              continue
+                          api("PUT", f"/repos/{repository}/pulls/{expected['number']}/reviews/{review['id']}/dismissals", reviewer_token, {
+                              "message": "CAS verification or policy decision failed after automated approval.",
+                          })
+                  final_review_state = rollback_observation(reviewer_token, pre_action_ids)
+                  final_observation = final_review_state["pull"]
+                  rollback["final_base_sha"] = final_observation["base"]["sha"]
+                  rollback["final_observation"] = {
+                      "pr_number": final_observation["number"],
+                      "head_sha": final_observation["head"]["sha"],
+                      "base_sha": final_observation["base"]["sha"],
+                  }
+                  remaining = [review["id"] for review in final_review_state["new_active"]]
+                  rollback["remaining_new_active_ids"] = sorted(remaining)
+                  if remaining:
+                      raise RuntimeError("new Reviewer-App approval remained active after rollback")
+              except (Exception, SystemExit) as exc:
+                  review_error = f"{type(exc).__name__}: {exc}"
+                  rollback["review_error"] = review_error
+              try:
+                  auto_merge_observation = rollback_pr_observation(reviewer_token)
+                  rollback["auto_merge_rollback"] = rollback_auto_merge(auto_merge_observation)
+                  if rollback["auto_merge_rollback"].get("outcome") != "verified-disabled":
+                      raise RuntimeError("auto-merge compensation did not verify disabled")
+              except (Exception, SystemExit) as exc:
+                  rollback["auto_merge_error"] = f"{type(exc).__name__}: {exc}"
+              if review_error or rollback.get("auto_merge_error"):
+                  rollback["outcome"] = "failed"
+                  rollback["error"] = review_error or str(rollback["auto_merge_error"])
+              else:
+                  rollback["outcome"] = "succeeded"
+              return rollback
+
+          # Bind the workflow read credential before Reviewer-App authority is used; subsequent
+          # Reviewer-App reads authenticate the token that will perform the lifecycle mutation.
+          pull(read_token)
+          pull(reviewer_token)
+          pre_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", reviewer_token))
+          pre_confirmed_pull = pull(reviewer_token)
+          if bool(pre_confirmed_pull["draft"]) != bool(expected["draft"]):
+              raise SystemExit("draft state changed before Reviewer-App action")
+          decision = policy_decision(pre_confirmed_pull, pre_reviews, "pre-action")
+          if expected["action"] == "dismiss":
+              own_approvals = [
+                  review for review in pre_reviews
+                  if review["state"] == "APPROVED" and review["app"] == {"slug": reviewer_slug, "id": reviewer_id}
+              ]
+              for review in own_approvals:
+                  # Re-bind the exact tuple before every dismissal. This path only disarms;
+                  # it never creates a review or enables auto-merge.
+                  pull(reviewer_token)
+                  api("PUT", f"/repos/{repository}/pulls/{expected['number']}/reviews/{review['id']}/dismissals", reviewer_token, {"message": "Release-sync authorization no longer permits automated approval."})
+              final_pull = pull(reviewer_token)
+              remaining = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", reviewer_token))
+              final_decision = policy_decision(final_pull, remaining, "post-dismissal")
+              if any(
+                  review["state"] == "APPROVED" and review["app"] == {"slug": reviewer_slug, "id": reviewer_id}
+                  for review in remaining
+              ):
+                  raise SystemExit("Reviewer-App approval remained active after dismissal")
+              if final_decision["auto_merge"]:
+                  raise SystemExit("revocation policy unexpectedly still authorizes auto-merge after dismissal")
+              auto_merge_rollback = rollback_auto_merge(rollback_pr_observation(reviewer_token))
+              if auto_merge_rollback.get("outcome") != "verified-disabled":
+                  raise SystemExit("revocation auto-merge cleanup failed")
+              print(json.dumps({
+                  "pr": expected["number"], "action": "dismissed", "head_sha": expected["head_sha"],
+                  "post_dismissal_policy": final_decision, "auto_merge_rollback": auto_merge_rollback,
+              }, sort_keys=True))
+              raise SystemExit(0)
+          if decision.get("review_action") != expected["action"]:
+              raise SystemExit("review lifecycle changed after token mint")
+          expected_post_approval_decision = dict(decision)
+          expected_post_approval_decision.update({
+              "auto_merge": True,
+              "review_action": "none",
+              "reviewer_approval": "current",
+              "token_mint_required": False,
+          })
+
+          if expected["action"] != "approve" or os.environ["RELEASE_SYNC_AUTO_REVIEW_ENABLED"] != "true":
+              raise SystemExit("Reviewer-App approval is not authorized by the frozen lifecycle decision")
+          pre_post_pull = pull(reviewer_token)
+          pre_post_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", reviewer_token))
+          pre_post_decision = policy_decision(pre_post_pull, pre_post_reviews, "pre-approval-post")
+          if pre_post_decision != decision:
+              raise SystemExit("review lifecycle changed before CAS-bound automated approval")
+          pre_action_ids = {review["id"] for review in exact_head_approvals(pre_post_reviews)}
+          approval_evidence: dict[str, object] = {
+              "pre_action_approval_ids": sorted(pre_action_ids),
+              "pre_action_decision": pre_post_decision,
+              "expected_post_approval_decision": expected_post_approval_decision,
+              "pre_action_tuple": {
+                  "pr_number": expected["number"],
+                  "base_sha": expected["base_sha"],
+                  "head_sha": expected["head_sha"],
+                  "control_sha256": expected["control_sha256"],
+              },
+          }
+          verification_error = ""
+          created: dict[str, object] = {}
+          try:
+              raw_created = api("POST", f"/repos/{repository}/pulls/{expected['number']}/reviews", reviewer_token, {
+                  "event": "APPROVE", "commit_id": expected["head_sha"],
+                  "body": "Trusted policy review: exact Writer-App generated release-sync update.",
+              })
+              if isinstance(raw_created, dict):
+                  created = raw_created
+                  approval_evidence["post_response"] = {
+                      "id": raw_created.get("id"), "commit_id": raw_created.get("commit_id"),
+                      "user": raw_created.get("user"),
+                  }
+              else:
+                  verification_error = "approval response was not an object and its effect is indeterminate"
+          except (Exception, SystemExit) as exc:
+              verification_error = f"approval request was indeterminate: {type(exc).__name__}: {exc}"
+
+          created_id = created.get("id")
+          created_user = created.get("user")
+          valid_response = (
+              isinstance(created_id, int) and not isinstance(created_id, bool) and created_id > 0
+              and created.get("commit_id") == expected["head_sha"]
+              and isinstance(created_user, dict)
+              and created_user.get("login", "").removesuffix("[bot]") == reviewer_slug
+              and created_user.get("id", 0) == reviewer_id
+          )
+          if not verification_error and not valid_response:
+              verification_error = "approval response did not identify the exact Reviewer-App review on the expected head"
+          if not verification_error:
+              try:
+                  pull(reviewer_token)
+                  final_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", reviewer_token))
+                  final_confirmed_pull = pull(reviewer_token)
+                  final_decision = policy_decision(final_confirmed_pull, final_reviews, "post-approval")
+                  approval_evidence["post_approval_decision"] = final_decision
+                  if not any(
+                      review["id"] == created_id and review["state"] == "APPROVED"
+                      and review["commit_id"] == expected["head_sha"]
+                      and review["app"] == {"slug": reviewer_slug, "id": reviewer_id}
+                      for review in final_reviews
+                  ):
+                      verification_error = "post-approval verification did not find the exact active Reviewer-App approval"
+                  elif final_decision != expected_post_approval_decision:
+                      verification_error = "trusted policy decision changed after automated approval"
+              except (Exception, SystemExit) as exc:
+                  verification_error = f"post-approval verification request failed: {type(exc).__name__}: {exc}"
+          if verification_error:
+              rollback = rollback_new_approvals(verification_error, pre_action_ids)
+              failure = {
+                  "approval_evidence": approval_evidence,
+                  "post_approval_verification": verification_error,
+                  "rollback": rollback,
+              }
+              sys.stderr.write(json.dumps(failure, sort_keys=True) + "\n")
+              raise SystemExit("Reviewer-App approval verification failed closed: " + json.dumps(failure, sort_keys=True))
+          print(json.dumps({"pr": expected["number"], "action": "approved", "head_sha": expected["head_sha"]}, sort_keys=True))
+          PY

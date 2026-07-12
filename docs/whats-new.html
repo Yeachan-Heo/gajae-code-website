@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="What's new in Gajae Code v0.7.2 — web search that works over proxies and custom endpoints with trustworthy citations, Discord/Slack notification adapters, Telegram attachments, and Intel macOS binaries back in release CI." />
+  <!-- release-sync:whats-new-meta-description:start -->
+  <meta name="description" content="What’s new in Gajae Code v0.10.0, published 2026-07-12: release highlights and upgrade guidance." />
+  <!-- release-sync:whats-new-meta-description:end -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
-  <title>What's new (v0.7.2) · Gajae Code Docs</title>
+  <!-- release-sync:whats-new-title:start -->
+  <title>What’s new (v0.10.0) · Gajae Code Docs</title>
+  <!-- release-sync:whats-new-title:end -->
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,7 +26,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link is-active" href="whats-new.html">What's new (v0.7.2)</a>
+        <a class="docs-nav-link is-active" href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.10.0)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -48,43 +52,69 @@
   </aside>
 
     <main class="docs-main">
-      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>What's new in v0.7.2</h1><p>Web search you can trust over any endpoint, broader notifications, and Intel macOS binaries back in release CI — plus a round of reliability fixes.</p></section>
-
-      <section class="docs-section"><h2>🔎 Web search you can trust over any endpoint</h2>
-        <p>Native web search now works through proxies and custom OpenAI-compatible endpoints, recovers real citations even when a provider omits structured annotations, and fails closed instead of inventing sources.</p>
-        <ul>
-          <li><strong>Native search over proxies.</strong> In <code>auto</code> mode, when a model is served through a proxy/custom endpoint and canonical native search credentials are absent, the active model's own credential + <code>baseUrl</code> drive native search, dispatched by wire protocol — Anthropic (<code>anthropic-messages</code>), OpenAI-compatible (<code>openai-responses</code>/<code>completions</code>), or Gemini (Generative Language) — each falling back to DuckDuckGo when the endpoint can't search.</li>
-          <li><strong>Inline citation recovery.</strong> When a search demonstrably ran but the provider returned no structured <code>url_citation</code> annotations, sources are harvested from inline markdown links and bare URLs. Recovery is gated on a real-search signal, so a stray prose URL in a non-search answer is never promoted to a citation.</li>
-          <li><strong>Codex stays on official OpenAI.</strong> The ChatGPT-backed <code>codex</code> native search is selected only for genuine OpenAI/ChatGPT endpoints; custom/proxy OpenAI-compatible models reuse their own credentials instead of local Codex OAuth.</li>
-          <li><strong>Fail-closed Anthropic.</strong> Anthropic falls back to DuckDuckGo when Claude answers from stable knowledge without searching, and on <code>web_search</code> error blocks.</li>
-          <li><strong>Opt-in <code>insane</code> read fallback.</strong> A keyless, opt-in fallback can recover blocked public URLs for <code>read</code> — no TLS impersonation, credential storage, or auto-installed dependencies.</li>
-        </ul>
+      <!-- release-sync:whats-new-hero:start -->
+      <section class="docs-hero">
+        <p class="eyebrow">Documentation</p>
+        <h1>What’s new in v0.10.0</h1>
+        <p>Published 2026-07-12. This page is generated from the immutable release changelog.</p>
       </section>
+      <!-- release-sync:whats-new-hero:end -->
 
-      <section class="docs-section"><h2>📲 Notifications: Discord, Slack &amp; Telegram attachments</h2>
-        <p>The configure-once notifications SDK keeps its single action-needed/reply contract — and now reaches more clients with richer payloads.</p>
-        <ul>
-          <li><strong>Discord and Slack adapters.</strong> Both join Telegram on the same transport-agnostic contract, so action-needed signals and replies can route to those clients without an upstream change.</li>
-          <li><strong>Telegram attachments.</strong> The Telegram daemon forwards agent images and accepts user-sent photos and files, for inbound and outbound attachments.</li>
-          <li><strong>Threaded Mode verification.</strong> <code>gjc notify setup</code> verifies Telegram Threaded Mode and falls back to a flat private chat when topics are unavailable.</li>
-        </ul>
-        <div class="callout"><strong>Off unless configured.</strong> No endpoint exists until notifications are enabled and a token is present. The Telegram daemon is a reference client of the generic SDK, not the upstream topology. <a href="telegram-onboarding.html">Follow the Telegram onboarding guide →</a></div>
-      </section>
-
-      <section class="docs-section"><h2>🧰 Tooling &amp; platform</h2>
-        <ul>
-          <li><strong>Intel macOS binaries are back.</strong> Release CI builds standalone <code>darwin-x64</code> binaries again on the supported <code>macos-15-intel</code> runner, so Intel Mac users get prebuilt binaries instead of npm/Bun or source-only installs.</li>
-          <li><strong>C# LSP.</strong> Built-in detection for <code>csharp-ls</code>, with <code>omnisharp</code> preserved as a fallback when <code>csharp-ls</code> is unavailable.</li>
-          <li><strong>tmux session preservation.</strong> GJC-managed tmux sessions survive attach/disconnect instead of being torn down, and launch no longer implicitly attaches.</li>
-          <li><strong>Truncated tool calls rejected.</strong> Incomplete streamed tool calls fail fast instead of executing against a mismatched schema with partial arguments.</li>
-        </ul>
-      </section>
-
-      <section class="docs-section"><h2>Upgrade</h2>
-        <pre><code>bun install -g gajae-code        # or: @gajae-code/coding-agent
+      <!-- release-sync:whats-new-body:start -->
+      <div class="release-notes" data-release-id="352667056" data-release-version="0.10.0">
+        <section class="docs-section">
+          <h2>Added</h2>
+          <ul>
+            <li>Added an opt-in <code>/pet on|off</code> composer companion with idle gaze, working claw motion, and occasional automatic flex animation on Sixel- and Kitty-graphics terminals.</li>
+            <li>Added Grok 4.5 to the bundled Grok Build catalog with its published 500K context window, multimodal input and token pricing, normalized its official <code>grok-4.5-latest</code> and <code>grok-build-latest</code> aliases, and limited reasoning effort to the documented <code>low</code>, <code>medium</code>, and <code>high</code> levels.</li>
+            <li>Added <code>notifications.sessionScope</code> (<code>all</code> default | <code>primary</code>). Under <code>primary</code>, the separate-process child sessions GJC spawns (team workers, harness RPC owners) no longer register their own Telegram forum topic / notification endpoint unless they explicitly opt in (<code>GJC_NOTIFICATIONS=1</code>, the <code>/session_create</code> path). The default <code>all</code> fully preserves current behavior, and user-opened CLI/tmux/headless sessions are never affected. The provenance marker is per-spawn and non-dynastic (consumed once at session startup, never inherited by grandchildren) (#1908).</li>
+            <li>Coordinator MCP <code>gjc_coordinator_start_session</code> and the <code>gjc_delegate_plan</code>/<code>gjc_delegate_execute</code>/<code>gjc_delegate_team</code> tools now accept an optional <code>mpreset</code> argument that authoritatively activates a GJC model profile for a fresh session, with the same semantics as <code>gjc --mpreset &lt;profile&gt;</code> (#2003). The name is resolved through the merged built-in/custom profile registry before launch (so custom profiles keep working), legacy profile aliases are canonicalized exactly like the CLI (e.g. <code>codex-standard</code> → <code>codex-medium</code>), and the canonical profile is injected into the child startup command so the profile's default and per-role models apply from the first turn; unknown names are rejected with the available-profile listing and never reach a spawned command, and an unreadable/invalid <code>models.yml</code> fails closed with a distinct <code>model_profile_registry_error</code> rather than silently degrading to built-ins only. An explicit empty/whitespace <code>mpreset</code> is rejected rather than treated as omission. The effective profile is recorded on the session and surfaced in coordinator status/readback, reusing a session with a conflicting <code>mpreset</code> fails with a stable <code>mpreset_conflict</code> reason, and calls that omit <code>mpreset</code> keep their current behavior. The existing advisory <code>model</code> prompt hint is unchanged, and no machine-wide durable default is introduced (#2066 remains out of scope).</li>
+            <li><code>notifications.telegram.topics.nameTemplate</code> configures the Telegram forum-topic title, with <code>{repo}</code>, <code>{branch}</code>, and <code>{title}</code> placeholders, so operators can put the session title first (e.g. <code>"{title} · {repo}/{branch}"</code>) and keep concurrent sessions on the same checkout distinguishable in the topic sidebar. The template applies only when every placeholder it references resolves for the session; otherwise the daemon falls back to the built-in <code>{repo}/{branch} - {title}</code> composition (and its title/repo/branch fallbacks). Unset preserves the current naming exactly (#1909).</li>
+            <li>Added the IRC chat-room surface: IRC messages persist in the main chat scrollback by default (no 10s TTL) with stable observation ids and a rebuild-aware ledger, and the agent is IRC-aware. Enabling <code>irc.sidebar.enabled</code> moves the persistent record into the opt-in <code>alt+i</code> sidebar split while inline display stays ephemeral. Message persistence and agent awareness are default-on; the sidebar panel itself is opt-in (#2018).</li>
+            <li>Added a transport-agnostic, secret-safe shared notification service (status, health, test delivery, ownership-protected recovery) consumed by both the <code>gjc notify</code> CLI and the cross-mode <code>/notify</code> slash command (TUI + ACP), so onboarding and daemon recovery no longer duplicate daemon/config logic per surface. <code>/notify</code> now exposes <code>status|health|test|recovery|setup</code> and <code>gjc notify</code> gains <code>health</code>/<code>test</code>/<code>recovery</code> with <code>--probe</code>/<code>--message</code> (#2050).</li>
+            <li>Added beginner-safe <code>gjc daemon</code> operational shortcuts sharing one operator contract so the guided human surface and machine-readable <code>--json</code> never drift: a <code>restart</code> alias that resolves to reload-if-running-else-spawn, concise per-daemon output by default with <code>--verbose</code>/<code>-v</code> for runtime detail and the full roots list, and an actionable structured recovery path when token/chat ownership mismatches instead of a large payload ending in <code>blocked</code>. Exit codes stay 0 on success / 1 on failure (#2057).</li>
+            <li>Added fail-closed ACP session deletion: the delete path refuses rather than proceeding when the target session cannot be safely resolved, and retains the inode in the replacement case (#2074).</li>
+          </ul>
+        </section>
+        <section class="docs-section">
+          <h2>Changed</h2>
+          <ul>
+            <li>Migrated the repository type-check and release declaration pipeline to stable TypeScript 7.0.2, including the robogjc web workspace and a non-mutating publish-type gate.</li>
+            <li>Rebalanced GPT-5.6 Codex and combo presets around published family tiers and reasoning-effort curves. The executor assignments are informed by descriptive repeated local exact-edit evidence from selected TypeScript tasks; default, planner, architect, and critic assignments remain product judgments rather than benchmark claims.</li>
+            <li>Cache-miss diagnostics now separate actionable, diagnostic-only, and provider-side-suspected causes instead of asserting a user-side fix for every miss (#2020). A large, costly miss with no cache reads or writes is reported as a neutral <code>Cache notice</code> marked "provider-side suspected / not user-actionable" (with what GJC cannot determine) rather than telling the user to keep a stable prefix; a miss with reads but no writes is reported as diagnostic-only without asserting a single cause; and the "cache write without enough matching reads" warning now only fires when reads actually fail to cover the writes. The existing miss cost summary and the #1929/#1936 pricing/provenance safeguards are unchanged.</li>
+          </ul>
+        </section>
+        <section class="docs-section">
+          <h2>Fixed</h2>
+          <ul>
+            <li>The coordinator MCP owner-server probe now recognizes tmux ≥3.7's missing-server diagnostic (<code>error connecting to &lt;socket&gt; (No such file or directory)</code>) as an absent server. tmux 3.7 changed the wording from the older <code>no server running on &lt;socket&gt;</code>, which the coordinator probe did not match — so a brand-new coordinator socket (which never has a server yet) was misclassified <code>unverifiable</code> instead of <code>absent</code>, and <strong>every</strong> <code>gjc_delegate_*</code> / session create failed closed with <code>coordinator_tmux_owner_server_unverifiable</code> on tmux ≥3.7. The coordinator and <code>gjc</code> harness probes now match the same no-server wordings the other owner-isolation probes already did.</li>
+            <li>Preserved explicit Telegram forum-topic renames as durable user-owned names, immediately re-asserting delayed edits while retaining restart and rename-race recovery (#1910).</li>
+            <li>Prevented typed provider safety stops from entering automatic retry loops and aligned ACP refusal reporting with the provider-native classification.</li>
+            <li><code>gjc resume</code> now aliases value-less <code>--resume</code>, requests confirmation before opening and continues a resumable tail once only; terminal tails open idle, and headless bare resume exits with explicit <code>--resume &lt;id&gt;</code> guidance (#1973).</li>
+            <li>Telegram answers to interactive and unattended <code>ask</code> prompts now receive a semantic, origin-bound <code>Selected!</code> acknowledgement before workflow continuation, with typed multi-select controls, no acknowledgement for toggles/clarifications/skips, at-most-once delivery attempts, and truthful failure/unknown outcomes (#1974).</li>
+            <li>Isolated unsafe Linux/systemd tmux owners into independently proven user scopes before server creation, added generation-bound exact-SIGTERM shutdown verdicts and deduplicated incident/recovery provenance, and removed pane payloads from raw session lifecycle evidence (#1938).</li>
+            <li>Coordinator MCP stdio server now dispatches JSON-RPC requests with bounded concurrency and answers the standard <code>ping</code> utility, so a long-running tool call (e.g. <code>gjc_coordinator_await_turn</code>, which polls for minutes) no longer starves keepalive on the same channel — without the state/lifecycle races unbounded concurrency would introduce. Same-session mutations (notably <code>send_prompt</code>) serialize through a per-session lock so concurrent calls can no longer persist two "active" turns; <code>ping</code> is a reserved control frame that bypasses the data-concurrency cap; data-handler fanout is bounded (excess rejected as <code>server_busy</code>); <code>writeLine</code> failures are terminal instead of poisoning the write chain; and EOF drains in-flight handlers under a bounded timeout before returning.</li>
+            <li>Prevented best-effort coordinator runtime-state persistence from surfacing unhandled rejections when a session root disappears during teardown, preserved public-safe coordinator errors including bounded-concurrent handler failures, bound tmux GC pruning to the collected native session identity and owner generation so same-name replacements are never removed, and preserved subsecond ordering between canonical verdict artifacts and their evidence receipts (#1938).</li>
+            <li>The <code>browser</code> <code>close</code>/<code>close all</code> tool now enforces one end-to-end deadline (the existing <code>timeout</code> option, default 30s) across the whole teardown chain — <code>releaseAllTabs</code>, <code>waitForClosed</code>, <code>worker.terminate()</code>, and <code>releaseBrowser()</code>/<code>disposeBrowserHandle()</code> — so an externally CDP-connected target dying mid-close can no longer hang or terminate the calling agent session. Steps that exceed the shared budget are detached best-effort with their rejections swallowed (no unhandled rejections, no worker/browser/tab registry leaks, timers cleaned up); the tool always settles with a close count or a structured error, and normal live-target close semantics are unchanged (#2027).</li>
+            <li>Pre-prompt context estimates now anchor on the last successful assistant's total usage (input + cache + output) instead of prompt-only tokens, and skip error/aborted turns when picking the anchor, so a large-reasoning turn (e.g. GPT-5.6 Sol at high efforts) no longer vanishes from the estimate right before the next request. The compaction token-correction ratio likewise no longer counts the anchor assistant's own output in its heuristic denominator, since that output was the anchored request's response rather than part of its prompt.</li>
+            <li>The coordinator MCP tmux owner-server probe (<code>probeServer</code>: <code>tmux list-sessions</code> plus a portable <code>ps</code> incarnation read) now tolerates transient spawn failures. Under load a momentary <code>Bun.spawn</code> failure (e.g. <code>EAGAIN</code>, or a brief tmux/<code>ps</code> hiccup) threw straight out of the probe, and because <code>proveCoordinatorOwnerServer</code> only retries on non-safe <em>state</em> — not on a thrown exception — a single blip aborted the whole delegate immediately with <code>coordinator_tmux_owner_server_unverifiable</code> (a ~0.03s hard failure). The probe now surfaces a transient failure as an <code>unverifiable</code> state so the existing bounded retry loop can re-probe once it clears; owner isolation is unchanged (<code>unverifiable</code> still fails closed, creating no session).</li>
+            <li>Coordinator-created tmux sessions now require an immutable, launch-bound runtime readiness marker before any prompt keys are injected, preventing early input races and preserving recoverable readiness-timeout evidence (#2009).</li>
+            <li>Unsent-context token estimates are now script-aware (CJK characters charged near 1 token/char instead of chars/4), and the per-message delta estimate is no longer cached: the compaction-threshold decision always recomputes from current content, so an in-place mutation (e.g. a same-length ASCII→CJK edit) can never gate the threshold with a stale 4x-undercounted estimate.</li>
+            <li>Capability-gated controlled ask delivery per connection: clients default-deny until they negotiate <code>ask_controls_v1</code>, renegotiate after reconnect, and receive the additive non-actionable <code>action_unavailable</code> frame instead of stripped option buttons when non-capable (#2029).</li>
+            <li><code>NotificationServer#pushFrame</code> now rejects <code>ActionNeeded</code> frames; emit asks and idle notifications through <code>registerAsk</code> / <code>noteIdle</code> so controlled asks remain capability-gated per connection (#2029).</li>
+            <li>A rolling/in-place upgrade that left a still-live pre-upgrade Telegram daemon owning the lock is now reloaded instead of silently attached. The old daemon speaks the pre-#1999 wire protocol without ask-ack/controls, so its <code>Selected!</code> acknowledgements were dropped; an operational <code>DAEMON_GENERATION</code> (tied to <code>NOTIFICATION_PROTOCOL_VERSION</code>) now flags a fresh live owner running an older generation as reload-required, and the new host registers its session root then hands off through the cooperative SIGTERM/control path (#2028).</li>
+            <li>A numeric gate reply is an option index: an out-of-range index is no longer accepted as free-text <code>Other</code>. <code>mapAnswerToGate</code> returns a discriminated result and the unattended handler closes the exact claim/receipt and reissues instead of durably accepting or emitting a <code>Selected!</code> ack; the JSON-string free-text path is preserved (#2030).</li>
+          </ul>
+        </section>
+        <section class="docs-section">
+          <h2>Upgrade</h2>
+          <pre><code>bun install -g gajae-code
+# or: bun install -g @gajae-code/coding-agent
 gjc --version &amp;&amp; gjc --smoke-test</code></pre>
-        <p>See the full <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.7.2">v0.7.2 release notes</a> on GitHub.</p>
-      </section>
+          <p>See the full <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.10.0" target="_blank" rel="noopener noreferrer">v0.10.0 release</a> on GitHub.</p>
+        </section>
+      </div>
+      <!-- release-sync:whats-new-body:end -->
 
 <nav class="doc-pager"><a href="getting-started.html">← Getting started</a><a href="skills.html">Skills →</a></nav>
     </main>

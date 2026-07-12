@@ -1,0 +1,1718 @@
+name: Reconcile released Gajae Code website content
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - release-sync-control.json
+      - .github/workflows/sync-release.yml
+      - .github/workflows/review-release-sync-pr.yml
+      - scripts/check-generated-ownership.py
+      - scripts/check-review-eligibility.py
+
+  workflow_dispatch:
+    inputs:
+      release_hint:
+        description: "Optional bounded source-release hint; reconciliation always resolves latest complete production release."
+        required: false
+        type: string
+      cleanup_only:
+        description: "Run only revocation cleanup; never generate or update release content."
+        required: false
+        default: false
+        type: boolean
+
+
+concurrency:
+  group: release-sync-main
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: read
+
+jobs:
+  cleanup-policy-revocation:
+    name: Cleanup revoked Policy Reviewer approvals
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    environment: release-sync-policy-reviewer
+    outputs:
+      authorization_false: ${{ steps.cleanup.outputs.authorization_false }}
+    env:
+      WEBSITE_REPOSITORY: Yeachan-Heo/gajae-code-website
+      DEFAULT_BRANCH: main
+      BOT_BRANCH: automation/release-sync
+      RELEASE_SYNC_WRITER_APP_SLUG: ${{ vars.RELEASE_SYNC_WRITER_APP_SLUG }}
+      RELEASE_SYNC_WRITER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_WRITER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_AUTO_REVIEW_ENABLED: ${{ vars.RELEASE_SYNC_AUTO_REVIEW_ENABLED }}
+    steps:
+      - name: Check out trusted default-branch repository objects for cleanup
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: website
+
+      - name: Check out trusted policy guard code for cleanup
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          path: trusted
+
+      - name: Bind the canonical release-sync PR without generating content
+        id: preflight
+        env:
+          WEBSITE: ${{ github.workspace }}/website
+          TUPLE_PATH: ${{ runner.temp }}/release-sync-cleanup-preflight.json
+          TRUSTED_BASE_SHA: ${{ github.sha }}
+          GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import subprocess
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          repository = "Yeachan-Heo/gajae-code-website"
+          branch = "automation/release-sync"
+          website = Path(os.environ["WEBSITE"])
+          trusted_base = os.environ["TRUSTED_BASE_SHA"]
+          if os.environ["GITHUB_REPOSITORY"] != repository or not re.fullmatch(r"[0-9a-f]{40}", trusted_base):
+              raise SystemExit("cleanup must run from the canonical immutable default-branch revision")
+          if subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=website, text=True).strip() != trusted_base:
+              raise SystemExit("cleanup checkout is not pinned to github.sha")
+          subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main"], cwd=website)
+          current_main = subprocess.check_output(["git", "rev-parse", "origin/main"], cwd=website, text=True).strip()
+          if current_main != trusted_base:
+              raise SystemExit("main advanced before cleanup binding; retry on the current control or policy revision")
+
+          def api(path: str) -> object:
+              request = urllib.request.Request(
+                  f"https://api.github.com{path}",
+                  headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {os.environ['GITHUB_READ_TOKEN']}", "X-GitHub-Api-Version": "2022-11-28"},
+              )
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  return json.load(response)
+
+          pulls = api(f"/repos/{repository}/pulls?state=open&head={urllib.parse.quote('Yeachan-Heo:' + branch, safe='')}")
+          if not isinstance(pulls, list) or len(pulls) > 1:
+              raise SystemExit("release-sync cleanup PR cardinality is invalid")
+          output = Path(os.environ["GITHUB_OUTPUT"])
+          if not pulls:
+              output.write_text("has_pr=false\n")
+              raise SystemExit(0)
+          item = pulls[0]
+          number = item.get("number") if isinstance(item, dict) else None
+          if isinstance(number, bool) or not isinstance(number, int) or number <= 0:
+              raise SystemExit("release-sync cleanup PR number is invalid")
+          pr = api(f"/repos/{repository}/pulls/{number}")
+          try:
+              if (
+                  not isinstance(pr, dict)
+                  or pr["number"] != number
+                  or not isinstance(pr["node_id"], str)
+                  or pr["base"]["ref"] != "main"
+                  or pr["base"]["sha"] != current_main
+                  or pr["base"]["repo"] is None
+                  or pr["base"]["repo"]["full_name"] != repository
+                  or pr["head"]["ref"] != branch
+                  or pr["head"]["repo"] is None
+                  or pr["head"]["repo"]["full_name"] != repository
+                  or not re.fullmatch(r"[0-9a-f]{40}", pr["head"]["sha"])
+              ):
+                  raise ValueError("canonical PR tuple changed")
+          except (KeyError, TypeError, ValueError) as exc:
+              raise SystemExit("release-sync cleanup cannot bind the canonical PR") from exc
+          subprocess.check_call(["git", "fetch", "--no-tags", "origin", pr["head"]["sha"]], cwd=website)
+          Path(os.environ["TUPLE_PATH"]).write_text(json.dumps({
+              "number": number, "node_id": pr["node_id"], "head_sha": pr["head"]["sha"], "repository": repository,
+          }, sort_keys=True) + "\n")
+          output.write_text("has_pr=true\n")
+          PY
+
+      - name: Mint Policy Reviewer token only when a canonical PR needs inspection
+        if: ${{ steps.preflight.outputs.has_pr == 'true' }}
+        id: reviewer-token
+        uses: actions/create-github-app-token@a8d616148505873a6910f30e1d4a5f0c23a65f96  # v1
+        with:
+          app-id: ${{ secrets.GJ_WEBSITE_POLICY_REVIEWER_APP_ID }}
+          private-key: ${{ secrets.GJ_WEBSITE_POLICY_REVIEWER_PRIVATE_KEY }}
+          owner: Yeachan-Heo
+          repositories: gajae-code-website
+          permission-contents: read
+          permission-pull-requests: write
+
+      - name: Dismiss revoked approvals and re-run current policy
+        id: cleanup
+        if: ${{ steps.preflight.outputs.has_pr == 'true' }}
+        env:
+          WEBSITE: ${{ github.workspace }}/website
+          TRUSTED: ${{ github.workspace }}/trusted
+          EXPECTED_TUPLE: ${{ runner.temp }}/release-sync-cleanup-preflight.json
+          REVIEWER_TOKEN: ${{ steps.reviewer-token.outputs.token }}
+          GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          import sys
+          import urllib.request
+          from pathlib import Path
+
+          repository = "Yeachan-Heo/gajae-code-website"
+          branch = "automation/release-sync"
+          website = Path(os.environ["WEBSITE"])
+          trusted = Path(os.environ["TRUSTED"])
+          expected = json.loads(Path(os.environ["EXPECTED_TUPLE"]).read_text())
+          reviewer_token = os.environ["REVIEWER_TOKEN"]
+          reviewer = {
+              "slug": os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG"],
+              "id": int(os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC"]),
+          }
+
+          def api(method: str, path: str, token: str, body: object | None = None) -> object:
+              request = urllib.request.Request(
+                  f"https://api.github.com{path}", data=None if body is None else json.dumps(body).encode(), method=method,
+                  headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28"},
+              )
+              with urllib.request.urlopen(request, timeout=25) as response:
+                  raw = response.read()
+              return json.loads(raw) if raw else {}
+
+          def normalize_reviews(value: object) -> list[dict[str, object]]:
+              if not isinstance(value, list) or len(value) >= 100:
+                  raise SystemExit("cleanup review list is malformed or exceeds the bounded policy input")
+              normalized: list[dict[str, object]] = []
+              for review in value:
+                  if not isinstance(review, dict):
+                      raise SystemExit("cleanup review list contains a non-object")
+                  user = review.get("user")
+                  if (
+                      isinstance(review.get("id"), bool) or not isinstance(review.get("id"), int) or review["id"] <= 0
+                      or review.get("state") not in {"APPROVED", "CHANGES_REQUESTED", "COMMENTED", "DISMISSED", "REQUEST_CHANGES"}
+                      or not isinstance(review.get("commit_id"), str) or not review["commit_id"]
+                      or not isinstance(user, dict) or not isinstance(user.get("id"), int) or isinstance(user.get("id"), bool) or user["id"] <= 0
+                      or not isinstance(user.get("login"), str) or not user["login"]
+                  ):
+                      raise SystemExit("cleanup review list contains an invalid review")
+                  normalized.append({"id": review["id"], "state": review["state"], "commit_id": review["commit_id"], "app": {"slug": user["login"].removesuffix("[bot]"), "id": user["id"]}})
+              return normalized
+
+          def observe() -> tuple[dict[str, object], bytes]:
+              subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main"], cwd=website)
+              current_main = subprocess.check_output(["git", "rev-parse", "origin/main"], cwd=website, text=True).strip()
+              value = api("GET", f"/repos/{repository}/pulls/{expected['number']}", os.environ["GITHUB_READ_TOKEN"])
+              try:
+                  if (
+                      not isinstance(value, dict)
+                      or value["number"] != expected["number"]
+                      or value["node_id"] != expected["node_id"]
+                      or value["base"]["ref"] != "main"
+                      or value["base"]["sha"] != current_main
+                      or value["base"]["repo"] is None
+                      or value["base"]["repo"]["full_name"] != repository
+                      or value["head"]["sha"] != expected["head_sha"]
+                      or value["head"]["ref"] != branch
+                      or value["head"]["repo"] is None
+                      or value["head"]["repo"]["full_name"] != repository
+                  ):
+                      raise ValueError("cleanup tuple changed")
+              except (KeyError, TypeError, ValueError) as exc:
+                  raise SystemExit("canonical cleanup PR identity changed") from exc
+              return value, subprocess.check_output(["git", "show", f"{current_main}:release-sync-control.json"], cwd=website)
+
+          def policy(pr: dict[str, object], reviews: list[dict[str, object]], control_bytes: bytes, label: str) -> dict[str, object]:
+              actor = pr.get("user") or {}
+              if not isinstance(actor, dict):
+                  raise SystemExit("cleanup PR author is malformed")
+              event = {
+                  "repository": repository,
+                  "pull_request": {"number": expected["number"], "base_sha": pr["base"]["sha"], "head_sha": expected["head_sha"], "head_ref": branch, "head_repository": repository, "draft": bool(pr["draft"]), "writer_app": {"slug": actor.get("login", "").removesuffix("[bot]"), "id": actor.get("id", 0)}},
+                  "reviews": reviews,
+                  "transaction": {"base_sha": pr["base"]["sha"], "control_sha256": hashlib.sha256(control_bytes).hexdigest(), "head_sha": expected["head_sha"]},
+              }
+              path = Path(os.environ["RUNNER_TEMP"]) / f"release-sync-cleanup-policy-{label}.json"
+              path.write_text(json.dumps(event, sort_keys=True, indent=2) + "\n")
+              guard = subprocess.run([
+                  "python3", str(trusted / "scripts/check-review-eligibility.py"), "--trusted-root", str(trusted), "--repository", str(website),
+                  "--base-sha", pr["base"]["sha"], "--head-sha", expected["head_sha"], "--event-json", str(path),
+                  "--writer-app-slug", os.environ["RELEASE_SYNC_WRITER_APP_SLUG"], "--writer-app-id", os.environ["RELEASE_SYNC_WRITER_APP_ID_PUBLIC"],
+                  "--reviewer-app-slug", reviewer["slug"], "--reviewer-app-id", str(reviewer["id"]), "--auto-review-enabled", os.environ["RELEASE_SYNC_AUTO_REVIEW_ENABLED"],
+              ], text=True, capture_output=True)
+              if guard.returncode != 0:
+                  sys.stderr.write(guard.stderr)
+                  raise SystemExit("cleanup policy guard failed closed")
+              try:
+                  result = json.loads(guard.stdout)
+              except json.JSONDecodeError as exc:
+                  raise SystemExit("cleanup policy guard returned malformed JSON") from exc
+              if not isinstance(result, dict) or not isinstance(result.get("auto_merge"), bool) or result.get("review_action") not in {"approve", "dismiss", "none"} or result.get("pr_number") != expected["number"]:
+                  raise SystemExit("cleanup policy guard returned an invalid result")
+              return result
+
+          def active_approvals(reviews: list[dict[str, object]]) -> list[dict[str, object]]:
+              return [review for review in reviews if review["state"] == "APPROVED" and review["app"] == reviewer]
+
+          initial_pr, initial_control = observe()
+          initial_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", os.environ["GITHUB_READ_TOKEN"]))
+          initial_policy = policy(initial_pr, initial_reviews, initial_control, "before-dismissal")
+          if initial_policy["auto_merge"]:
+              Path(os.environ["GITHUB_OUTPUT"]).write_text("authorization_false=false\n")
+              raise SystemExit(0)
+          for _attempt in range(3):
+              pr, _control = observe()
+              reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", reviewer_token))
+              approvals = active_approvals(reviews)
+              if not approvals:
+                  break
+              for approval in approvals:
+                  confirmed_pr, _confirmed_control = observe()
+                  confirmed_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", reviewer_token))
+                  if approval["id"] not in {review["id"] for review in active_approvals(confirmed_reviews)}:
+                      continue
+                  api("PUT", f"/repos/{repository}/pulls/{expected['number']}/reviews/{approval['id']}/dismissals", reviewer_token, {"message": "Release-sync authorization was revoked; removing automated approval."})
+          final_pr, final_control = observe()
+          final_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", reviewer_token))
+          final_policy = policy(final_pr, final_reviews, final_control, "after-dismissal")
+          remaining = active_approvals(final_reviews)
+          if remaining:
+              raise SystemExit("Reviewer-App approval remained active after cleanup")
+          if final_policy["auto_merge"]:
+              raise SystemExit("cleanup policy unexpectedly still authorizes auto-merge after dismissal")
+          Path(os.environ["GITHUB_OUTPUT"]).write_text("authorization_false=true\n")
+          print(json.dumps({"pr": expected["number"], "approval_ids": [], "authorization_false": True}, sort_keys=True))
+          PY
+
+  cleanup-auto-merge:
+    name: Disable auto-merge after revocation
+    needs: cleanup-policy-revocation
+    if: ${{ needs.cleanup-policy-revocation.outputs.authorization_false == 'true' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    environment: release-sync-writer
+    env:
+      WEBSITE_REPOSITORY: Yeachan-Heo/gajae-code-website
+      DEFAULT_BRANCH: main
+      BOT_BRANCH: automation/release-sync
+      RELEASE_SYNC_WRITER_APP_SLUG: ${{ vars.RELEASE_SYNC_WRITER_APP_SLUG }}
+      RELEASE_SYNC_WRITER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_WRITER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_AUTO_REVIEW_ENABLED: ${{ vars.RELEASE_SYNC_AUTO_REVIEW_ENABLED }}
+    outputs:
+      cleanup_verified: ${{ steps.disable.outputs.cleanup_verified }}
+
+    steps:
+      - name: Check out trusted default-branch repository objects for Writer cleanup
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: website
+
+      - name: Check out trusted policy guard code for Writer cleanup
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          path: trusted
+
+      - name: Re-bind current revoked PR before Writer token mint
+        id: prewriter
+        env:
+          WEBSITE: ${{ github.workspace }}/website
+          TRUSTED: ${{ github.workspace }}/trusted
+          TUPLE_PATH: ${{ runner.temp }}/release-sync-writer-cleanup.json
+          GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          import sys
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          repository = "Yeachan-Heo/gajae-code-website"
+          branch = "automation/release-sync"
+          website = Path(os.environ["WEBSITE"])
+          trusted = Path(os.environ["TRUSTED"])
+          reviewer = {"slug": os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG"], "id": int(os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC"])}
+
+          def api(path: str) -> object:
+              request = urllib.request.Request(f"https://api.github.com{path}", headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {os.environ['GITHUB_READ_TOKEN']}", "X-GitHub-Api-Version": "2022-11-28"})
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  return json.load(response)
+
+          subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main"], cwd=website)
+          current_main = subprocess.check_output(["git", "rev-parse", "origin/main"], cwd=website, text=True).strip()
+          pulls = api(f"/repos/{repository}/pulls?state=open&head={urllib.parse.quote('Yeachan-Heo:' + branch, safe='')}")
+          if not isinstance(pulls, list) or len(pulls) != 1:
+              raise SystemExit("Writer cleanup requires exactly one canonical open release-sync PR")
+          item = pulls[0]
+          number = item.get("number") if isinstance(item, dict) else None
+          if isinstance(number, bool) or not isinstance(number, int) or number <= 0:
+              raise SystemExit("Writer cleanup PR number is invalid")
+          pr = api(f"/repos/{repository}/pulls/{number}")
+          try:
+              if (
+                  not isinstance(pr, dict) or pr["number"] != number or not isinstance(pr["node_id"], str)
+                  or pr["base"]["ref"] != "main" or pr["base"]["sha"] != current_main or pr["base"]["repo"] is None or pr["base"]["repo"]["full_name"] != repository
+                  or pr["head"]["ref"] != branch or pr["head"]["repo"] is None or pr["head"]["repo"]["full_name"] != repository or not re.fullmatch(r"[0-9a-f]{40}", pr["head"]["sha"])
+              ):
+                  raise ValueError("Writer cleanup tuple changed")
+          except (KeyError, TypeError, ValueError) as exc:
+              raise SystemExit("Writer cleanup cannot bind canonical PR identity") from exc
+          subprocess.check_call(["git", "fetch", "--no-tags", "origin", pr["head"]["sha"]], cwd=website)
+          raw_reviews = api(f"/repos/{repository}/pulls/{number}/reviews?per_page=100")
+          if not isinstance(raw_reviews, list) or len(raw_reviews) >= 100:
+              raise SystemExit("Writer cleanup review list is malformed")
+          reviews: list[dict[str, object]] = []
+          for review in raw_reviews:
+              if not isinstance(review, dict) or not isinstance(review.get("user"), dict):
+                  raise SystemExit("Writer cleanup review is malformed")
+              user = review["user"]
+              if isinstance(review.get("id"), bool) or not isinstance(review.get("id"), int) or review["id"] <= 0 or review.get("state") not in {"APPROVED", "CHANGES_REQUESTED", "COMMENTED", "DISMISSED", "REQUEST_CHANGES"} or not isinstance(review.get("commit_id"), str) or not review["commit_id"] or isinstance(user.get("id"), bool) or not isinstance(user.get("id"), int) or user["id"] <= 0 or not isinstance(user.get("login"), str) or not user["login"]:
+                  raise SystemExit("Writer cleanup review is invalid")
+              reviews.append({"id": review["id"], "state": review["state"], "commit_id": review["commit_id"], "app": {"slug": user["login"].removesuffix("[bot]"), "id": user["id"]}})
+          if any(review["state"] == "APPROVED" and review["app"] == reviewer for review in reviews):
+              raise SystemExit("Reviewer-App approval reappeared before Writer cleanup")
+          control = subprocess.check_output(["git", "show", f"{current_main}:release-sync-control.json"], cwd=website)
+          actor = pr.get("user") or {}
+          if not isinstance(actor, dict):
+              raise SystemExit("Writer cleanup PR author is malformed")
+          event = {
+              "repository": repository,
+              "pull_request": {"number": number, "base_sha": current_main, "head_sha": pr["head"]["sha"], "head_ref": branch, "head_repository": repository, "draft": bool(pr["draft"]), "writer_app": {"slug": actor.get("login", "").removesuffix("[bot]"), "id": actor.get("id", 0)}},
+              "reviews": reviews,
+              "transaction": {"base_sha": current_main, "control_sha256": hashlib.sha256(control).hexdigest(), "head_sha": pr["head"]["sha"]},
+          }
+          policy_path = Path(os.environ["RUNNER_TEMP"]) / "release-sync-writer-cleanup-policy-after-dismissal.json"
+          policy_path.write_text(json.dumps(event, sort_keys=True, indent=2) + "\n")
+          guard = subprocess.run([
+              "python3", str(trusted / "scripts/check-review-eligibility.py"), "--trusted-root", str(trusted), "--repository", str(website), "--base-sha", current_main, "--head-sha", pr["head"]["sha"], "--event-json", str(policy_path),
+              "--writer-app-slug", os.environ["RELEASE_SYNC_WRITER_APP_SLUG"], "--writer-app-id", os.environ["RELEASE_SYNC_WRITER_APP_ID_PUBLIC"], "--reviewer-app-slug", reviewer["slug"], "--reviewer-app-id", str(reviewer["id"]), "--auto-review-enabled", os.environ["RELEASE_SYNC_AUTO_REVIEW_ENABLED"],
+          ], text=True, capture_output=True)
+          if guard.returncode != 0:
+              sys.stderr.write(guard.stderr)
+              raise SystemExit("Writer cleanup policy guard failed closed")
+          try:
+              decision = json.loads(guard.stdout)
+          except json.JSONDecodeError as exc:
+              raise SystemExit("Writer cleanup policy guard returned malformed JSON") from exc
+          if not isinstance(decision, dict) or decision.get("pr_number") != number or decision.get("auto_merge") is not False:
+              raise SystemExit("Writer cleanup policy no longer proves auto-merge is unauthorized")
+          Path(os.environ["TUPLE_PATH"]).write_text(json.dumps({"number": number, "node_id": pr["node_id"], "head_sha": pr["head"]["sha"], "repository": repository}, sort_keys=True) + "\n")
+          PY
+
+      - name: Mint Writer-App token only to disable revoked auto-merge
+        id: writer-token
+        uses: actions/create-github-app-token@a8d616148505873a6910f30e1d4a5f0c23a65f96  # v1
+        with:
+          app-id: ${{ secrets.GJ_RELEASE_SYNC_WRITER_APP_ID }}
+          private-key: ${{ secrets.GJ_RELEASE_SYNC_WRITER_PRIVATE_KEY }}
+          owner: Yeachan-Heo
+          repositories: gajae-code-website
+          permission-contents: read
+          permission-pull-requests: write
+
+      - name: Disable and verify auto-merge against the current base
+        id: disable
+        env:
+          WEBSITE: ${{ github.workspace }}/website
+          EXPECTED_TUPLE: ${{ runner.temp }}/release-sync-writer-cleanup.json
+          WRITER_TOKEN: ${{ steps.writer-token.outputs.token }}
+          GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          import urllib.request
+          from pathlib import Path
+
+          repository = "Yeachan-Heo/gajae-code-website"
+          branch = "automation/release-sync"
+          owner = "Yeachan-Heo"
+          website = Path(os.environ["WEBSITE"])
+          expected = json.loads(Path(os.environ["EXPECTED_TUPLE"]).read_text())
+          query = """query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){id number headRefOid baseRefOid autoMergeRequest{enabledAt}}}}"""
+
+          def api(method: str, path: str, token: str, body: object | None = None) -> object:
+              request = urllib.request.Request(f"https://api.github.com{path}", data=None if body is None else json.dumps(body).encode(), method=method, headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28"})
+              with urllib.request.urlopen(request, timeout=25) as response:
+                  raw = response.read()
+              return json.loads(raw) if raw else {}
+
+          def observe() -> dict[str, object]:
+              subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main"], cwd=website)
+              current_main = subprocess.check_output(["git", "rev-parse", "origin/main"], cwd=website, text=True).strip()
+              value = api("GET", f"/repos/{repository}/pulls/{expected['number']}", os.environ["GITHUB_READ_TOKEN"])
+              try:
+                  if (
+                      not isinstance(value, dict) or value["number"] != expected["number"] or value["node_id"] != expected["node_id"]
+                      or value["base"]["ref"] != "main" or value["base"]["sha"] != current_main or value["base"]["repo"] is None or value["base"]["repo"]["full_name"] != repository
+                      or value["head"]["sha"] != expected["head_sha"] or value["head"]["ref"] != branch or value["head"]["repo"] is None or value["head"]["repo"]["full_name"] != repository
+                  ):
+                      raise ValueError("Writer cleanup tuple changed")
+              except (KeyError, TypeError, ValueError) as exc:
+                  raise SystemExit("Writer cleanup canonical PR identity changed") from exc
+              return value
+
+          def graphql(pr: dict[str, object]) -> dict[str, object]:
+              state = api("POST", "/graphql", os.environ["WRITER_TOKEN"], {"query": query, "variables": {"owner": owner, "name": "gajae-code-website", "number": expected["number"]}})
+              try:
+                  value = state["data"]["repository"]["pullRequest"]
+                  if not isinstance(value, dict) or value.get("id") != expected["node_id"] or value.get("number") != expected["number"] or value.get("headRefOid") != expected["head_sha"] or value.get("baseRefOid") != pr["base"]["sha"]:
+                      raise ValueError("Writer cleanup GraphQL tuple changed")
+              except (KeyError, TypeError, ValueError) as exc:
+                  raise SystemExit("Writer cleanup GraphQL identity changed") from exc
+              return value
+
+          for _attempt in range(3):
+              observed = observe()
+              state = graphql(observed)
+              if state.get("autoMergeRequest") is not None:
+                  mutation = """mutation($id:ID!){disablePullRequestAutoMerge(input:{pullRequestId:$id}){pullRequest{id number headRefOid baseRefOid autoMergeRequest{enabledAt}}}}"""
+                  response = api("POST", "/graphql", os.environ["WRITER_TOKEN"], {"query": mutation, "variables": {"id": expected["node_id"]}})
+                  try:
+                      disabled = response["data"]["disablePullRequestAutoMerge"]["pullRequest"]
+                      if not isinstance(disabled, dict) or disabled.get("id") != expected["node_id"] or disabled.get("number") != expected["number"] or disabled.get("headRefOid") != expected["head_sha"]:
+                          raise ValueError("disable mutation did not bind the canonical exact head")
+                  except (KeyError, TypeError, ValueError) as exc:
+                      raise SystemExit("Writer cleanup disable mutation failed closed") from exc
+              verified_observed = observe()
+              verified = graphql(verified_observed)
+              if verified.get("autoMergeRequest") is None:
+                  reviews = api("GET", f"/repos/{repository}/pulls/{expected['number']}/reviews?per_page=100", os.environ["GITHUB_READ_TOKEN"])
+                  reviewer_slug = os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG"]
+                  reviewer_id = int(os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC"])
+                  if not isinstance(reviews, list) or any(
+                      isinstance(review, dict) and review.get("state") == "APPROVED" and isinstance(review.get("user"), dict)
+                      and review["user"].get("login", "").removesuffix("[bot]") == reviewer_slug and review["user"].get("id") == reviewer_id
+                      for review in reviews
+                  ):
+                      raise SystemExit("Reviewer-App approval remained active at cleanup terminal state")
+                  Path(os.environ["GITHUB_OUTPUT"]).write_text("cleanup_verified=true\n")
+                  print(json.dumps({"pr": expected["number"], "base_sha": verified_observed["base"]["sha"], "approval_ids": [], "auto_merge": False}, sort_keys=True))
+                  raise SystemExit(0)
+          raise SystemExit("Writer cleanup could not verify auto-merge disabled against the current base")
+          PY
+
+  reconcile:
+    needs: [cleanup-policy-revocation, cleanup-auto-merge]
+    if: ${{ always() && github.event_name != 'push' && inputs.cleanup_only != true && needs.cleanup-policy-revocation.result == 'success' && (needs.cleanup-policy-revocation.outputs.authorization_false != 'true' || (needs.cleanup-auto-merge.result == 'success' && needs.cleanup-auto-merge.outputs.cleanup_verified == 'true')) }}
+    name: Resolve, verify, and reconcile the latest complete release
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    environment: release-sync-writer
+    env:
+      WEBSITE_REPOSITORY: Yeachan-Heo/gajae-code-website
+      SOURCE_REPOSITORY: Yeachan-Heo/gajae-code
+      DEFAULT_BRANCH: main
+      BOT_BRANCH: automation/release-sync
+      RELEASE_SYNC_WRITER_APP_SLUG: ${{ vars.RELEASE_SYNC_WRITER_APP_SLUG }}
+      RELEASE_SYNC_WRITER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_WRITER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG }}
+      RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC: ${{ vars.RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC }}
+      RELEASE_SYNC_AUTO_REVIEW_ENABLED: ${{ vars.RELEASE_SYNC_AUTO_REVIEW_ENABLED }}
+      RESOLVE_ROOT: ${{ github.workspace }}/release-resolve
+      RECHECK_ROOT: ${{ github.workspace }}/release-recheck
+      WRITER_MUTATION_RECHECK_ROOT: ${{ github.workspace }}/release-writer-mutation-recheck
+      WRITER_PRE_ENABLE_RECHECK_ROOT: ${{ github.workspace }}/release-writer-pre-enable-recheck
+    steps:
+      - name: Check out trusted website default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: website
+
+      - name: Check out a separate trusted guard copy
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          path: trusted
+
+      - name: Freeze production configuration and validate the optional hint
+        env:
+          INPUTS_JSON: ${{ toJSON(github.event.inputs) }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "$WEBSITE_REPOSITORY"
+          export INPUTS_JSON
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          event_name = os.environ.get("EVENT_NAME")
+          raw = os.environ.get("INPUTS_JSON")
+          if event_name not in {"schedule", "workflow_dispatch"}:
+              raise SystemExit("unsupported reconciliation event")
+          if event_name == "schedule" and raw in {None, "null"}:
+              raw = "{}"
+          if raw is None:
+              raise SystemExit("workflow inputs are missing")
+          if len(raw.encode("utf-8")) > 2048:
+              raise SystemExit("workflow inputs exceed the production hint bound")
+          inputs = json.loads(raw)
+          if not isinstance(inputs, dict) or set(inputs) - {"release_hint", "cleanup_only"}:
+              raise SystemExit("production reconciliation accepts only release_hint and cleanup_only")
+          cleanup_only = inputs.get("cleanup_only", "false")
+          if not ((isinstance(cleanup_only, str) and cleanup_only in {"true", "false"}) or type(cleanup_only) is bool):
+              raise SystemExit("cleanup_only must be a boolean")
+          hint = inputs.get("release_hint", "")
+          if hint is None:
+              hint = ""
+          if not isinstance(hint, str) or len(hint.encode("utf-8")) > 2048:
+              raise SystemExit("release_hint must be a bounded string")
+
+          accepted = False
+          if hint:
+              try:
+                  value = json.loads(hint)
+                  expected = {"release_id", "tag", "commit", "source_run_url"}
+                  accepted = (
+                      isinstance(value, dict)
+                      and set(value) == expected
+                      and isinstance(value["release_id"], int)
+                      and value["release_id"] > 0
+                      and bool(re.fullmatch(r"v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", value["tag"]))
+                      and isinstance(value["commit"], str)
+                      and bool(re.fullmatch(r"[0-9a-f]{40}", value["commit"]))
+                      and isinstance(value["source_run_url"], str)
+                      and len(value["source_run_url"]) <= 512
+                      and bool(re.fullmatch(r"https://github\.com/Yeachan-Heo/gajae-code/actions/runs/[1-9][0-9]*", value["source_run_url"]))
+                  )
+              except json.JSONDecodeError:
+                  accepted = False
+          # A hint is only a latency signal. Invalid hints deliberately never select a release.
+          Path(os.environ["GITHUB_OUTPUT"]).write_text(f"hint_accepted={'true' if accepted else 'false'}\n")
+          print("release hint accepted as a non-authoritative signal" if accepted else "release hint absent or invalid; resolving latest complete release")
+          PY
+          test -n "$RELEASE_SYNC_WRITER_APP_SLUG"
+          test "$RELEASE_SYNC_WRITER_APP_ID_PUBLIC" -gt 0
+          test -n "$RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG"
+          test "$RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC" -gt 0
+          test "$RELEASE_SYNC_AUTO_REVIEW_ENABLED" = true -o "$RELEASE_SYNC_AUTO_REVIEW_ENABLED" = false
+
+      - name: Verify website and guard checkouts are pinned to the triggering default-branch SHA
+        id: fetch-main
+        env:
+          DEFAULT_BRANCH_SHA: ${{ github.sha }}
+        working-directory: website
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/${DEFAULT_BRANCH}"
+          if ! printf '%s' "$DEFAULT_BRANCH_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "github.sha is not an immutable default-branch commit" >&2
+            exit 1
+          fi
+          test "$(git rev-parse HEAD)" = "$DEFAULT_BRANCH_SHA"
+          test "$(git -C "$GITHUB_WORKSPACE/trusted" rev-parse HEAD)" = "$DEFAULT_BRANCH_SHA"
+          printf 'base_sha=%s\n' "$DEFAULT_BRANCH_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Verify active canonical control before resolution
+        working-directory: website
+        run: |
+          set -euo pipefail
+          python3 - release-sync-control.json <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          raw = path.read_bytes()
+          value = json.loads(raw)
+          if set(value) != {"schema_version", "mode", "reason", "blocked_release_ids"}:
+              raise SystemExit("release-sync-control.json has unknown or missing keys")
+          if value["schema_version"] != 1 or value["mode"] not in {"active", "hold"}:
+              raise SystemExit("release-sync-control.json has an invalid schema or mode")
+          if not isinstance(value["reason"], str) or not isinstance(value["blocked_release_ids"], list):
+              raise SystemExit("release-sync-control.json has invalid values")
+          if any(type(item) is not int or item < 1 for item in value["blocked_release_ids"]):
+              raise SystemExit("release-sync-control.json has invalid blocked release ids")
+          if len(set(value["blocked_release_ids"])) != len(value["blocked_release_ids"]):
+              raise SystemExit("release-sync-control.json has duplicate blocked release ids")
+          canonical = (json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+          if raw != canonical:
+              raise SystemExit("release-sync-control.json is not canonical")
+          if value["mode"] != "active":
+              raise SystemExit(f"release reconciliation is held: {value['reason']}")
+          print("release-sync control is active")
+          PY
+
+      - name: Resolve the exact latest complete production release
+        working-directory: website
+        run: |
+          set -euo pipefail
+          test ! -e "$RESOLVE_ROOT"
+          python3 scripts/resolve-release.py \
+            --mode latest \
+            --workspace "$RESOLVE_ROOT" \
+            --snapshot "$RESOLVE_ROOT/snapshot.json" \
+            --source-dir "$RESOLVE_ROOT/source"
+
+      - name: Reject blocked resolved releases
+        working-directory: website
+        run: |
+          set -euo pipefail
+          python3 - release-sync-control.json "$RESOLVE_ROOT/snapshot.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          control = json.loads(Path(sys.argv[1]).read_text())
+          snapshot = json.loads(Path(sys.argv[2]).read_text())
+          release_id = snapshot["release"]["id"]
+          if control["mode"] != "active" or release_id in control["blocked_release_ids"]:
+              raise SystemExit(f"release {release_id} is blocked by release-sync control")
+          print(f"resolved production release {release_id} {snapshot['release']['tag']}")
+          PY
+
+      - name: Generate only declared release-owned content
+        working-directory: website
+        run: |
+          set -euo pipefail
+          python3 scripts/sync-release.py \
+            --snapshot "$RESOLVE_ROOT/snapshot.json" \
+            --source-dir "$RESOLVE_ROOT/source" \
+            --website-root "$GITHUB_WORKSPACE/website"
+
+      - name: Validate generated static content before any App token exists
+        working-directory: website
+        run: |
+          set -euo pipefail
+          python3 scripts/validate-site.py
+
+      - name: Commit a local generated candidate only when the complete worktree has declared changes
+        id: candidate
+        working-directory: website
+        run: |
+          set -euo pipefail
+          git diff --check
+          changed_paths="$(python3 - <<'PY'
+          import subprocess
+
+          raw = subprocess.check_output([
+              "git", "status", "--porcelain=v1", "-z", "--untracked-files=all",
+          ])
+          records = raw.split(b"\0")
+          paths: list[str] = []
+          index = 0
+          while index < len(records) - 1:
+              record = records[index]
+              index += 1
+              if len(record) < 4 or record[2:3] != b" ":
+                  raise SystemExit("malformed complete worktree status")
+              status = record[:2]
+              candidates = [record[3:]]
+              if b"R" in status or b"C" in status:
+                  if index >= len(records) - 1:
+                      raise SystemExit("malformed rename or copy worktree status")
+                  candidates.append(records[index])
+                  index += 1
+              for raw_path in candidates:
+                  try:
+                      path = raw_path.decode("utf-8")
+                  except UnicodeDecodeError as exc:
+                      raise SystemExit("worktree path is not valid UTF-8") from exc
+                  if path in {"index.html", "release-sync.json"} or (
+                      path.startswith("docs/") and path.endswith(".html")
+                  ):
+                      paths.append(path)
+                  else:
+                      raise SystemExit(f"undeclared worktree change: {path}")
+          print("\n".join(paths))
+          PY
+          )"
+          if test -z "$changed_paths"; then
+            printf 'has_changes=false\n' >> "$GITHUB_OUTPUT"
+            printf 'candidate_sha=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git switch -c release-sync-candidate
+          git config user.name "${RELEASE_SYNC_WRITER_APP_SLUG}[bot]"
+          git config user.email "${RELEASE_SYNC_WRITER_APP_ID_PUBLIC}+${RELEASE_SYNC_WRITER_APP_SLUG}[bot]@users.noreply.github.com"
+          git add -A -- index.html docs release-sync.json
+          git diff --cached --quiet && { echo "declared worktree changes produced no staged candidate"; exit 1; }
+          git diff --quiet || { echo "unexpected unstaged generated change"; exit 1; }
+          git diff --cached --check
+          git commit -m "chore: sync released Gajae Code content"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)" || { echo "candidate commit did not leave a clean worktree"; exit 1; }
+          printf 'has_changes=true\n' >> "$GITHUB_OUTPUT"
+          printf 'candidate_sha=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Check candidate ownership with trusted default-branch guard code
+        if: steps.candidate.outputs.has_changes == 'true'
+        env:
+          BASE_SHA: ${{ steps.fetch-main.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.candidate.outputs.candidate_sha }}
+          TRUSTED: ${{ github.workspace }}/trusted
+          WEBSITE: ${{ github.workspace }}/website
+        run: |
+          set -euo pipefail
+          python3 "$TRUSTED/scripts/check-generated-ownership.py" \
+            --trusted-root "$TRUSTED" \
+            --repository "$WEBSITE" \
+            --base-sha "$BASE_SHA" \
+            --head-sha "$HEAD_SHA"
+
+      - name: Re-resolve immediately before Writer-App token mint
+        working-directory: website
+        run: |
+          set -euo pipefail
+          test ! -e "$RECHECK_ROOT"
+          python3 scripts/resolve-release.py \
+            --mode latest \
+            --workspace "$RECHECK_ROOT" \
+            --snapshot "$RECHECK_ROOT/snapshot.json" \
+            --source-dir "$RECHECK_ROOT/source"
+          python3 - "$RESOLVE_ROOT/snapshot.json" "$RECHECK_ROOT/snapshot.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          def release_tuple(path: str) -> tuple[object, ...]:
+              value = json.loads(Path(path).read_text())
+              release = value["release"]
+              checkout = value["source_checkout"]
+              return (
+                  release["id"], release["tag"], release["published_at"],
+                  release["peeled_commit_sha"], checkout["package_evidence_asset_sha256"],
+              )
+
+          if release_tuple(sys.argv[1]) != release_tuple(sys.argv[2]):
+              raise SystemExit("latest complete release changed during tokenless verification")
+          PY
+
+      - name: Capture tokenless main, control, bot, PR, and release tuple
+        id: tuple
+        env:
+          WEBSITE: ${{ github.workspace }}/website
+          SNAPSHOT: ${{ runner.temp }}/release-resolve/snapshot.json
+          CANDIDATE_SHA: ${{ steps.candidate.outputs.candidate_sha }}
+          HAS_CHANGES: ${{ steps.candidate.outputs.has_changes }}
+          PINNED_BASE_SHA: ${{ steps.fetch-main.outputs.base_sha }}
+          TUPLE_PATH: ${{ runner.temp }}/release-sync-prewrite-tuple.json
+          GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import re
+          import os
+          import subprocess
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          website = Path(os.environ["WEBSITE"])
+          snapshot = json.loads(Path(os.environ["SNAPSHOT"]).read_text())
+          candidate = os.environ["CANDIDATE_SHA"]
+          has_changes = os.environ["HAS_CHANGES"] == "true"
+          repository = "Yeachan-Heo/gajae-code-website"
+          branch = "automation/release-sync"
+
+          def exact_release_tuple(value: object, label: str) -> dict[str, str | int]:
+              try:
+                  if not isinstance(value, dict):
+                      raise ValueError("snapshot is not an object")
+                  release = value["release"]
+                  checkout = value["source_checkout"]
+                  if not isinstance(release, dict) or not isinstance(checkout, dict):
+                      raise ValueError("snapshot release data is malformed")
+                  assets = release["assets"]
+                  if not isinstance(assets, list):
+                      raise ValueError("snapshot release assets are malformed")
+                  evidence_assets: dict[str, str] = {}
+                  for asset in assets:
+                      if not isinstance(asset, dict):
+                          raise ValueError("snapshot release asset is malformed")
+                      name = asset.get("name")
+                      digest = asset.get("digest")
+                      if name in {"gajae-release-packages-expected-v1.json", "gajae-release-packages-v1.json"}:
+                          if not isinstance(name, str) or not isinstance(digest, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", digest) or name in evidence_assets:
+                              raise ValueError("snapshot evidence asset identity is malformed")
+                          evidence_assets[name] = digest
+                  result: dict[str, str | int] = {
+                      "id": release["id"],
+                      "tag": release["tag"],
+                      "published_at": release["published_at"],
+                      "peeled_commit_sha": release["peeled_commit_sha"],
+                      "expected_evidence_asset_sha256": evidence_assets["gajae-release-packages-expected-v1.json"],
+                      "final_evidence_asset_sha256": evidence_assets["gajae-release-packages-v1.json"],
+                      "verified_final_evidence_sha256": checkout["package_evidence_asset_sha256"],
+                  }
+                  if (
+                      isinstance(result["id"], bool) or not isinstance(result["id"], int) or result["id"] <= 0
+                      or not all(isinstance(result[key], str) and result[key] for key in ("tag", "published_at"))
+                      or not re.fullmatch(r"[0-9a-f]{40}", str(result["peeled_commit_sha"]))
+                      or not re.fullmatch(r"[0-9a-f]{64}", str(result["verified_final_evidence_sha256"]))
+                  ):
+                      raise ValueError("snapshot release tuple is malformed")
+              except (KeyError, TypeError, ValueError) as exc:
+                  raise SystemExit(f"{label} cannot form an exact release-and-evidence tuple") from exc
+              return result
+
+          def git(*args: str) -> str:
+              return subprocess.check_output(["git", *args], cwd=website, text=True).strip()
+
+          subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main"], cwd=website)
+          main_sha = git("rev-parse", "origin/main")
+          if main_sha != os.environ["PINNED_BASE_SHA"]:
+              raise SystemExit("main advanced before Writer-App token mint; discard this worktree")
+          expected_base = git("rev-parse", f"{candidate}^" if has_changes else candidate)
+          if expected_base != main_sha:
+              raise SystemExit("candidate parent no longer equals the pinned main")
+          control_bytes = subprocess.check_output(["git", "show", f"{main_sha}:release-sync-control.json"], cwd=website)
+          control = json.loads(control_bytes)
+          canonical = (json.dumps(control, sort_keys=True, indent=2, ensure_ascii=False) + "\n").encode()
+          release = snapshot["release"]
+          if control_bytes != canonical or control["mode"] != "active" or release["id"] in control["blocked_release_ids"]:
+              raise SystemExit("main control no longer permits this release")
+          bot_sha = subprocess.run(["git", "ls-remote", "origin", f"refs/heads/{branch}"], cwd=website, text=True, capture_output=True, check=True).stdout.split()
+          bot_sha = bot_sha[0] if bot_sha else ""
+
+          request = urllib.request.Request(
+              f"https://api.github.com/repos/{repository}/pulls?state=open&head={urllib.parse.quote('Yeachan-Heo:' + branch, safe='')}",
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {os.environ['GITHUB_READ_TOKEN']}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+              },
+          )
+          pulls = json.load(urllib.request.urlopen(request, timeout=20))
+          if len(pulls) > 1:
+              raise SystemExit("more than one open release-sync pull request exists")
+          pr = None
+          if pulls:
+              item = pulls[0]
+              if item["base"]["ref"] != "main" or item["head"]["ref"] != branch:
+                  raise SystemExit("open release-sync pull request has an unexpected base or head")
+              pr = {"number": item["number"], "head_sha": item["head"]["sha"], "base_sha": item["base"]["sha"], "node_id": item["node_id"]}
+
+          release_tuple = exact_release_tuple(snapshot, "original resolved snapshot")
+          tuple_value = {
+              "main_sha": main_sha,
+              "control_sha256": hashlib.sha256(control_bytes).hexdigest(),
+              "bot_sha": bot_sha,
+              "pr": pr,
+              "release": release_tuple,
+              "candidate_sha": candidate,
+              "has_changes": has_changes,
+          }
+          Path(os.environ["TUPLE_PATH"]).write_text(json.dumps(tuple_value, sort_keys=True, indent=2) + "\n")
+          Path(os.environ["GITHUB_OUTPUT"]).write_text(f"main_sha={main_sha}\ncontrol_sha256={tuple_value['control_sha256']}\n")
+          with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as summary:
+              summary.write("### Release-sync tokenless tuple\n\n")
+              summary.write(f"- Control: `{control['mode']}` (`{tuple_value['control_sha256']}`)\n")
+              summary.write(f"- Release: `{release_tuple['id']}` / `{release_tuple['tag']}` / `{release_tuple['peeled_commit_sha']}`\n")
+              summary.write(f"- Main: `{main_sha}`; bot ref: `{bot_sha or 'absent'}`; PR: `{pr['number'] if pr else 'absent'}`\n")
+              summary.write(f"- Local generated candidate: `{candidate}`; changed: `{has_changes}`\n")
+          print(json.dumps({"control": control["mode"], "release": release_tuple, "main_sha": main_sha, "bot_sha": bot_sha, "pr": pr}, sort_keys=True))
+          PY
+
+      - name: Mint Writer-App token after all tokenless checks
+        id: writer-token
+        uses: actions/create-github-app-token@a8d616148505873a6910f30e1d4a5f0c23a65f96  # v1
+        with:
+          app-id: ${{ secrets.GJ_RELEASE_SYNC_WRITER_APP_ID }}
+          private-key: ${{ secrets.GJ_RELEASE_SYNC_WRITER_PRIVATE_KEY }}
+          owner: Yeachan-Heo
+          repositories: gajae-code-website
+          permission-contents: write
+          permission-pull-requests: write
+          permission-statuses: write
+
+      - name: Lease the fixed branch, mutate the single PR, and enable exact-head auto-merge
+        env:
+          WEBSITE: ${{ github.workspace }}/website
+          TRUSTED: ${{ github.workspace }}/trusted
+          SNAPSHOT: ${{ runner.temp }}/release-resolve/snapshot.json
+          EXPECTED_TUPLE: ${{ runner.temp }}/release-sync-prewrite-tuple.json
+          WRITER_TOKEN: ${{ steps.writer-token.outputs.token }}
+          CANDIDATE_SHA: ${{ steps.candidate.outputs.candidate_sha }}
+          HAS_CHANGES: ${{ steps.candidate.outputs.has_changes }}
+          GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          website = Path(os.environ["WEBSITE"])
+          trusted = Path(os.environ["TRUSTED"])
+          snapshot = json.loads(Path(os.environ["SNAPSHOT"]).read_text())
+          expected = json.loads(Path(os.environ["EXPECTED_TUPLE"]).read_text())
+          candidate = os.environ["CANDIDATE_SHA"]
+          has_changes = os.environ["HAS_CHANGES"] == "true"
+          repository = "Yeachan-Heo/gajae-code-website"
+          owner = "Yeachan-Heo"
+          branch = "automation/release-sync"
+          writer_token = os.environ["WRITER_TOKEN"]
+          read_token = os.environ["GITHUB_READ_TOKEN"]
+
+          def exact_release_tuple(value: object, label: str) -> dict[str, str | int]:
+              try:
+                  if not isinstance(value, dict):
+                      raise ValueError("snapshot is not an object")
+                  release = value["release"]
+                  checkout = value["source_checkout"]
+                  if not isinstance(release, dict) or not isinstance(checkout, dict):
+                      raise ValueError("snapshot release data is malformed")
+                  assets = release["assets"]
+                  if not isinstance(assets, list):
+                      raise ValueError("snapshot release assets are malformed")
+                  evidence_assets: dict[str, str] = {}
+                  for asset in assets:
+                      if not isinstance(asset, dict):
+                          raise ValueError("snapshot release asset is malformed")
+                      name = asset.get("name")
+                      digest = asset.get("digest")
+                      if name in {"gajae-release-packages-expected-v1.json", "gajae-release-packages-v1.json"}:
+                          if not isinstance(name, str) or not isinstance(digest, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", digest) or name in evidence_assets:
+                              raise ValueError("snapshot evidence asset identity is malformed")
+                          evidence_assets[name] = digest
+                  result: dict[str, str | int] = {
+                      "id": release["id"],
+                      "tag": release["tag"],
+                      "published_at": release["published_at"],
+                      "peeled_commit_sha": release["peeled_commit_sha"],
+                      "expected_evidence_asset_sha256": evidence_assets["gajae-release-packages-expected-v1.json"],
+                      "final_evidence_asset_sha256": evidence_assets["gajae-release-packages-v1.json"],
+                      "verified_final_evidence_sha256": checkout["package_evidence_asset_sha256"],
+                  }
+                  if (
+                      isinstance(result["id"], bool) or not isinstance(result["id"], int) or result["id"] <= 0
+                      or not all(isinstance(result[key], str) and result[key] for key in ("tag", "published_at"))
+                      or not re.fullmatch(r"[0-9a-f]{40}", str(result["peeled_commit_sha"]))
+                      or not re.fullmatch(r"[0-9a-f]{64}", str(result["verified_final_evidence_sha256"]))
+                  ):
+                      raise ValueError("snapshot release tuple is malformed")
+              except (KeyError, TypeError, ValueError) as exc:
+                  raise SystemExit(f"{label} cannot form an exact release-and-evidence tuple") from exc
+              return result
+
+          original_release = exact_release_tuple(snapshot, "original resolved snapshot")
+          if expected.get("release") != original_release:
+              raise SystemExit("prewrite release tuple does not match the original resolved snapshot")
+
+          def reobserve_latest_complete_release(label: str, root_env: str) -> dict[str, str | int]:
+              root = Path(os.environ[root_env])
+              if root.exists() or root.is_symlink():
+                  raise SystemExit(f"{label} resolver workspace already exists")
+              subprocess.check_call([
+                  "python3", str(trusted / "scripts" / "resolve-release.py"), "--mode", "latest",
+                  "--workspace", str(root), "--snapshot", str(root / "snapshot.json"), "--source-dir", str(root / "source"),
+              ])
+              return exact_release_tuple(json.loads((root / "snapshot.json").read_text()), label)
+
+          def git(*args: str, check: bool = True) -> str:
+              return subprocess.run(["git", *args], cwd=website, text=True, check=check, capture_output=True).stdout.strip()
+
+          def observed_bot_sha() -> str:
+              result = subprocess.run(
+                  ["git", "ls-remote", "origin", f"refs/heads/{branch}"], cwd=website, text=True, capture_output=True, check=False
+              )
+              if result.returncode:
+                  raise SystemExit("failed closed while observing bot ref: " + json.dumps({
+                      "returncode": result.returncode, "stderr": result.stderr.strip(), "stdout": result.stdout.strip(),
+                  }, sort_keys=True))
+              fields = result.stdout.split()
+              if not fields:
+                  return ""
+              if len(fields) != 2 or fields[1] != f"refs/heads/{branch}" or not re.fullmatch(r"[0-9a-f]{40}", fields[0]):
+                  raise SystemExit("bot ref observation is malformed")
+              return fields[0]
+
+          def documented_unavailable_bot_object(result: subprocess.CompletedProcess[str], sha: str) -> bool:
+              stderr = result.stderr.strip()
+              return result.returncode == 128 and result.stdout == "" and stderr in {
+                  f"fatal: remote error: upload-pack: not our ref {sha}",
+                  f"fatal: git upload-pack: not our ref {sha}",
+              }
+
+          def fetch_and_probe_observed_bot(sha: str) -> bool:
+              fetched = subprocess.run(
+                  ["git", "fetch", "--no-tags", "origin", sha], cwd=website, text=True, capture_output=True, check=False
+              )
+              if fetched.returncode:
+                  if documented_unavailable_bot_object(fetched, sha):
+                      return False
+                  raise SystemExit("failed closed while fetching observed bot object: " + json.dumps({
+                      "returncode": fetched.returncode, "stderr": fetched.stderr.strip(), "stdout": fetched.stdout.strip(),
+                  }, sort_keys=True))
+              probe = subprocess.run(
+                  ["git", "cat-file", "-e", f"{sha}^{{commit}}"], cwd=website, text=True, capture_output=True, check=False
+              )
+              if probe.returncode:
+                  raise SystemExit("failed closed while probing fetched bot object: " + json.dumps({
+                      "returncode": probe.returncode, "stderr": probe.stderr.strip(), "stdout": probe.stdout.strip(),
+                  }, sort_keys=True))
+              return True
+
+          def api(method: str, path: str, token: str, body: object | None = None) -> object:
+              data = None if body is None else json.dumps(body).encode()
+              request = urllib.request.Request(
+                  f"https://api.github.com{path}", data=data, method=method,
+                  headers={
+                      "Accept": "application/vnd.github+json",
+                      "Authorization": f"Bearer {token}",
+                      "Content-Type": "application/json",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                  },
+              )
+              with urllib.request.urlopen(request, timeout=25) as response:
+                  raw = response.read()
+              return json.loads(raw) if raw else {}
+
+          auto_merge_query = """query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){id number headRefOid baseRefOid isDraft mergeable mergeStateStatus autoMergeRequest{enabledAt}}}}"""
+
+          def graphql_pull(number: int) -> dict[str, object]:
+              state = api("POST", "/graphql", read_token, {"query": auto_merge_query, "variables": {"owner": owner, "name": "gajae-code-website", "number": number}})
+              try:
+                  value = state["data"]["repository"]["pullRequest"]
+              except (KeyError, TypeError) as exc:
+                  raise SystemExit("GitHub returned a malformed auto-merge state") from exc
+              if not isinstance(value, dict):
+                  raise SystemExit("GitHub returned a malformed auto-merge state")
+              return value
+
+          def require_exact_graphql_pull(
+              value: dict[str, object], number: int, head_sha: str, base_sha: str, pull_id: str,
+          ) -> None:
+              if (
+                  value.get("id") != pull_id
+                  or value.get("number") != number
+                  or value.get("headRefOid") != head_sha
+                  or value.get("baseRefOid") != base_sha
+              ):
+                  raise RuntimeError("auto-merge compensation PR tuple changed")
+
+          def disable_auto_merge(
+              reason: str, number: int, head_sha: str, base_sha: str, pull_id: str,
+          ) -> dict[str, object]:
+              rollback: dict[str, object] = {
+                  "attempted": True,
+                  "reason": reason,
+                  "pr_number": number,
+                  "head_sha": head_sha,
+                  "base_sha": base_sha,
+                  "pull_id": pull_id,
+              }
+              try:
+                  observed = graphql_pull(number)
+                  require_exact_graphql_pull(observed, number, head_sha, base_sha, pull_id)
+                  rollback["observed_auto_merge"] = observed.get("autoMergeRequest")
+                  if observed.get("autoMergeRequest") is not None:
+                      mutation = """mutation($id:ID!){disablePullRequestAutoMerge(input:{pullRequestId:$id}){pullRequest{id number headRefOid baseRefOid autoMergeRequest{enabledAt}}}}"""
+                      response = api("POST", "/graphql", writer_token, {"query": mutation, "variables": {"id": pull_id}})
+                      disabled = response["data"]["disablePullRequestAutoMerge"]["pullRequest"]
+                      if not isinstance(disabled, dict):
+                          raise ValueError("disable mutation did not return a pull request")
+                      rollback["mutation_head_sha"] = disabled.get("headRefOid")
+                      rollback["mutation_base_sha"] = disabled.get("baseRefOid")
+                      rollback["mutation_auto_merge"] = disabled.get("autoMergeRequest")
+                      require_exact_graphql_pull(disabled, number, head_sha, base_sha, pull_id)
+                  else:
+                      rollback["mutation"] = "not-needed"
+              except (Exception, SystemExit) as exc:
+                  rollback["mutation_error"] = f"{type(exc).__name__}: {exc}"
+              try:
+                  verified = graphql_pull(number)
+                  require_exact_graphql_pull(verified, number, head_sha, base_sha, pull_id)
+                  rollback["verified_head_sha"] = verified.get("headRefOid")
+                  rollback["verified_base_sha"] = verified.get("baseRefOid")
+                  rollback["verified_auto_merge"] = verified.get("autoMergeRequest")
+                  if verified.get("autoMergeRequest") is not None:
+                      raise RuntimeError("auto-merge remained enabled after disable compensation")
+              except (Exception, SystemExit) as exc:
+                  rollback["outcome"] = "failed"
+                  rollback["verification_error"] = f"{type(exc).__name__}: {exc}"
+              else:
+                  rollback["outcome"] = "verified-disabled"
+              return rollback
+
+          def current_revocation_pr(number: int, head_sha: str) -> dict[str, object]:
+              # A revocation may race a main-only advance. Re-bind the current base while
+              # retaining the immutable PR number, node ID, exact head, and repositories.
+              subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main"], cwd=website)
+              current_main = git("rev-parse", "origin/main")
+              value = api("GET", f"/repos/{repository}/pulls/{number}", read_token)
+              try:
+                  if (
+                      not isinstance(value, dict)
+                      or value["number"] != number
+                      or not isinstance(value["node_id"], str)
+                      or value["base"]["ref"] != "main"
+                      or value["base"]["sha"] != current_main
+                      or value["base"]["repo"] is None
+                      or value["base"]["repo"]["full_name"] != repository
+                      or value["head"]["sha"] != head_sha
+                      or value["head"]["ref"] != branch
+                      or value["head"]["repo"] is None
+                      or value["head"]["repo"]["full_name"] != repository
+                  ):
+                      raise ValueError("revocation PR tuple changed")
+              except (KeyError, TypeError, ValueError) as exc:
+                  raise SystemExit("revocation compensation cannot bind the canonical PR") from exc
+              return value
+
+          def disable_revoked_auto_merge(reason: str, number: int, head_sha: str) -> dict[str, object]:
+              rollback: dict[str, object] = {
+                  "attempted": True,
+                  "reason": reason,
+                  "pr_number": number,
+                  "head_sha": head_sha,
+              }
+              for attempt in range(3):
+                  try:
+                      observed = current_revocation_pr(number, head_sha)
+                      pull_id = observed["node_id"]
+                      base_sha = observed["base"]["sha"]
+                      current = graphql_pull(number)
+                      require_exact_graphql_pull(current, number, head_sha, base_sha, pull_id)
+                      rollback["attempt"] = attempt + 1
+                      rollback["observed_base_sha"] = base_sha
+                      rollback["pull_id"] = pull_id
+                      rollback["observed_auto_merge"] = current.get("autoMergeRequest")
+                      if current.get("autoMergeRequest") is not None:
+                          mutation = """mutation($id:ID!){disablePullRequestAutoMerge(input:{pullRequestId:$id}){pullRequest{id number headRefOid baseRefOid autoMergeRequest{enabledAt}}}}"""
+                          response = api("POST", "/graphql", writer_token, {"query": mutation, "variables": {"id": pull_id}})
+                          disabled = response["data"]["disablePullRequestAutoMerge"]["pullRequest"]
+                          if (
+                              not isinstance(disabled, dict)
+                              or disabled.get("id") != pull_id
+                              or disabled.get("number") != number
+                              or disabled.get("headRefOid") != head_sha
+                          ):
+                              raise ValueError("revocation disable mutation did not return the canonical exact head")
+                          rollback["mutation_base_sha"] = disabled.get("baseRefOid")
+                          rollback["mutation_auto_merge"] = disabled.get("autoMergeRequest")
+                      else:
+                          rollback["mutation"] = "not-needed"
+                      verified_observation = current_revocation_pr(number, head_sha)
+                      verified = graphql_pull(number)
+                      require_exact_graphql_pull(
+                          verified, number, head_sha, verified_observation["base"]["sha"], verified_observation["node_id"],
+                      )
+                      rollback["verified_base_sha"] = verified_observation["base"]["sha"]
+                      rollback["verified_auto_merge"] = verified.get("autoMergeRequest")
+                      if verified.get("autoMergeRequest") is not None:
+                          raise RuntimeError("auto-merge remained enabled after revoked-policy compensation")
+                  except (Exception, SystemExit) as exc:
+                      rollback["error"] = f"{type(exc).__name__}: {exc}"
+                      continue
+                  rollback["outcome"] = "verified-disabled"
+                  return rollback
+              rollback["outcome"] = "failed"
+              return rollback
+
+          def current_tuple(observed_release: dict[str, str | int]) -> dict[str, object]:
+              subprocess.check_call(["git", "fetch", "--no-tags", "origin", "refs/heads/main:refs/remotes/origin/main"], cwd=website)
+              main_sha = git("rev-parse", "origin/main")
+              control_bytes = subprocess.check_output(["git", "show", f"{main_sha}:release-sync-control.json"], cwd=website)
+              control = json.loads(control_bytes)
+              canonical = (json.dumps(control, sort_keys=True, indent=2, ensure_ascii=False) + "\n").encode()
+              if control_bytes != canonical or control["mode"] != "active" or observed_release["id"] in control["blocked_release_ids"]:
+                  raise SystemExit("control no longer permits the resolved release")
+              bot_sha = observed_bot_sha()
+              pulls = api("GET", f"/repos/{repository}/pulls?state=open&head={urllib.parse.quote(owner + ':' + branch, safe='')}", read_token)
+              if not isinstance(pulls, list) or len(pulls) > 1:
+                  raise SystemExit("release-sync pull request cardinality changed")
+              pr = None
+              if pulls:
+                  item = pulls[0]
+                  if item["base"]["ref"] != "main" or item["head"]["ref"] != branch:
+                      raise SystemExit("release-sync pull request tuple is invalid")
+                  pr = {"number": item["number"], "head_sha": item["head"]["sha"], "base_sha": item["base"]["sha"], "node_id": item["node_id"]}
+              return {
+                  "main_sha": main_sha,
+                  "control_sha256": hashlib.sha256(control_bytes).hexdigest(),
+                  "bot_sha": bot_sha,
+                  "pr": pr,
+                  "release": observed_release,
+              }
+
+          def require_tuple(observed: dict[str, object], wanted: dict[str, object], fields: tuple[str, ...]) -> None:
+              for field in fields:
+                  if observed.get(field) != wanted.get(field):
+                      raise SystemExit(f"CAS conflict for {field}; discard this worktree and retry on a later reconciliation")
+
+          observed = current_tuple(original_release)
+          require_tuple(observed, expected, ("main_sha", "control_sha256", "bot_sha", "pr", "release"))
+
+          remote = f"https://x-access-token:{writer_token}@github.com/{repository}.git"
+          if not has_changes:
+              mutation_release = reobserve_latest_complete_release("Writer branch mutation", "WRITER_MUTATION_RECHECK_ROOT")
+              if mutation_release != original_release:
+                  raise SystemExit("authoritative latest complete release changed before Writer branch mutation")
+              observed = current_tuple(mutation_release)
+              require_tuple(observed, expected, ("main_sha", "control_sha256", "bot_sha", "pr", "release"))
+
+              # A no-diff result means main already represents the resolved release. Only an
+              # exact observed stale PR/ref may be closed and deleted.
+              if observed["pr"]:
+                  pr = observed["pr"]
+                  if pr["head_sha"] != observed["bot_sha"]:
+                      raise SystemExit("stale PR head does not match the observed bot ref")
+                  require_tuple(current_tuple(mutation_release), expected, ("main_sha", "control_sha256", "bot_sha", "pr", "release"))
+                  api("PATCH", f"/repos/{repository}/pulls/{pr['number']}", writer_token, {"state": "closed"})
+              if observed["bot_sha"]:
+                  # This ref was observed before the CAS re-check and is lease-deleted only after
+                  # the corresponding no-diff release tuple made it stale.
+                  subprocess.check_call([
+                      "git", "push", remote,
+                      f"--force-with-lease=refs/heads/{branch}:{observed['bot_sha']}",
+                      f":refs/heads/{branch}",
+                  ], cwd=website)
+              print("no content difference; no release-sync branch or PR was created")
+              raise SystemExit(0)
+
+          candidate_parent = git("rev-parse", f"{candidate}^")
+          if candidate_parent != observed["main_sha"]:
+              raise SystemExit("candidate parent no longer equals main")
+          reuse_existing = False
+          if observed["bot_sha"]:
+              observed_bot = observed["bot_sha"]
+              if not isinstance(observed_bot, str) or not re.fullmatch(r"[0-9a-f]{40}", observed_bot):
+                  raise SystemExit("observed bot SHA is malformed")
+              if fetch_and_probe_observed_bot(observed_bot):
+                  try:
+                      bot_parent = git("rev-parse", f"{observed_bot}^")
+                      same_tree = git("rev-parse", f"{observed_bot}^{{tree}}") == git("rev-parse", f"{candidate}^{{tree}}")
+                  except subprocess.CalledProcessError as exc:
+                      raise SystemExit("failed closed while comparing fetched bot object: " + json.dumps({
+                          "returncode": exc.returncode, "stderr": (exc.stderr or "").strip(), "stdout": (exc.stdout or "").strip(),
+                      }, sort_keys=True)) from None
+                  reuse_existing = bot_parent == observed["main_sha"] and same_tree
+              else:
+                  # Git documents this exact "not our ref" response when a previously observed
+                  # object is no longer available. The later force-with-lease remains the CAS.
+                  sys.stderr.write(json.dumps({"bot_object": "unavailable", "sha": observed_bot}, sort_keys=True) + "\n")
+          mutation_release = reobserve_latest_complete_release("Writer branch mutation", "WRITER_MUTATION_RECHECK_ROOT")
+          if mutation_release != original_release:
+              raise SystemExit("authoritative latest complete release changed before Writer branch mutation")
+          observed = current_tuple(mutation_release)
+          require_tuple(observed, expected, ("main_sha", "control_sha256", "bot_sha", "pr", "release"))
+          if reuse_existing:
+              candidate = str(observed["bot_sha"])
+          else:
+              if observed["pr"] is not None:
+                  existing_pr = observed["pr"]
+                  if (
+                      not isinstance(existing_pr, dict)
+                      or not isinstance(existing_pr.get("number"), int)
+                      or not isinstance(existing_pr.get("head_sha"), str)
+                      or not isinstance(existing_pr.get("base_sha"), str)
+                      or not isinstance(existing_pr.get("node_id"), str)
+                      or existing_pr["head_sha"] != observed["bot_sha"]
+                  ):
+                      raise SystemExit("existing PR cannot be bound before bot-head replacement")
+                  existing_pull = graphql_pull(existing_pr["number"])
+                  require_exact_graphql_pull(
+                      existing_pull, existing_pr["number"], existing_pr["head_sha"], existing_pr["base_sha"], existing_pr["node_id"],
+                  )
+                  pre_mutation: dict[str, object] = {
+                      "pr_number": existing_pr["number"],
+                      "head_sha": existing_pr["head_sha"],
+                      "base_sha": existing_pr["base_sha"],
+                      "auto_merge": existing_pull.get("autoMergeRequest"),
+                  }
+                  if existing_pull.get("autoMergeRequest") is not None:
+                      pre_mutation["rollback"] = disable_auto_merge(
+                          "fixed bot head will be replaced", existing_pr["number"], existing_pr["head_sha"], existing_pr["base_sha"], existing_pr["node_id"],
+                      )
+                      sys.stderr.write(json.dumps({"pre_head_mutation_auto_merge": pre_mutation}, sort_keys=True) + "\n")
+                      if pre_mutation["rollback"].get("outcome") != "verified-disabled":
+                          raise SystemExit("existing auto-merge compensation failed before bot-head replacement")
+                  else:
+                      sys.stderr.write(json.dumps({"pre_head_mutation_auto_merge": pre_mutation}, sort_keys=True) + "\n")
+              lease = f"--force-with-lease=refs/heads/{branch}:{observed['bot_sha']}"
+              subprocess.check_call(["git", "push", remote, lease, f"{candidate}:refs/heads/{branch}"], cwd=website)
+
+          after_push = current_tuple(mutation_release)
+          require_tuple(after_push, expected, ("main_sha", "control_sha256", "release"))
+          if after_push["bot_sha"] != candidate:
+              raise SystemExit("leased bot ref does not equal the generated candidate")
+          if expected["pr"] is not None:
+              if (
+                  after_push["pr"] is None
+                  or after_push["pr"]["number"] != expected["pr"]["number"]
+                  or after_push["pr"]["base_sha"] != expected["main_sha"]
+                  or after_push["pr"]["head_sha"] != candidate
+              ):
+                  raise SystemExit("open PR changed unexpectedly while the leased bot ref was updated")
+
+          title = f"chore: sync Gajae Code {snapshot['release']['tag']}"
+          body = (
+              "Automated reconciliation of the latest complete stable source release.\n\n"
+              f"- Release: `{snapshot['release']['id']}` / `{snapshot['release']['tag']}`\n"
+              f"- Source commit: `{snapshot['release']['peeled_commit_sha']}`\n"
+              f"- Final package evidence: `{snapshot['source_checkout']['package_evidence_asset_sha256']}`\n"
+              "- Generated ownership and control-state checks passed before the Writer-App token was minted."
+          )
+          pr = after_push["pr"]
+          if pr is None:
+              created = api("POST", f"/repos/{repository}/pulls", writer_token, {"title": title, "head": branch, "base": "main", "body": body})
+              pr_number = created["number"]
+          else:
+              pr_number = pr["number"]
+
+          provenance_observed = current_tuple(mutation_release)
+          require_tuple(provenance_observed, after_push, ("main_sha", "control_sha256", "bot_sha", "release"))
+          provenance_pr = provenance_observed["pr"]
+          if (
+              provenance_pr is None
+              or provenance_pr["number"] != pr_number
+              or provenance_pr["head_sha"] != candidate
+              or provenance_pr["base_sha"] != after_push["main_sha"]
+          ):
+              raise SystemExit("PR changed before authenticated Writer-App provenance could be recorded")
+          provenance = api("POST", f"/repos/{repository}/statuses/{candidate}", writer_token, {
+              "state": "success",
+              "context": "release-sync/writer-provenance",
+              "description": "Writer-App generated release-sync candidate",
+              "target_url": f"https://github.com/{repository}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+          })
+          writer_identity = {
+              "slug": os.environ["RELEASE_SYNC_WRITER_APP_SLUG"],
+              "id": int(os.environ["RELEASE_SYNC_WRITER_APP_ID_PUBLIC"]),
+          }
+          if (
+              not isinstance(provenance, dict)
+              or provenance.get("context") != "release-sync/writer-provenance"
+              or provenance.get("description") != "Writer-App generated release-sync candidate"
+              or provenance.get("state") != "success"
+              or not isinstance(provenance.get("creator"), dict)
+              or provenance["creator"].get("login", "").removesuffix("[bot]") != writer_identity["slug"]
+              or provenance["creator"].get("id") != writer_identity["id"]
+          ):
+              raise SystemExit("Writer-App provenance status did not bind the exact generated head")
+          body += f"\n- Writer provenance: `release-sync/writer-provenance` on `{candidate}`."
+          api("PATCH", f"/repos/{repository}/pulls/{pr_number}", writer_token, {"title": title, "body": body})
+
+
+          def normalize_reviews(value: object) -> list[dict[str, object]]:
+              if not isinstance(value, list) or len(value) >= 100:
+                  raise SystemExit("review list is malformed or exceeds the bounded policy input")
+              normalized: list[dict[str, object]] = []
+              allowed_states = {"APPROVED", "CHANGES_REQUESTED", "COMMENTED", "DISMISSED", "REQUEST_CHANGES"}
+              for review in value:
+                  if not isinstance(review, dict):
+                      raise SystemExit("review list contains a non-object review")
+                  review_id = review.get("id")
+                  state = review.get("state")
+                  commit_id = review.get("commit_id")
+                  user = review.get("user")
+                  if (
+                      isinstance(review_id, bool) or not isinstance(review_id, int) or review_id <= 0
+                      or not isinstance(state, str) or state not in allowed_states
+                      or not isinstance(commit_id, str) or not commit_id
+                      or not isinstance(user, dict)
+                  ):
+                      raise SystemExit("review list contains an invalid review")
+                  login = user.get("login")
+                  user_id = user.get("id")
+                  if (
+                      not isinstance(login, str) or not login
+                      or isinstance(user_id, bool) or not isinstance(user_id, int) or user_id <= 0
+                  ):
+                      raise SystemExit("review list contains an invalid review identity")
+                  normalized.append({
+                      "id": review_id,
+                      "state": state,
+                      "commit_id": commit_id,
+                      "app": {"slug": login.removesuffix("[bot]"), "id": user_id},
+                  })
+              return normalized
+
+          def has_current_writer_provenance(head_sha: str) -> bool:
+              statuses = api("GET", f"/repos/{repository}/commits/{head_sha}/statuses?per_page=100", read_token)
+              if not isinstance(statuses, list) or len(statuses) >= 100:
+                  raise SystemExit("Writer provenance status list is malformed or exceeds the bounded policy input")
+              return any(
+                  isinstance(status, dict)
+                  and status.get("context") == "release-sync/writer-provenance"
+                  and status.get("description") == "Writer-App generated release-sync candidate"
+                  and status.get("state") == "success"
+                  and isinstance(status.get("creator"), dict)
+                  and status["creator"].get("login", "").removesuffix("[bot]") == writer_identity["slug"]
+                  and status["creator"].get("id") == writer_identity["id"]
+                  for status in statuses
+              )
+
+          def policy_decision(pr_value: object, normalized: list[dict[str, object]], label: str) -> dict[str, object]:
+              if not has_current_writer_provenance(candidate):
+                  raise SystemExit("current head lacks authenticated Writer-App provenance before review eligibility check")
+              if not isinstance(pr_value, dict):
+                  raise SystemExit("PR response is malformed before review eligibility check")
+              try:
+                  event_input = {
+                      "repository": repository,
+                      "pull_request": {
+                          "number": pr_number, "base_sha": pr_value["base"]["sha"], "head_sha": pr_value["head"]["sha"],
+                          "head_ref": pr_value["head"]["ref"], "head_repository": pr_value["head"]["repo"]["full_name"],
+                          "draft": pr_value["draft"],
+                          "writer_app": {"slug": (pr_value.get("user") or {}).get("login", "").removesuffix("[bot]"), "id": (pr_value.get("user") or {}).get("id", 0)},
+                      },
+                      "reviews": normalized,
+                      "transaction": {
+                          "base_sha": after_push["main_sha"],
+                          "control_sha256": after_push["control_sha256"],
+                          "head_sha": candidate,
+                      },
+                  }
+              except (KeyError, TypeError) as exc:
+                  raise SystemExit("PR response is malformed before review eligibility check") from exc
+              policy_path = Path(os.environ["RUNNER_TEMP"]) / f"release-sync-auto-merge-policy-{label}.json"
+              policy_path.write_text(json.dumps(event_input, sort_keys=True, indent=2) + "\n")
+              policy = subprocess.run([
+                  "python3", str(trusted / "scripts/check-review-eligibility.py"),
+                  "--trusted-root", str(trusted), "--repository", str(website),
+                  "--base-sha", after_push["main_sha"], "--head-sha", candidate,
+                  "--event-json", str(policy_path),
+                  "--writer-app-slug", os.environ["RELEASE_SYNC_WRITER_APP_SLUG"],
+                  "--writer-app-id", os.environ["RELEASE_SYNC_WRITER_APP_ID_PUBLIC"],
+                  "--reviewer-app-slug", os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_SLUG"],
+                  "--reviewer-app-id", os.environ["RELEASE_SYNC_POLICY_REVIEWER_APP_ID_PUBLIC"],
+                  "--auto-review-enabled", os.environ["RELEASE_SYNC_AUTO_REVIEW_ENABLED"],
+              ], text=True, capture_output=True)
+              if policy.returncode != 0:
+                  raise SystemExit(f"review eligibility check failed closed: {policy.stderr.strip()}")
+              try:
+                  value = json.loads(policy.stdout)
+              except json.JSONDecodeError as exc:
+                  raise SystemExit("review eligibility check returned malformed JSON") from exc
+              required = {
+                  "auto_merge", "classification", "eligible", "pr_number", "reason", "review_action", "reviewer_approval", "token_mint_required",
+              }
+              if (
+                  not isinstance(value, dict)
+                  or set(value) != required
+                  or not isinstance(value["classification"], str)
+                  or not isinstance(value["reason"], str)
+                  or value["review_action"] not in {"approve", "dismiss", "none"}
+                  or value["reviewer_approval"] not in {"current", "missing", "stale", "unknown"}
+                  or not isinstance(value["eligible"], bool)
+                  or not isinstance(value["auto_merge"], bool)
+                  or not isinstance(value["token_mint_required"], bool)
+                  or isinstance(value["pr_number"], bool)
+                  or value["pr_number"] != pr_number
+              ):
+                  raise SystemExit("review eligibility check returned an invalid result")
+              return value
+
+          def writer_auto_merge_authorized(policy: dict[str, object]) -> bool:
+              return (
+                  policy["reviewer_approval"] == "current"
+                  and policy["review_action"] == "none"
+                  and policy["token_mint_required"] is False
+                  and policy["auto_merge"] is True
+              )
+
+          def exact_pr_tuple(value: object) -> bool:
+              try:
+                  return (
+                      isinstance(value, dict)
+                      and value["number"] == pr_number
+                      and value["base"]["ref"] == "main"
+                      and value["base"]["sha"] == after_push["main_sha"]
+                      and value["base"]["repo"] is not None
+                      and value["base"]["repo"]["full_name"] == repository
+                      and value["head"]["sha"] == candidate
+                      and value["head"]["ref"] == branch
+                      and value["head"]["repo"] is not None
+                      and value["head"]["repo"]["full_name"] == repository
+                  )
+              except (KeyError, TypeError):
+                  return False
+
+
+          pr_data = api("GET", f"/repos/{repository}/pulls/{pr_number}", read_token)
+          if not exact_pr_tuple(pr_data):
+              raise SystemExit("PR tuple changed or does not point at the exact generated head")
+          normalized_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{pr_number}/reviews?per_page=100", read_token))
+          policy_value = policy_decision(pr_data, normalized_reviews, "initial")
+          if not writer_auto_merge_authorized(policy_value):
+              revocation: dict[str, object] = {
+                  "policy": policy_value,
+                  "pr_number": pr_number,
+                  "head_sha": candidate,
+                  "base_sha": after_push["main_sha"],
+              }
+              revocation["rollback"] = disable_revoked_auto_merge(
+                  "trusted policy no longer authorizes auto-merge", pr_number, candidate,
+              )
+              if revocation["rollback"].get("outcome") != "verified-disabled":
+                  sys.stderr.write(json.dumps({"policy_revocation": revocation}, sort_keys=True) + "\n")
+                  raise SystemExit("revoked-policy auto-merge compensation failed")
+              sys.stderr.write(json.dumps({"policy_revocation": revocation}, sort_keys=True) + "\n")
+              print(json.dumps({"pr": pr_number, "auto_merge": False, "next_action": "await current Policy Reviewer approval and strict checks"}, sort_keys=True))
+              raise SystemExit(0)
+
+          pull = graphql_pull(pr_number)
+          if (
+              not isinstance(pull.get("id"), str)
+              or pull.get("number") != pr_number
+              or pull.get("headRefOid") != candidate
+              or pull.get("baseRefOid") != after_push["main_sha"]
+              or pull.get("isDraft")
+              or pull.get("mergeable") != "MERGEABLE"
+              or pull.get("mergeStateStatus") != "CLEAN"
+          ):
+              raise SystemExit("strict native checks or exact PR tuple are not ready for auto-merge")
+
+          # Rebuild trusted policy input from a fresh exact PR and review list immediately before
+          # auto-merge. A revocation may be accompanied by an external auto-merge race.
+          fresh_pr_data = api("GET", f"/repos/{repository}/pulls/{pr_number}", read_token)
+          if not exact_pr_tuple(fresh_pr_data):
+              raise SystemExit("PR changed while rechecking exact-head auto-merge policy")
+          fresh_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{pr_number}/reviews?per_page=100", read_token))
+          fresh_policy = policy_decision(fresh_pr_data, fresh_reviews, "pre-enable")
+          fresh_pull = graphql_pull(pr_number)
+          if not writer_auto_merge_authorized(fresh_policy):
+              race: dict[str, object] = {"policy": fresh_policy, "auto_merge": fresh_pull.get("autoMergeRequest")}
+              race["rollback"] = disable_revoked_auto_merge(
+                  "trusted policy no longer authorizes auto-merge", pr_number, candidate,
+              )
+              if race["rollback"].get("outcome") != "verified-disabled":
+                  sys.stderr.write(json.dumps(race, sort_keys=True) + "\n")
+                  raise SystemExit("revoked-policy auto-merge compensation failed during pre-enable race")
+              sys.stderr.write(json.dumps(race, sort_keys=True) + "\n")
+              raise SystemExit("trusted policy no longer authorizes exact-head auto-merge")
+          if (
+              fresh_pull.get("headRefOid") != candidate
+              or fresh_pull.get("baseRefOid") != after_push["main_sha"]
+              or fresh_pull.get("isDraft")
+              or fresh_pull.get("mergeable") != "MERGEABLE"
+              or fresh_pull.get("mergeStateStatus") != "CLEAN"
+          ):
+              raise SystemExit("strict native checks or exact PR tuple changed before exact-head auto-merge")
+
+          release_error = ""
+          try:
+              pre_enable_release = reobserve_latest_complete_release("pre-auto-merge", "WRITER_PRE_ENABLE_RECHECK_ROOT")
+              if pre_enable_release != original_release:
+                  release_error = "authoritative latest complete release changed before exact-head auto-merge"
+          except (Exception, SystemExit) as exc:
+              release_error = f"authoritative latest complete release re-observation failed: {type(exc).__name__}: {exc}"
+          if release_error:
+              rollback = disable_auto_merge(release_error, pr_number, candidate, after_push["main_sha"], pull["id"])
+              failure = {"latest_release": release_error, "rollback": rollback}
+              sys.stderr.write(json.dumps(failure, sort_keys=True) + "\n")
+              if rollback.get("outcome") != "verified-disabled":
+                  raise SystemExit("latest-release pre-enable compensation failed: " + json.dumps(failure, sort_keys=True))
+              raise SystemExit(release_error)
+          latest = current_tuple(pre_enable_release)
+          require_tuple(latest, after_push, ("main_sha", "control_sha256", "bot_sha", "release"))
+          latest_pr = latest["pr"]
+          if latest_pr is None or latest_pr["number"] != pr_number or latest_pr["head_sha"] != candidate or latest_pr["base_sha"] != after_push["main_sha"]:
+              raise SystemExit("PR changed before final exact-head auto-merge authorization")
+
+          final_pr_data = api("GET", f"/repos/{repository}/pulls/{pr_number}", read_token)
+          if not exact_pr_tuple(final_pr_data):
+              raise SystemExit("PR tuple changed during final exact-head auto-merge authorization")
+          final_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{pr_number}/reviews?per_page=100", read_token))
+          final_policy = policy_decision(final_pr_data, final_reviews, "final-enable")
+          final_pull = graphql_pull(pr_number)
+          final_request_changes = any(
+              review["commit_id"] == candidate and review["state"] in {"CHANGES_REQUESTED", "REQUEST_CHANGES"}
+              for review in final_reviews
+          )
+          final_error = ""
+          if not writer_auto_merge_authorized(final_policy):
+              final_error = "trusted policy has a pending or revoked Reviewer-App action at final enable"
+          elif final_request_changes:
+              final_error = "a current-head changes-request review blocks final auto-merge enable"
+          elif (
+              not isinstance(final_pull.get("id"), str)
+              or final_pull.get("id") != pull["id"]
+              or final_pull.get("number") != pr_number
+              or final_pull.get("headRefOid") != candidate
+              or final_pull.get("baseRefOid") != after_push["main_sha"]
+              or final_pull.get("isDraft")
+              or final_pull.get("mergeable") != "MERGEABLE"
+              or final_pull.get("mergeStateStatus") != "CLEAN"
+              or final_pull.get("autoMergeRequest") is not None
+          ):
+              final_error = "exact PR tuple or strict native merge state changed before final auto-merge enable"
+          if final_error:
+              rollback = disable_auto_merge(final_error, pr_number, candidate, after_push["main_sha"], pull["id"])
+              failure = {
+                  "final_enable_authorization": final_error,
+                  "policy": final_policy,
+                  "rollback": rollback,
+              }
+              sys.stderr.write(json.dumps(failure, sort_keys=True) + "\n")
+              if rollback.get("outcome") != "verified-disabled":
+                  raise SystemExit("final-enable authorization compensation failed: " + json.dumps(failure, sort_keys=True))
+              raise SystemExit(final_error)
+
+          mutation = """mutation($id:ID!,$head:GitObjectID!){enablePullRequestAutoMerge(input:{pullRequestId:$id,mergeMethod:SQUASH,expectedHeadOid:$head}){pullRequest{id number headRefOid baseRefOid autoMergeRequest{enabledAt}}}}"""
+          enable_error = ""
+          try:
+              enabled = api("POST", "/graphql", writer_token, {"query": mutation, "variables": {"id": pull["id"], "head": candidate}})
+              result = enabled["data"]["enablePullRequestAutoMerge"]["pullRequest"]
+              if not isinstance(result, dict):
+                  raise ValueError("enable mutation did not return a pull request")
+              require_exact_graphql_pull(result, pr_number, candidate, after_push["main_sha"], pull["id"])
+              if not isinstance(result.get("autoMergeRequest"), dict) or not result["autoMergeRequest"].get("enabledAt"):
+                  raise ValueError("GitHub did not enable exact-head auto-merge")
+          except (Exception, SystemExit) as exc:
+              enable_error = f"{type(exc).__name__}: {exc}"
+          if enable_error:
+              rollback = disable_auto_merge("enable auto-merge response was indeterminate or not exact-head", pr_number, candidate, after_push["main_sha"], pull["id"])
+              failure = {"enable_auto_merge": enable_error, "rollback": rollback}
+              sys.stderr.write(json.dumps(failure, sort_keys=True) + "\n")
+              raise SystemExit("exact-head auto-merge enablement failed closed: " + json.dumps(failure, sort_keys=True))
+          print(json.dumps({"pr": pr_number, "auto_merge": True, "head_sha": candidate}, sort_keys=True))
+          PY
+
+      - name: Remove resolver-owned source sidecars
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          rm -rf "$RESOLVE_ROOT" "$RECHECK_ROOT" "$WRITER_MUTATION_RECHECK_ROOT" "$WRITER_PRE_ENABLE_RECHECK_ROOT"

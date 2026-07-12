@@ -1,0 +1,168 @@
+name: Validate website changes
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
+  push:
+    branches: [main]
+
+concurrency:
+  group: validate-site-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  strict-validation:
+    name: Strict trusted validation
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      WEBSITE_REPOSITORY: Yeachan-Heo/gajae-code-website
+    steps:
+      - name: Check out candidate objects without executing candidate code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: candidate
+
+      - name: Check out trusted base validation code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          path: trusted
+
+      - name: Resolve the immutable base and head tuple
+        id: tuple
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          PUSH_HEAD_SHA: ${{ github.sha }}
+        working-directory: candidate
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "$WEBSITE_REPOSITORY"
+          zero_sha=0000000000000000000000000000000000000000
+          empty_tree_sha="$(git hash-object -w -t tree /dev/null)"
+          if [ "$EVENT_NAME" = pull_request ]; then
+            base_sha="$PR_BASE_SHA"
+            head_sha="$PR_HEAD_SHA"
+            if ! printf '%s' "$head_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "head SHA is malformed" >&2
+              exit 1
+            fi
+            if ! printf '%s' "$base_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "pull request base SHA is malformed" >&2
+              exit 1
+            fi
+            git fetch --no-tags origin "$base_sha" "$head_sha"
+          else
+            base_sha="$PUSH_BEFORE_SHA"
+            head_sha="$PUSH_HEAD_SHA"
+            if ! printf '%s' "$head_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "head SHA is malformed" >&2
+              exit 1
+            fi
+            if [ "$base_sha" = "$zero_sha" ]; then
+              base_sha="$empty_tree_sha"
+              git fetch --no-tags origin "$head_sha"
+            elif ! printf '%s' "$base_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "push before SHA is malformed" >&2
+              exit 1
+            else
+              git fetch --no-tags origin "$base_sha" "$head_sha"
+            fi
+          fi
+          test "$(git rev-parse HEAD)" = "$head_sha"
+          printf 'base_sha=%s\nhead_sha=%s\n' "$base_sha" "$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Check patch whitespace without candidate execution
+        env:
+          BASE_SHA: ${{ steps.tuple.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.tuple.outputs.head_sha }}
+        working-directory: candidate
+        run: |
+          set -euo pipefail
+          git diff --check "$BASE_SHA" "$HEAD_SHA"
+
+      - name: Validate the candidate site using trusted validator bytes
+        env:
+          TRUSTED: ${{ github.workspace }}/trusted
+          CANDIDATE: ${{ github.workspace }}/candidate
+        run: |
+          set -euo pipefail
+          python3 -I - "$TRUSTED/scripts/validate-site.py" "$CANDIDATE" <<'PY'
+          import sys
+          from pathlib import Path
+
+          trusted_script = Path(sys.argv[1]).resolve(strict=True)
+          candidate_path = Path(sys.argv[2])
+          if candidate_path.is_symlink():
+              raise SystemExit("candidate checkout path must not be a symlink")
+          candidate_root = candidate_path.resolve(strict=True)
+          trusted_root = trusted_script.parent.parent
+          if not trusted_script.is_file() or not trusted_root.is_dir() or not candidate_root.is_dir():
+              raise SystemExit("trusted validator or candidate root is not a real file or directory")
+          if trusted_script.is_relative_to(candidate_root):
+              raise SystemExit("trusted validator must be outside the candidate root")
+          if (
+              trusted_root.name != "trusted"
+              or candidate_root.name != "candidate"
+              or trusted_root.parent != candidate_root.parent
+          ):
+              raise SystemExit("candidate and trusted checkouts must be strictly resolved siblings")
+          reserved_candidate_path = candidate_root / ".trusted-validator"
+          if reserved_candidate_path.exists() or reserved_candidate_path.is_symlink():
+              raise SystemExit("candidate .trusted-validator path is forbidden to prevent validator shadowing")
+          import_paths = {Path(path).resolve(strict=False) for path in sys.path if path}
+          if candidate_root in import_paths:
+              raise SystemExit("candidate root is unexpectedly importable")
+
+          source = trusted_script.read_text(encoding="utf-8")
+          root_assignment = "ROOT = Path(__file__).resolve().parents[1]"
+          sync_assignment = 'SYNC_PATH = ROOT / "scripts" / "sync-release.py"'
+          if source.count(root_assignment) != 1 or source.count(sync_assignment) != 1:
+              raise SystemExit("trusted validator has no unique candidate-root interface")
+          # Only the trusted source's data root is rebound. Its filename and local imported
+          # modules remain in the trusted checkout, while -I excludes candidate import shadowing.
+          source = source.replace(root_assignment, "ROOT = Path(sys.argv[2]).resolve(strict=True)", 1)
+          source = source.replace(sync_assignment, 'SYNC_PATH = Path(sys.argv[1]).resolve(strict=True).with_name("sync-release.py")', 1)
+          namespace = {"__name__": "__main__", "__file__": str(trusted_script)}
+          exec(compile(source, str(trusted_script), "exec"), namespace)
+          PY
+
+      - name: Enforce generated-only ownership for the fixed release branch
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'automation/release-sync' }}
+        env:
+          TRUSTED: ${{ github.workspace }}/trusted
+          BASE_SHA: ${{ steps.tuple.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.tuple.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          python3 "$TRUSTED/scripts/check-generated-ownership.py" \
+            --trusted-root "$TRUSTED" \
+            --repository "$GITHUB_WORKSPACE/candidate" \
+            --base-sha "$BASE_SHA" \
+            --head-sha "$HEAD_SHA"
+
+      - name: Record read-only validation tuple
+        env:
+          BASE_SHA: ${{ steps.tuple.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.tuple.outputs.head_sha }}
+        run: |
+          {
+            echo '### Strict website validation'
+            echo
+            echo "- Base: \`$BASE_SHA\`"
+            echo "- Head: \`$HEAD_SHA\`"
+            echo '- Candidate scripts were not executed.'
+          } >> "$GITHUB_STEP_SUMMARY"

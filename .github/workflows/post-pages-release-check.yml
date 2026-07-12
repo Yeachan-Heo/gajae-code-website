@@ -1,0 +1,132 @@
+name: Observe deployed release-sync state
+
+on:
+  workflow_run:
+    workflows: ["pages build and deployment"]
+    types: [completed]
+  schedule:
+    - cron: "43 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: post-pages-release-check
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    name: Read-only Pages release-state observer
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    env:
+      WEBSITE_REPOSITORY: Yeachan-Heo/gajae-code-website
+      DEPLOYED_RELEASE_STATE_URL: https://gajae-code.com/release-sync.json
+      EVENT_NAME: ${{ github.event_name }}
+      WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+      WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      WORKFLOW_RUN_HEAD_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
+    steps:
+      - name: Check out trusted deployed-state expectation
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Capture the exact current main state and bind the Pages deployment
+        id: expectation
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "$WEBSITE_REPOSITORY"
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          main_sha="$(git rev-parse origin/main)"
+          case "$main_sha" in
+            [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;;
+            *) echo "current main SHA is malformed" >&2; exit 1 ;;
+          esac
+          if test "$EVENT_NAME" = "workflow_run"; then
+            test "$WORKFLOW_RUN_HEAD_BRANCH" = main
+            test "$WORKFLOW_RUN_HEAD_REPOSITORY" = "$WEBSITE_REPOSITORY"
+            test "$WORKFLOW_RUN_HEAD_SHA" = "$main_sha" || {
+              echo "Pages workflow_run deployed a stale main head" >&2
+              exit 1
+            }
+          fi
+          expected="$RUNNER_TEMP/release-sync-expected.json"
+          git show "$main_sha:release-sync.json" > "$expected"
+          state_sha256="$(python3 - "$expected" <<'PY'
+          import hashlib
+          import json
+          import sys
+          from pathlib import Path
+
+          raw = Path(sys.argv[1]).read_bytes()
+          value = json.loads(raw)
+          canonical = (json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+          if raw != canonical:
+              raise SystemExit("current main release-sync.json is not canonical")
+          print(hashlib.sha256(raw).hexdigest())
+          PY
+          )"
+          printf 'main_sha=%s\nstate_sha256=%s\n' "$main_sha" "$state_sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch and compare the deployment against the bound main state
+        env:
+          EXPECTED_MAIN_SHA: ${{ steps.expectation.outputs.main_sha }}
+          EXPECTED_STATE_SHA256: ${{ steps.expectation.outputs.state_sha256 }}
+        run: |
+          set -euo pipefail
+          expected="$RUNNER_TEMP/release-sync-expected.json"
+          observed="$RUNNER_TEMP/release-sync-observed.json"
+          after_expected="$RUNNER_TEMP/release-sync-main-after-observation.json"
+          curl --fail --silent --show-error --location \
+            --proto '=https' --proto-redir '=https' \
+            --connect-timeout 10 --max-time 30 \
+            "$DEPLOYED_RELEASE_STATE_URL" > "$observed"
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA" || {
+            echo "main advanced during Pages deployment observation" >&2
+            exit 1
+          }
+          git show "$EXPECTED_MAIN_SHA:release-sync.json" > "$after_expected"
+          python3 - "$expected" "$observed" "$after_expected" "$EXPECTED_STATE_SHA256" <<'PY'
+          import hashlib
+          import json
+          import sys
+          from pathlib import Path
+
+          expected_path, observed_path, after_expected_path = map(Path, sys.argv[1:4])
+          expected = expected_path.read_bytes()
+          observed = observed_path.read_bytes()
+          after_expected = after_expected_path.read_bytes()
+          expected_value = json.loads(expected)
+          observed_value = json.loads(observed)
+          canonical = (json.dumps(expected_value, sort_keys=True, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+          if expected != canonical or after_expected != expected:
+              raise SystemExit("main release-sync.json drifted during Pages deployment observation")
+          if hashlib.sha256(expected).hexdigest() != sys.argv[4]:
+              raise SystemExit("bound main release-state receipt digest changed")
+          if observed != expected or observed_value != expected_value:
+              raise SystemExit("deployed release-sync.json does not match the bound canonical main release state")
+          release = expected_value["release"]
+          source = expected_value["source"]
+          print(json.dumps({
+              "release_id": release["id"], "tag": release["tag"], "published_at": release["published_at"],
+              "source_commit": source["commit_sha"], "state_sha256": hashlib.sha256(expected).hexdigest(),
+          }, sort_keys=True))
+          PY
+
+      - name: Record observer receipt
+        run: |
+          {
+            echo '### Pages release-state observer'
+            echo
+            echo "- Bound main commit: \`${{ steps.expectation.outputs.main_sha }}\`."
+            echo "- Bound release-state SHA-256: \`${{ steps.expectation.outputs.state_sha256 }}\`."
+            echo "- URL: \`$DEPLOYED_RELEASE_STATE_URL\`"
+            echo '- Deployed state exactly matches the canonical state at the bound main commit.'
+            echo '- This workflow is read-only and does not mint an App token.'
+          } >> "$GITHUB_STEP_SUMMARY"

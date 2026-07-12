@@ -1,0 +1,8 @@
+# Human review is required for release policy, control, and operator documentation.
+# Generated release HTML and schema-stable release-sync.json stay unowned so the
+# trusted Policy Reviewer App can supply the one native approval for an exact
+# generated-only Writer PR.
+/.github/ @Yeachan-Heo
+/scripts/ @Yeachan-Heo
+/release-sync-control.json @Yeachan-Heo
+/README.md @Yeachan-Heo

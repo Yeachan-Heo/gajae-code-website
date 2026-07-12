@@ -1,47 +1,56 @@
 #!/usr/bin/env python3
+"""Fail closed when committed release markers or state drift from a resolver sidecar."""
 from __future__ import annotations
 
+import argparse
 import importlib.util
-import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION_RE = re.compile(r"(v?)(?P<version>\d+\.\d+\.\d+)")
+SYNC_PATH = ROOT / "scripts" / "sync-release.py"
+spec = importlib.util.spec_from_file_location("release_sync_contract", SYNC_PATH)
+if spec is None or spec.loader is None:
+    raise SystemExit(f"could not load release synchronization contract from {SYNC_PATH}")
+sync = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = sync
+spec.loader.exec_module(sync)
 
 
-def read_product_version(source: Path) -> str:
-    module_path = ROOT / "scripts" / "sync-product-version.py"
-    spec = importlib.util.spec_from_file_location("sync_product_version", module_path)
-    if spec is None or spec.loader is None:
-        raise SystemExit(f"could not load {module_path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.read_product_version(source)
-
-
-def find_drift(source: Path) -> tuple[str, list[str]]:
-    product_version = read_product_version(source)
-    targets = [ROOT / "index.html", *sorted((ROOT / "docs").glob("*.html"))]
-    drift: list[str] = []
-    for target in targets:
-        text = target.read_text()
-        for m in VERSION_RE.finditer(text):
-            if m.group("version") != product_version:
-                drift.append(
-                    f"{target.relative_to(ROOT)} has {m.group(0)}, product source has v{product_version}"
-                )
-    return product_version, drift
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Validate release state and generated markers against a detached resolver sidecar.")
+    parser.add_argument("--snapshot", type=Path)
+    parser.add_argument("--source-dir", "--source", dest="source_dir", type=Path)
+    parser.add_argument("--website-root", type=Path, default=ROOT)
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+    if args.self_test:
+        if args.snapshot is not None or args.source_dir is not None or args.website_root != ROOT:
+            parser.error("--self-test cannot be combined with release inputs")
+    elif args.snapshot is None or args.source_dir is None:
+        parser.error("--snapshot and --source-dir are required")
+    return args
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
-        raise SystemExit("usage: check-version-drift.py <gajae-code checkout>")
-    source = Path(sys.argv[1]).resolve()
-    product_version, drift = find_drift(source)
-    if drift:
-        raise SystemExit("website version drift:\n" + "\n".join(drift))
-    print(f"website version matches product source: v{product_version}")
+    args = parse_args()
+    try:
+        if args.self_test:
+            sync.self_test()
+            print("check-version-drift self-test passed")
+            return
+        root = sync.require_real_directory(args.website_root, "website root")
+        state = sync.validate_static_release_site(root)
+        # synchronize(..., check=True) verifies the detached HEAD/tag, source
+        # manifests, final evidence sidecar, exact changelog rendering, every
+        # owned region, state digest, and control gate without mutating files.
+        sync.synchronize(args.snapshot, args.source_dir, root, check=True)
+    except sync.ReleaseSyncError as exc:
+        raise SystemExit(f"release version/state drift: {exc}") from None
+    print(
+        "website release state matches verified source sidecar: "
+        f"{state['release']['tag']} ({state['release']['id']})"
+    )
 
 
 if __name__ == "__main__":
