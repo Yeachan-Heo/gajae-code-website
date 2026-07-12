@@ -1017,6 +1017,19 @@ class ResolverGeneratorFixture(unittest.TestCase):
             with self.assertRaisesRegex(SYNC.ReleaseSyncError, "local link missing.html"):
                 SYNC.validate_html_links(root, {"index.html": document})
 
+        marker_start = docs_nav.index("<!-- release-sync:docs-nav-release-label:start -->")
+        fake_anchor_start = docs_nav.rfind("<a", 0, marker_start)
+        fake_anchor_end = docs_nav.index("</a>", marker_start) + len("</a>")
+        fake_anchor = docs_nav[fake_anchor_start:fake_anchor_end]
+        for wrapper in (
+            f"<script>const template = {fake_anchor!r};</script>",
+            f"<div data-template={fake_anchor!r}></div>",
+        ):
+            contextual_spoof = docs_nav[:fake_anchor_start] + wrapper + docs_nav[fake_anchor_end:]
+            with self.subTest(wrapper=wrapper.split(">", 1)[0]):
+                with self.assertRaisesRegex(SYNC.ReleaseSyncError, "one real whats-new anchor"):
+                    SYNC.extract_regions("docs/architecture.html", contextual_spoof)
+
 
 class WorkflowContractFixture(unittest.TestCase):
     def workflow(self, name: str) -> str:

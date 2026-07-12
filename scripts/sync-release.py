@@ -1307,6 +1307,89 @@ def parse_static_hrefs(text: str, label: str) -> StaticHrefParser:
     parser.close()
     return parser
 
+class DocsNavMarkerContextParser(HTMLParser):
+    """Require the docs-nav marker pair to be the sole content of one real anchor."""
+
+    START = "release-sync:docs-nav-release-label:start"
+    END = "release-sync:docs-nav-release-label:end"
+
+    def __init__(self, path: str) -> None:
+        super().__init__(convert_charrefs=False)
+        self.path = path
+        self.in_anchor = False
+        self.anchor_href: str | None = None
+        self.marker_state = "none"
+        self.unexpected_content = False
+        self.pairs = 0
+
+    def reject(self) -> None:
+        fail(f"{self.path} docs-nav release marker must belong to one real whats-new anchor")
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if self.in_anchor:
+            self.unexpected_content = True
+            return
+        if tag != "a":
+            return
+        hrefs = [value for name, value in attrs if name == "href"]
+        if len(hrefs) > 1 or (hrefs and not isinstance(hrefs[0], str)):
+            self.reject()
+        self.in_anchor = True
+        self.anchor_href = hrefs[0] if hrefs else None
+        self.marker_state = "none"
+        self.unexpected_content = False
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.handle_starttag(tag, attrs)
+        if tag == "a" and self.in_anchor:
+            self.handle_endtag(tag)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag != "a" or not self.in_anchor:
+            return
+        if self.marker_state == "inside" or (self.marker_state == "after" and self.unexpected_content):
+            self.reject()
+        self.in_anchor = False
+        self.anchor_href = None
+        self.marker_state = "none"
+        self.unexpected_content = False
+
+    def handle_comment(self, data: str) -> None:
+        marker = data.strip()
+        if marker == self.START:
+            if (
+                not self.in_anchor
+                or self.anchor_href != "whats-new.html"
+                or self.marker_state != "none"
+                or self.unexpected_content
+            ):
+                self.reject()
+            self.marker_state = "inside"
+            return
+        if marker == self.END:
+            if not self.in_anchor or self.anchor_href != "whats-new.html" or self.marker_state != "inside":
+                self.reject()
+            self.marker_state = "after"
+            self.pairs += 1
+            return
+        if self.in_anchor:
+            self.unexpected_content = True
+
+    def handle_data(self, data: str) -> None:
+        if self.in_anchor and self.marker_state != "inside" and data:
+            self.unexpected_content = True
+
+    def validate(self) -> None:
+        if self.pairs != 1 or self.marker_state == "inside":
+            self.reject()
+
+
+def validate_docs_nav_marker_context(path: str, text: str) -> None:
+    parser = DocsNavMarkerContextParser(path)
+    parser.feed(text)
+    parser.close()
+    parser.validate()
+
 
 @dataclass(frozen=True)
 class Region:
@@ -1388,6 +1471,8 @@ def extract_regions(path: str, text: str) -> dict[str, Region]:
         regions[identifier] = Region(path, identifier, inner_start, inner_end, inner)
     if stack:
         fail(f"{path} has an unclosed release-sync marker")
+    if "docs-nav-release-label" in expected:
+        validate_docs_nav_marker_context(path, text)
     if set(regions) != expected:
         fail(f"{path} markers do not match declared ownership (found={sorted(regions)}, expected={sorted(expected)})")
     return regions
