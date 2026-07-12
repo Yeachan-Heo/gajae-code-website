@@ -544,6 +544,8 @@ jobs:
       RECHECK_ROOT: ${{ github.workspace }}/release-recheck
       WRITER_MUTATION_RECHECK_ROOT: ${{ github.workspace }}/release-writer-mutation-recheck
       WRITER_PRE_ENABLE_RECHECK_ROOT: ${{ github.workspace }}/release-writer-pre-enable-recheck
+      WRITER_POST_ENABLE_RECHECK_ROOT: ${{ github.workspace }}/release-writer-post-enable-recheck
+
     steps:
       - name: Check out trusted website default branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
@@ -1553,6 +1555,37 @@ jobs:
                   and policy["auto_merge"] is True
               )
 
+          def post_enable_authorization_failure(
+              exact_pr: bool,
+              current_tuple: bool,
+              release_unchanged: bool,
+              policy: dict[str, object],
+              reviews: list[dict[str, object]],
+              pull_is_exact: bool,
+              pull: dict[str, object],
+          ) -> str:
+              if not release_unchanged:
+                  return "authoritative latest complete release changed after auto-merge enable"
+              if not current_tuple:
+                  return "current main, control, bot, or PR tuple changed after auto-merge enable"
+              if not exact_pr:
+                  return "exact PR head, base, or repository changed after auto-merge enable"
+              if not writer_auto_merge_authorized(policy):
+                  return "trusted policy no longer authorizes auto-merge after enable"
+              if any(
+                  review["commit_id"] == candidate and review["state"] in {"CHANGES_REQUESTED", "REQUEST_CHANGES"}
+                  for review in reviews
+              ):
+                  return "a current-head changes-request review blocks auto-merge after enable"
+              if not pull_is_exact:
+                  return "exact GraphQL PR tuple changed after auto-merge enable"
+              if pull.get("isDraft") or pull.get("mergeable") != "MERGEABLE" or pull.get("mergeStateStatus") != "CLEAN":
+                  return "strict native merge state changed after auto-merge enable"
+              auto_merge_request = pull.get("autoMergeRequest")
+              if not isinstance(auto_merge_request, dict) or not auto_merge_request.get("enabledAt"):
+                  return "exact-head auto-merge is not enabled after enable"
+              return ""
+
           def exact_pr_tuple(value: object) -> bool:
               try:
                   return (
@@ -1708,11 +1741,69 @@ jobs:
               failure = {"enable_auto_merge": enable_error, "rollback": rollback}
               sys.stderr.write(json.dumps(failure, sort_keys=True) + "\n")
               raise SystemExit("exact-head auto-merge enablement failed closed: " + json.dumps(failure, sort_keys=True))
+          post_enable_error = ""
+          post_enable: dict[str, object] = {}
+          try:
+              post_enable_release = reobserve_latest_complete_release("post-auto-merge", "WRITER_POST_ENABLE_RECHECK_ROOT")
+              post_enable["release"] = post_enable_release
+              post_enable_release_unchanged = post_enable_release == original_release
+              post_enable_tuple = current_tuple(post_enable_release)
+              post_enable["tuple"] = post_enable_tuple
+              post_enable_tuple_pr = post_enable_tuple.get("pr")
+              post_enable_current_tuple = (
+                  post_enable_tuple.get("main_sha") == after_push["main_sha"]
+                  and post_enable_tuple.get("control_sha256") == after_push["control_sha256"]
+                  and post_enable_tuple.get("bot_sha") == candidate
+                  and post_enable_tuple.get("release") == original_release
+                  and isinstance(post_enable_tuple_pr, dict)
+                  and post_enable_tuple_pr.get("number") == pr_number
+                  and post_enable_tuple_pr.get("head_sha") == candidate
+                  and post_enable_tuple_pr.get("base_sha") == after_push["main_sha"]
+              )
+              post_enable["release_unchanged"] = post_enable_release_unchanged
+              post_enable["current_tuple"] = post_enable_current_tuple
+              post_enable_pr_data = api("GET", f"/repos/{repository}/pulls/{pr_number}", read_token)
+              post_enable_exact_pr = exact_pr_tuple(post_enable_pr_data)
+              post_enable["exact_pr"] = post_enable_exact_pr
+              post_enable_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{pr_number}/reviews?per_page=100", read_token))
+              post_enable["reviews"] = post_enable_reviews
+              post_enable_policy = policy_decision(post_enable_pr_data, post_enable_reviews, "post-enable")
+              post_enable["policy"] = post_enable_policy
+              post_enable_pull = graphql_pull(pr_number)
+              post_enable["graphql_pull"] = post_enable_pull
+              post_enable_exact_pull = (
+                  post_enable_pull.get("id") == pull["id"]
+                  and post_enable_pull.get("number") == pr_number
+                  and post_enable_pull.get("headRefOid") == candidate
+                  and post_enable_pull.get("baseRefOid") == after_push["main_sha"]
+              )
+              post_enable["exact_graphql_pull"] = post_enable_exact_pull
+              post_enable_error = post_enable_authorization_failure(
+                  post_enable_exact_pr,
+                  post_enable_current_tuple,
+                  post_enable_release_unchanged,
+                  post_enable_policy,
+                  post_enable_reviews,
+                  post_enable_exact_pull,
+                  post_enable_pull,
+              )
+          except (Exception, SystemExit) as exc:
+              post_enable_error = f"post-enable observation failed closed: {type(exc).__name__}: {exc}"
+          if post_enable_error:
+              post_enable["authorization_error"] = post_enable_error
+              post_enable["rollback"] = disable_revoked_auto_merge(
+                  "post-enable trusted authorization was revoked or changed", pr_number, candidate,
+              )
+              sys.stderr.write(json.dumps({"post_enable_authorization": post_enable}, sort_keys=True) + "\n")
+              if post_enable["rollback"].get("outcome") != "verified-disabled":
+                  raise SystemExit("post-enable authorization compensation failed: " + json.dumps(post_enable, sort_keys=True))
+              raise SystemExit("post-enable exact-head authorization was revoked or changed: " + json.dumps(post_enable, sort_keys=True))
           print(json.dumps({"pr": pr_number, "auto_merge": True, "head_sha": candidate}, sort_keys=True))
+
           PY
 
       - name: Remove resolver-owned source sidecars
         if: ${{ always() }}
         run: |
           set -euo pipefail
-          rm -rf "$RESOLVE_ROOT" "$RECHECK_ROOT" "$WRITER_MUTATION_RECHECK_ROOT" "$WRITER_PRE_ENABLE_RECHECK_ROOT"
+          rm -rf "$RESOLVE_ROOT" "$RECHECK_ROOT" "$WRITER_MUTATION_RECHECK_ROOT" "$WRITER_PRE_ENABLE_RECHECK_ROOT" "$WRITER_POST_ENABLE_RECHECK_ROOT"

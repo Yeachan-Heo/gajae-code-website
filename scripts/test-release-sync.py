@@ -1000,6 +1000,23 @@ class ResolverGeneratorFixture(unittest.TestCase):
                 with self.assertRaisesRegex(SITE_VALIDATOR.sync.ReleaseSyncError, message):
                     SITE_VALIDATOR.validate_pre_code_structure("index.html", markup)
 
+    def test_real_href_attributes_reject_data_attribute_spoofing(self) -> None:
+        docs_nav = (ROOT / "docs" / "architecture.html").read_text(encoding="utf-8")
+        spoofed = docs_nav.replace(
+            'href="whats-new.html"',
+            'data-href="whats-new.html" href="elsewhere.html"',
+            1,
+        )
+        with self.assertRaisesRegex(SYNC.ReleaseSyncError, "complete existing whats-new anchor content"):
+            SYNC.extract_regions("docs/architecture.html", spoofed)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            document = b'<html><title>x</title><a data-href="present.html" href="missing.html">x</a></html>'
+            (root / "present.html").write_text("present", encoding="utf-8")
+            with self.assertRaisesRegex(SYNC.ReleaseSyncError, "local link missing.html"):
+                SYNC.validate_html_links(root, {"index.html": document})
+
 
 class WorkflowContractFixture(unittest.TestCase):
     def workflow(self, name: str) -> str:
@@ -1624,7 +1641,8 @@ class WorkflowContractFixture(unittest.TestCase):
         reconcile = sync[sync.index("  reconcile:\n"):sync.index("      - name: Check out trusted website default branch", sync.index("  reconcile:\n"))]
         self.assertIn("WRITER_MUTATION_RECHECK_ROOT: ${{ github.workspace }}/release-writer-mutation-recheck", reconcile)
         self.assertIn("WRITER_PRE_ENABLE_RECHECK_ROOT: ${{ github.workspace }}/release-writer-pre-enable-recheck", reconcile)
-        self.assertIn('rm -rf "$RESOLVE_ROOT" "$RECHECK_ROOT" "$WRITER_MUTATION_RECHECK_ROOT" "$WRITER_PRE_ENABLE_RECHECK_ROOT"', sync)
+        self.assertIn("WRITER_POST_ENABLE_RECHECK_ROOT: ${{ github.workspace }}/release-writer-post-enable-recheck", reconcile)
+        self.assertIn('rm -rf "$RESOLVE_ROOT" "$RECHECK_ROOT" "$WRITER_MUTATION_RECHECK_ROOT" "$WRITER_PRE_ENABLE_RECHECK_ROOT" "$WRITER_POST_ENABLE_RECHECK_ROOT"', sync)
 
     def test_writer_final_enable_reauthorizes_after_final_release_observation(self) -> None:
         sync = self.workflow("sync-release.yml")
@@ -1644,6 +1662,63 @@ class WorkflowContractFixture(unittest.TestCase):
                 self.assertIn(invariant, final_enable)
         self.assertLess(final_enable.index('final_policy = policy_decision'), final_enable.index('enablePullRequestAutoMerge'))
         self.assertIn('"variables": {"id": pull["id"], "head": candidate}', final_enable)
+
+    def test_writer_post_enable_revocation_requires_exact_head_compensation(self) -> None:
+        sync = self.workflow("sync-release.yml")
+        helper_start = sync.index("          def writer_auto_merge_authorized(policy: dict[str, object]) -> bool:\n")
+        helper_end = sync.index("\n          def exact_pr_tuple", helper_start)
+        namespace: dict[str, Any] = {"candidate": "c" * 40}
+        exec(textwrap.dedent(sync[helper_start:helper_end]), namespace)
+        post_enable_failure = namespace["post_enable_authorization_failure"]
+        authorized_policy = {
+            "reviewer_approval": "current",
+            "review_action": "none",
+            "token_mint_required": False,
+            "auto_merge": True,
+        }
+        enabled_clean_pull = {
+            "isDraft": False,
+            "mergeable": "MERGEABLE",
+            "mergeStateStatus": "CLEAN",
+            "autoMergeRequest": {"enabledAt": "now"},
+        }
+        self.assertEqual(
+            post_enable_failure(True, True, True, authorized_policy, [], True, enabled_clean_pull),
+            "",
+        )
+        revoked = post_enable_failure(
+            True,
+            True,
+            True,
+            {**authorized_policy, "reviewer_approval": "missing", "auto_merge": False},
+            [],
+            True,
+            enabled_clean_pull,
+        )
+        self.assertEqual(revoked, "trusted policy no longer authorizes auto-merge after enable")
+
+        enable = sync.index("enablePullRequestAutoMerge")
+        post_enable_start = sync.index('          post_enable_error = ""\n', enable)
+        success = sync.index('          print(json.dumps({"pr": pr_number, "auto_merge": True, "head_sha": candidate}, sort_keys=True))', post_enable_start)
+        post_enable = sync[post_enable_start:success]
+        for marker in (
+            'post_enable_release = reobserve_latest_complete_release("post-auto-merge", "WRITER_POST_ENABLE_RECHECK_ROOT")',
+            "post_enable_tuple = current_tuple(post_enable_release)",
+            'post_enable_pr_data = api("GET", f"/repos/{repository}/pulls/{pr_number}", read_token)',
+            'post_enable_reviews = normalize_reviews(api("GET", f"/repos/{repository}/pulls/{pr_number}/reviews?per_page=100", read_token))',
+            "post_enable_policy = policy_decision(post_enable_pr_data, post_enable_reviews, \"post-enable\")",
+            "post_enable_pull = graphql_pull(pr_number)",
+            "post_enable_error = post_enable_authorization_failure(",
+        ):
+            with self.subTest(marker=marker):
+                self.assertGreater(sync.index(marker, enable), enable)
+                self.assertLess(sync.index(marker, enable), success)
+        self.assertIn('post_enable["rollback"] = disable_revoked_auto_merge(', post_enable)
+        self.assertIn('post_enable["rollback"].get("outcome") != "verified-disabled"', post_enable)
+        self.assertLess(
+            post_enable.index("post_enable_error = post_enable_authorization_failure("),
+            post_enable.index('post_enable["rollback"] = disable_revoked_auto_merge('),
+        )
 
     def test_writer_provenance_status_is_authenticated_and_required_for_the_exact_head(self) -> None:
         sync = self.workflow("sync-release.yml")

@@ -1277,6 +1277,37 @@ def validate_whats_new_body_template(snapshot: dict[str, Any], body: str) -> Non
         fail("docs/whats-new.html whats-new-body requires at least one changelog category")
 
 
+class StaticHrefParser(HTMLParser):
+    """Collect real href attributes and reject duplicates or valueless hrefs."""
+
+    def __init__(self, label: str) -> None:
+        super().__init__(convert_charrefs=False)
+        self.label = label
+        self.start_tags: list[str] = []
+        self.hrefs: list[str] = []
+
+    def record(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.start_tags.append(tag)
+        hrefs = [value for name, value in attrs if name == "href"]
+        if len(hrefs) > 1 or (hrefs and not isinstance(hrefs[0], str)):
+            fail(f"{self.label} has an invalid href attribute")
+        if hrefs:
+            self.hrefs.append(hrefs[0])
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.record(tag, attrs)
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.record(tag, attrs)
+
+
+def parse_static_hrefs(text: str, label: str) -> StaticHrefParser:
+    parser = StaticHrefParser(label)
+    parser.feed(text)
+    parser.close()
+    return parser
+
+
 @dataclass(frozen=True)
 class Region:
     path: str
@@ -1319,13 +1350,18 @@ def extract_regions(path: str, text: str) -> dict[str, Region]:
             anchor_start = text.rfind("<a", 0, start_match.start())
             anchor_open_end = text.find(">", anchor_start, start_match.start())
             anchor_close = text.find("</a>", match.end())
+            anchor_parser = parse_static_hrefs(
+                text[anchor_start : anchor_open_end + 1] if anchor_start >= 0 and anchor_open_end >= 0 else "",
+                f"{path} docs-nav anchor",
+            )
             if (
                 anchor_start < 0
                 or anchor_open_end < 0
                 or anchor_close < 0
                 or text[anchor_open_end + 1 : start_match.start()]
                 or text[match.end() : anchor_close]
-                or 'href="whats-new.html"' not in text[anchor_start:anchor_open_end]
+                or anchor_parser.start_tags != ["a"]
+                or anchor_parser.hrefs != ["whats-new.html"]
             ):
                 fail(f"{path} docs-nav release marker must be the complete existing whats-new anchor content")
         else:
@@ -1525,12 +1561,12 @@ def validate_static_template_regions(snapshot: dict[str, Any], files: dict[str, 
 
 
 def validate_html_links(root: Path, files: dict[str, bytes]) -> None:
-    href_re = re.compile(r'href="([^"]+)"')
     for relative_path, raw in files.items():
         text = raw.decode("utf-8")
         if "</html>" not in text.lower() or "<title>" not in text.lower():
             fail(f"{relative_path} is missing required HTML structure")
-        for href in href_re.findall(text):
+        hrefs = parse_static_hrefs(text, relative_path).hrefs
+        for href in hrefs:
             if href.startswith(("https://", "http://", "mailto:", "#", "data:")):
                 continue
             if "?" in href:
