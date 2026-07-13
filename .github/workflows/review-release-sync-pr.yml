@@ -408,7 +408,7 @@ jobs:
 
       - name: Mint Policy Reviewer App token only for the pending lifecycle action
         id: reviewer-token
-        uses: actions/create-github-app-token@a8d616148505873a6910f30e1d4a5f0c23a65f96  # v1
+        uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b  # v2.1.1
         with:
           app-id: ${{ secrets.GJ_WEBSITE_POLICY_REVIEWER_APP_ID }}
           private-key: ${{ secrets.GJ_WEBSITE_POLICY_REVIEWER_PRIVATE_KEY }}

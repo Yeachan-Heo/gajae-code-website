@@ -146,7 +146,7 @@ jobs:
       - name: Mint Policy Reviewer token only when a canonical PR needs inspection
         if: ${{ steps.preflight.outputs.has_pr == 'true' }}
         id: reviewer-token
-        uses: actions/create-github-app-token@a8d616148505873a6910f30e1d4a5f0c23a65f96  # v1
+        uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b  # v2.1.1
         with:
           app-id: ${{ secrets.GJ_WEBSITE_POLICY_REVIEWER_APP_ID }}
           private-key: ${{ secrets.GJ_WEBSITE_POLICY_REVIEWER_PRIVATE_KEY }}
@@ -430,7 +430,7 @@ jobs:
 
       - name: Mint Writer-App token only to disable revoked auto-merge
         id: writer-token
-        uses: actions/create-github-app-token@a8d616148505873a6910f30e1d4a5f0c23a65f96  # v1
+        uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b  # v2.1.1
         with:
           app-id: ${{ secrets.GJ_RELEASE_SYNC_WRITER_APP_ID }}
           private-key: ${{ secrets.GJ_RELEASE_SYNC_WRITER_PRIVATE_KEY }}
@@ -949,7 +949,7 @@ jobs:
 
       - name: Mint Writer-App token after all tokenless checks
         id: writer-token
-        uses: actions/create-github-app-token@a8d616148505873a6910f30e1d4a5f0c23a65f96  # v1
+        uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b  # v2.1.1
         with:
           app-id: ${{ secrets.GJ_RELEASE_SYNC_WRITER_APP_ID }}
           private-key: ${{ secrets.GJ_RELEASE_SYNC_WRITER_PRIVATE_KEY }}
