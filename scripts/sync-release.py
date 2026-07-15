@@ -983,8 +983,12 @@ def parse_changelog(changelog_bytes: bytes, version: str, published_at: str, pat
             current_item.append(continuation)
             continue
         if not line:
-            if current_item is not None:
-                fail(f"blank line inside changelog item at {path}:{offset}")
+            # A blank line terminates the current item. Release sections merged
+            # from an [Unreleased] block legitimately separate sibling items
+            # with blank lines (observed v0.11.0); multi-line continuations
+            # still cannot contain blanks (rejected above), so this cannot
+            # silently join or split continuation content.
+            finish_item()
             continue
         fail(f"unsupported changelog block syntax at {path}:{offset}")
     finish_category()
