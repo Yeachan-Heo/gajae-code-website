@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Build mobile, desktop, web, and vertical AI applications on the Gajae-Code SDK — embed the agent runtime or attach over the WebSocket contract." />
+  <link rel="canonical" href="https://gajae-code.com/docs/sdk-app-guide.html" />
+  <meta property="og:title" content="Building on the SDK · Gajae Code Docs" />
+  <meta property="og:description" content="Build mobile, desktop, web, and vertical AI applications on the Gajae-Code SDK — embed the agent runtime or attach over the WebSocket contract." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://gajae-code.com/docs/sdk-app-guide.html" />
+  <meta property="og:image" content="https://gajae-code.com/assets/hero.png" />
+  <meta property="og:image:alt" content="Gajae Code" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Building on the SDK · Gajae Code Docs" />
+  <meta name="twitter:description" content="Build mobile, desktop, web, and vertical AI applications on the Gajae-Code SDK — embed the agent runtime or attach over the WebSocket contract." />
+  <meta name="twitter:image" content="https://gajae-code.com/assets/hero.png" />
+  <meta name="twitter:image:alt" content="Gajae Code" />
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://gajae-code.com/docs/sdk-app-guide.html#webpage","url":"https://gajae-code.com/docs/sdk-app-guide.html","name":"Building on the SDK · Gajae Code Docs","description":"Build mobile, desktop, web, and vertical AI applications on the Gajae-Code SDK — embed the agent runtime or attach over the WebSocket contract.","image":"https://gajae-code.com/assets/hero.png"},{"@type":"TechArticle","@id":"https://gajae-code.com/docs/sdk-app-guide.html#techarticle","url":"https://gajae-code.com/docs/sdk-app-guide.html","headline":"Building on the SDK · Gajae Code Docs","description":"Build mobile, desktop, web, and vertical AI applications on the Gajae-Code SDK — embed the agent runtime or attach over the WebSocket contract.","image":"https://gajae-code.com/assets/hero.png","mainEntityOfPage":{"@id":"https://gajae-code.com/docs/sdk-app-guide.html#webpage"},"publisher":{"@type":"Organization","@id":"https://gajae-code.com/#organization","name":"Gajae Code","url":"https://gajae-code.com/"}}]}
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
+  <title>Building on the SDK · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+
+  <aside class="docs-sidebar" id="docs-sidebar">
+    <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+    <nav class="docs-nav" aria-label="Documentation">
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+        <a class="docs-nav-link " href="index.html">Docs home</a>
+        <a class="docs-nav-link " href="getting-started.html">Getting started</a>
+        <a class="docs-nav-link " href="whats-new.html">What's new</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
+        <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
+        <a class="docs-nav-link " href="computer-use.html">Computer tool</a>
+        <a class="docs-nav-link " href="browser-use.html">Browser tool</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+        <a class="docs-nav-link " href="architecture.html">Architecture</a>
+        <a class="docs-nav-link " href="harness.html">Harness</a>
+        <a class="docs-nav-link " href="skills.html">Skills</a>
+        <a class="docs-nav-link " href="receipts.html">Receipts</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+        <a class="docs-nav-link is-active" href="sdk-app-guide.html">Building on the SDK</a>
+        <a class="docs-nav-link " href="bridge-rpc.html">Bridge &amp; RPC</a>
+        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
+        <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
+      </div>
+      <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+        <a class="docs-nav-link " href="troubleshooting.html">Troubleshooting</a>
+        <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+      </div>
+    </nav>
+  </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Building applications on the SDK</h1><p>Use Gajae-Code as the agent runtime for your own product — mobile apps, desktop apps, custom web frontends, and vertical AI applications. Delete your agentic loop; keep your product.</p></section>
+
+      <section class="docs-section"><h2>Proven in production</h2><p>The bundled <strong>Telegram, Discord, and Slack integrations are themselves ordinary SDK clients</strong>. They use the exact same public contract described here — no private hooks, no upstream changes. Anything they do (render questions on your phone, route replies back to the exact session, stream turn summaries), your integration can do.</p></section>
+
+      <section class="docs-section"><h2>Why build on it</h2><div class="doc-grid">
+        <article><h3>Delete the agentic loop</h3><p>Tools, retries, compaction, session persistence, model fallback chains, streaming — one <code>createAgentSession()</code> call instead of a bespoke backend every vertical AI team rebuilds.</p></article>
+        <article><h3>Remote comes free</h3><p>Every session hosts a loopback WebSocket endpoint. Embed Gajae-Code and phone notifications, remote ask approvals, CLI automation, and MCP orchestration all work with zero extra code.</p></article>
+        <article><h3>Many subscribers</h3><p>The event stream supports multiple simultaneous subscribers: your app UI, a remote notifier, and an audit logger can all watch one session.</p></article>
+        <article><h3>Not just coding</h3><p>Tools, skills, rules, and the system prompt are injectable. The same runtime powers legal assistants, research agents, and data-analysis products.</p></article>
+      </div></section>
+
+      <section class="docs-section"><h2>Two surfaces</h2>
+        <table>
+          <thead><tr><th></th><th>Embedding SDK (in-process)</th><th>WebSocket SDK (out-of-process)</th></tr></thead>
+          <tbody>
+            <tr><td>What it is</td><td>Import <code>@gajae-code/coding-agent</code> as a library</td><td>Connect to a running session's loopback endpoint</td></tr>
+            <tr><td>Language</td><td>TypeScript / Bun</td><td>Any language (JSON frames)</td></tr>
+            <tr><td>Telemetry</td><td>Full: token deltas, tool events, session events</td><td>Curated: ask/action frames, summarized turn stream, queries</td></tr>
+            <tr><td>Trust</td><td>You are the host</td><td>Token-authenticated client; secrets never cross the wire</td></tr>
+          </tbody>
+        </table>
+        <p>A common production shape uses both: your product UI subscribes in-process for full-fidelity streaming while remote channels attach over WebSocket for notifications and approvals.</p>
+      </section>
+
+      <section class="docs-section"><h2>Embed the runtime</h2>
+<pre><code>bun add @gajae-code/coding-agent</code></pre>
+<pre><code>import { createAgentSession } from "@gajae-code/coding-agent";
+
+const { session } = await createAgentSession();
+
+session.subscribe((event) =&gt; {
+  if (event.type === "message_update" &amp;&amp;
+      event.assistantMessageEvent.type === "text_delta") {
+    process.stdout.write(event.assistantMessageEvent.delta);
+  }
+});
+
+await session.prompt("Summarize this repository in 3 bullets.");
+await session.dispose();</code></pre>
+        <p><em>Provide to override, omit to discover</em>: with no options it auto-discovers auth, models, settings, tools, context files, and a file-backed session store. Everything is overridable.</p>
+      </section>
+
+      <section class="docs-section"><h2>Customize for your vertical</h2>
+        <p>All of these are <code>createAgentSession()</code> options:</p>
+        <ul>
+          <li><strong>Restrict or drop tools</strong> — <code>toolNames</code> allowlist, <code>bashAllowedPrefixes</code>, plus runtime <code>setActiveToolsByName()</code>.</li>
+          <li><strong>Add custom tools</strong> — <code>customTools</code> (your domain tools) or <code>mcpConfigPath</code> (tools from an MCP server you own).</li>
+          <li><strong>Inject skills, rules, identity</strong> — <code>skills</code>, <code>rules</code>, <code>contextFiles</code>, <code>promptTemplates</code>, and <code>systemPrompt</code> (replace or transform the default blocks).</li>
+          <li><strong>Isolate state</strong> — <code>SessionManager.inMemory()</code> and <code>Settings.isolated()</code> for request-scoped agents.</li>
+          <li><strong>Structured subagents</strong> — <code>outputSchema</code>, <code>requireYieldTool</code>, <code>taskDepth</code> for orchestrators.</li>
+          <li><strong>Observability</strong> — opt-in OpenTelemetry GenAI spans via <code>telemetry</code>.</li>
+        </ul>
+      </section>
+
+      <section class="docs-section"><h2>Attach from outside</h2>
+        <p>Any running top-level session writes a discovery file at <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code> containing its <code>url</code> and <code>token</code>. Connect with any WebSocket client, or <code>bun add @gajae-code/bridge-client</code> and use <code>SdkClient</code>.</p>
+        <p>A minimal client handles three server frames — <code>action_needed</code>, <code>action_resolved</code>, <code>reply_rejected</code> — and sends one: <code>reply</code>. Optional threaded frames add <code>turn_stream</code>, <code>context_update</code>, <code>activity</code>, and <code>image_attachment</code>. Typed control operations (<code>turn.prompt</code>, <code>turn.steer</code>, <code>model.set</code>, <code>session.fork</code>, …) and read queries (<code>transcript.*</code>, <code>diff.*</code>, <code>usage.get</code>, …) cover nearly everything the TUI can do.</p>
+        <p>Sessions can be created programmatically with no pre-existing session: the SDK broker starts on demand (<code>gjc daemon session</code>, broker global <code>session.create/fork/resume/close/delete</code>), and multi-session controllers can use the Coordinator MCP.</p>
+      </section>
+
+      <section class="docs-section"><h2>Recipes</h2><div class="doc-grid">
+        <article><h3>Vertical AI app</h3><p>Embed with <code>toolNames</code> + <code>customTools</code> + <code>skills</code> + a domain system prompt. Your UI streams token deltas in-process; users get phone approvals via the bundled adapters for free.</p></article>
+        <article><h3>Custom web app</h3><p>Run sessions under the broker; your backend attaches over WebSocket, renders <code>turn_stream</code>, answers asks with <code>reply</code>, reads history via <code>transcript.*</code>.</p></article>
+        <article><h3>Mobile / desktop companion</h3><p>Exactly the contract the Telegram daemon implements: discover endpoints, render <code>action_needed</code>, send <code>reply</code>.</p></article>
+        <article><h3>Fleet orchestrator</h3><p>Coordinator MCP or broker globals to create and supervise many worktree-scoped sessions.</p></article>
+      </div></section>
+
+      <section class="docs-section"><h2>Deliberate boundaries</h2><p>The WebSocket surface is loopback-only, never carries secrets (<code>config.patch</code> rejects secret fields; endpoint credentials are prohibited through chat adapters), streams summarized turn text (no thinking tokens; redaction-gated), and fails closed on stale action identity. Full-fidelity token streaming is an in-process embedding capability by design — the boundary is trust, not capability.</p></section>
+
+<nav class="doc-pager"><a href="receipts.html">← Receipts</a><a href="bridge-rpc.html">Bridge &amp; RPC →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>
