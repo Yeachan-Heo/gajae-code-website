@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Common Gajae Code setup, session, bridge, and CI problems with practical recovery checks." />
+  <meta name="description" content="Common Gajae Code setup, session, SDK WebSocket, Coordinator MCP, and CI problems with practical recovery checks." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
   <title>Troubleshooting · Gajae Code Docs</title>
   <link rel="stylesheet" href="../css/styles.css" />
@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.11.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -37,8 +37,8 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
-        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
+        <a class="docs-nav-link " href="bridge-rpc.html">SDK &amp; Migration</a>
+        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Coordinator MCP</a>
         <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
@@ -49,11 +49,12 @@
   </aside>
 
     <main class="docs-main">
-      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Troubleshooting</h1><p>Common Gajae Code setup, session, bridge, and CI problems with practical recovery checks.</p></section>
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Troubleshooting</h1><p>Common Gajae Code setup, session, SDK WebSocket, Coordinator MCP, and CI problems with practical recovery checks.</p></section>
 
       <section class="docs-section"><h2>Install and runtime</h2><ul><li>Confirm Bun and Node are on <code>PATH</code>.</li><li>Run <code>gjc --help</code> to confirm the CLI entrypoint resolves.</li><li>If native helpers fail, rebuild from a clean checkout and inspect platform-specific build output.</li></ul></section>
       <section class="docs-section"><h2>Session control</h2><ul><li>If a session stops accepting prompts, verify owner liveness before submitting again.</li><li>If branch metadata looks wrong, stop and correct the checkout instead of continuing in the wrong workspace.</li><li>Retire stale sessions after preserving their terminal outcome.</li></ul></section>
-      <section class="docs-section"><h2>Bridge/RPC</h2><ul><li>Check endpoint URL, TLS/bearer configuration, and command scopes.</li><li>Treat denied scopes as a safety feature, not as a reason to widen authority blindly.</li><li>Prefer structured observations over log scraping.</li></ul></section>
+      <section class="docs-section"><h2>SDK WebSocket and Coordinator MCP</h2><ul><li>For direct SDK control, read the intended session's <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code> record and check its loopback <code>url</code> and credential; never copy that credential into logs or chat adapters.</li><li>For multi-session automation, use Coordinator MCP's durable status and turn records instead of scraping terminal output or treating a per-session SDK connection as a coordinator.</li><li>Invalid, stale, or denied authority should fail closed. Correct the intended session or configured Coordinator MCP mutation consent; do not widen authority blindly.</li><li><strong>Historical only:</strong> <code>rpc</code>, <code>rpc-ui</code>, and <code>bridge</code> were removed in v0.11.0 and have no compatibility path.</li></ul></section>
+      <section class="docs-section"><h2>Website CI</h2><ol><li>Open the failed GitHub Actions run and start with the failed step in <strong>Validate website changes</strong>, whose job is <strong>Strict trusted validation</strong>.</li><li>For a pull request, check the reported base and head SHAs in the job summary; the workflow validates the candidate checkout with validator code from the trusted base, not candidate scripts.</li><li>Fix the reported HTML, link, metadata, or ownership issue in the pull-request branch and push a new commit. Do not work around a failure by changing CI permissions, bypassing checks, or modifying the trusted-validator boundary.</li><li>For whitespace failures, correct the patch whitespace reported by <code>git diff --check</code>. Release-sync branch failures can also be caused by generated-only ownership enforcement; keep manual edits outside generated release regions.</li></ol></section>
 
 <nav class="doc-pager"><a href="gajae-remote.html">← Gajae Remote</a><span></span></nav>
     </main>

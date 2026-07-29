@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.11.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -37,7 +37,7 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="bridge-rpc.html">SDK &amp; Migration</a>
         <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
         <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
       </div>
@@ -52,16 +52,14 @@
       <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Harness</h1><p>Use the Gajae Code harness to run coding-agent sessions with observable lifecycle, submit gates, and workspace-aware control.</p></section>
 
       <section class="docs-section"><h2>Why a harness?</h2><p>A coding model is useful only when it can be steered, observed, paused, and verified. The harness turns an agent run into a managed session with lifecycle state, owner liveness, branch context, and submission gates.</p>
-        <div class="callout"><strong>Design intent:</strong> do not rely on a terminal screenshot or a half-remembered prompt. Track whether the owner is live, whether the session is ready for input, and which workspace/branch the work belongs to.</div></section>
+        <div class="callout"><strong>Design intent:</strong> use lifecycle state, owner liveness, and workspace/branch context to coordinate work. Record evidence through the supported Coordinator MCP or SDK interfaces rather than terminal output.</div></section>
       <section class="docs-section"><h2>Typical loop</h2><pre><code>gjc
 /skill:deep-interview
 /skill:ralplan
 gjc ultragoal create-goals --brief "implement, verify, and report evidence"
 gjc ultragoal complete-goals</code></pre></section>
-      <section class="docs-section"><h2>Visible routed tmux sessions</h2><p>For Clawhip or chatops-visible work, use the public <code>gjc-session</code> plugin skill and <code>scripts/gjc-session/</code> helpers instead of ad hoc shell wrappers. The helper pattern is:</p><pre><code>scripts/gjc-session/create.sh &lt;session-name&gt; &lt;worktree-path&gt;
-scripts/gjc-session/prompt.sh &lt;session-name&gt; @task.md
-scripts/gjc-session/tail.sh &lt;session-name&gt; 80</code></pre><p><code>create</code> gives the pane a stable name and a dedicated worktree, <code>prompt</code> injects the task after readiness, and <code>tail</code> reads bounded output for readiness or evidence checks. <code>harness-tmux-owner-start.sh</code> is the owner starter: keep long-running interactive <code>gjc</code> sessions under tmux ownership, not under short timeout wrappers that can kill the process mid-task.</p></section>
-      <section class="docs-section"><h2>Operational guardrails</h2><ul><li>Use dedicated worktrees for risky implementation and review work.</li><li>Keep branch metadata aligned with the actual checkout.</li><li>Submit follow-up prompts only after the session is observable and ready.</li><li>Use stable, public-safe session names that identify the project and task without exposing private routing IDs.</li><li>Retire completed sessions instead of leaving stale panes behind.</li></ul></section>
+      <section class="docs-section"><h2>Visible interactive sessions</h2><p>For human-operated, visible-TUI work, <code>scripts/gjc-session/create.sh &lt;session-name&gt; &lt;worktree-path&gt;</code> can start or reuse a named worktree-backed session. Use this only to set up the interactive workspace; it is not an automation or evidence interface.</p><p>Automations must use Coordinator MCP or the SDK for lifecycle control, task submission, status, and evidence. Do not inject prompts, scrape panes, or treat terminal output or tmux ownership as authoritative.</p></section>
+      <section class="docs-section"><h2>Operational guardrails</h2><ul><li>Use dedicated worktrees for risky implementation and review work.</li><li>Keep branch metadata aligned with the actual checkout.</li><li>Use Coordinator MCP or the SDK for automated task routing and lifecycle checks.</li><li>Keep interactive sessions human-operated and visible when using the TUI.</li><li>Retire completed workspaces and sessions instead of leaving stale state behind.</li></ul></section>
 
 <nav class="doc-pager"><a href="architecture.html">← Architecture</a><a href="skills.html">Skills →</a></nav>
     </main>

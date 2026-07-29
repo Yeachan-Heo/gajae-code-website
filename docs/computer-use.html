@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Use the Gajae Code computer tool for opt-in desktop screenshot and input control on Apple Silicon macOS." />
+  <meta name="description" content="Use the Gajae Code computer tool for explicitly enabled macOS desktop screenshot and input control." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
   <title>Computer tool · Gajae Code Docs</title>
   <link rel="stylesheet" href="../css/styles.css" />
@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.11.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -37,8 +37,8 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
-        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
+        <a class="docs-nav-link" href="bridge-rpc.html">SDK &amp; Migration</a>
+        <a class="docs-nav-link" href="hermes-mcp-bridge.html">Coordinator MCP</a>
         <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
@@ -52,31 +52,36 @@
       <section class="docs-hero"><p class="eyebrow">Tool guide</p><h1><code>computer</code> desktop-control tool</h1><p>Tell your GJC session to use the <code>computer</code> tool when it needs to see the local screen, click, type, scroll, or drive a desktop app.</p></section>
 
       <section class="docs-section"><h2>How to use it</h2>
-        <p>There is no separate <code>gjc computer</code> subcommand. Start a normal GJC session, enable the tool on a supported host, then ask the agent to use the computer tool.</p>
-        <pre><code># 1. Launch GJC from the repo/workspace where you want the agent to work
+        <p>There is no separate <code>gjc computer</code> subcommand. The tool is available only on macOS and is disabled unless <code>computer.enabled=true</code> (for the current session) or <code>computer.alwaysOn=true</code> (persistent) is set. Start a normal GJC session after enabling one of those settings, then ask the agent to use the computer tool.</p>
+        <pre><code># 1. Enable the tool in the session or persistent settings
+# computer.enabled=true  (current session)
+# computer.alwaysOn=true (persistent)
+
+# 2. Launch GJC from the repo/workspace where you want the agent to work
 gjc
 
-# 2. In your prompt, be explicit
+# 3. In your prompt, be explicit
 "Use the computer tool to inspect the app window, click the login button, and type the test account."
 
-# 3. Keep the kill-switch available
+# 4. Keep the kill-switch available
 # Default: Control+Option+Command+Escape</code></pre>
       </section>
 
       <section class="docs-section"><h2>What it can do</h2>
-        <p>The tool mirrors the OpenAI computer-use action set:</p>
+        <p>The tool uses this exact nine-action set:</p>
         <ul>
           <li><code>screenshot</code> — capture the current primary display.</li>
           <li><code>click</code>, <code>double_click</code>, <code>move</code>, <code>drag</code>, <code>scroll</code> — pointer control.</li>
           <li><code>type</code>, <code>keypress</code> — keyboard input.</li>
-          <li><code>wait</code> and <code>batch</code> — bounded timing and grouped actions.</li>
+          <li><code>wait</code> — bounded timing.</li>
         </ul>
-        <p>The screenshot's pixel dimensions are the coordinate space. Rust owns the Retina/HiDPI transform to macOS logical points, so the agent should use coordinates from the most recent screenshot.</p>
+        <p>The screenshot's pixel dimensions are the coordinate space. Use coordinates from the latest screenshot; native code maps them to macOS logical points and rejects stale or invalid coordinates before input.</p>
       </section>
 
       <section class="docs-section"><h2>Platform and permissions</h2>
         <ul>
-          <li><strong>Platform:</strong> Apple Silicon macOS only in v0.7.2. Linux/Windows are deferred behind the same schema.</li>
+          <li><strong>Platform:</strong> macOS. Linux and Windows are not callable computer-tool platforms.</li>
+          <li><strong>Enablement:</strong> set <code>computer.enabled=true</code> for a session or <code>computer.alwaysOn=true</code> to keep it enabled. Without either flag, every action returns <code>COMPUTER_DISABLED</code>.</li>
           <li><strong>Permissions:</strong> Screen Recording and Accessibility are required. Missing permissions are surfaced as explicit errors rather than silent black screenshots.</li>
           <li><strong>Safety:</strong> the global kill-switch is outside model control and can stop queued input, release held buttons/keys, and suspend further computer actions.</li>
         </ul>

@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Gajae Code documentation hub — getting started, architecture, the harness, bridge & RPC, skills, receipts, and troubleshooting." />
+  <meta name="description" content="Gajae Code documentation hub — install the CLI, use the SDK, migrate integrations, and coordinate sessions through Coordinator MCP." />
   <meta property="og:title" content="Documentation | Gajae Code" />
-  <meta property="og:description" content="Guides and references for Gajae Code (gjc): shape, act, prove." />
+  <meta property="og:description" content="Install Gajae Code, use the SDK, migrate integrations, and coordinate sessions through Coordinator MCP." />
   <meta property="og:type" content="website" />
   <title>Documentation | Gajae Code</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
@@ -29,7 +29,7 @@
         <p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link is-active" href="index.html">Docs Home</a>
         <a class="docs-nav-link" href="getting-started.html">Getting Started</a>
-        <a class="docs-nav-link" href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.11.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link" href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
         <a class="docs-nav-link" href="telegram-onboarding.html">Telegram onboarding</a>
       </div>
       <div class="docs-nav-section">
@@ -47,9 +47,8 @@
       </div>
       <div class="docs-nav-section">
         <p class="docs-nav-section__title">Remote control</p>
-        <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link" href="bridge-rpc.html">Bridge &amp; RPC</a>
-        <a class="docs-nav-link" href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
+        <a class="docs-nav-link" href="bridge-rpc.html">SDK &amp; Migration</a>
+        <a class="docs-nav-link" href="hermes-mcp-bridge.html">Coordinator MCP</a>
         <a class="docs-nav-link" href="gajae-remote.html">Gajae Remote</a>
       </div>
       <div class="docs-nav-section">
@@ -74,12 +73,12 @@
             <a class="card" href="getting-started.html">
               <div class="card__icon" aria-hidden="true">🚀</div>
               <h3 class="card__title">Getting Started</h3>
-              <p class="card__text">Install with Bun, launch in your repo, and run your first shape → act → prove loop.</p>
+              <p class="card__text">Install <code>gjc</code> from standalone releases for Linux x64/arm64, Windows x64, or macOS arm64/x64; Bun packages and source builds are also supported.</p>
             </a>
             <!-- release-sync:docs-latest-release-card:start -->
             <a class="card" href="whats-new.html">
               <div class="card__icon" aria-hidden="true">✨</div>
-              <h3 class="card__title">What’s new (v0.11.0)</h3>
+              <h3 class="card__title">What’s new (v0.12.0)</h3>
               <p class="card__text">Read release highlights and upgrade guidance.</p>
             </a>
             <!-- release-sync:docs-latest-release-card:end -->
@@ -115,8 +114,8 @@
             </a>
             <a class="card" href="bridge-rpc.html">
               <div class="card__icon" aria-hidden="true">🔌</div>
-              <h3 class="card__title">Bridge &amp; RPC</h3>
-              <p class="card__text">The stdio RPC protocol and the fail-closed, TLS-only HTTPS bridge.</p>
+              <h3 class="card__title">SDK &amp; Migration</h3>
+              <p class="card__text">Embed the runtime, discover a live session's loopback SDK endpoint, and migrate integrations to the supported SDK WebSocket, Coordinator MCP, and ACP boundaries.</p>
             </a>
             <a class="card" href="skills.html">
               <div class="card__icon" aria-hidden="true">🧩</div>
@@ -130,8 +129,8 @@
             </a>
             <a class="card" href="hermes-mcp-bridge.html">
               <div class="card__icon" aria-hidden="true">🧭</div>
-              <h3 class="card__title">Hermes / OpenClaw MCP Bridge</h3>
-              <p class="card__text">Recommended starter: visible tmux routed sessions with the <code>gjc-session</code> plugin helpers. Plus the coordinator MCP bridge, <code>gjc-delegation</code> skill, and RPC boundary.</p>
+              <h3 class="card__title">Coordinator MCP</h3>
+              <p class="card__text">Coordinate multi-session work through the structured Coordinator MCP contract: durable turns, status, questions, artifacts, and explicit mutation consent.</p>
             </a>
             <a class="card" href="gajae-remote.html">
               <div class="card__icon" aria-hidden="true">🛰️</div>

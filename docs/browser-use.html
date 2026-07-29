@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.11.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -37,7 +37,7 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="bridge-rpc.html">SDK & Migration</a>
         <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
         <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
       </div>
@@ -59,6 +59,17 @@ gjc
 # Then prompt the agent, e.g.
 "Use the browser tool to open example.com and extract the main article text."</code></pre>
         <p>For static pages (articles, docs, JSON, PDFs), prefer the <code>read</code> tool. Reach for the browser when you need JS execution, authentication, or interactive actions.</p>
+      </section>
+      <section class="docs-section"><h2>Verifiable named-tab quickstart</h2><p>Give the agent an outcome and cleanup boundary, not just a navigation request. This instruction makes the observable assertion and named-tab lifecycle explicit:</p>
+        <pre><code>Use the browser tool with the named tab "example-quickstart".
+Open https://example.com, then:
+try {
+  run an assertion that the page title is "Example Domain";
+  return the observed title as the result;
+} finally {
+  close the named tab "example-quickstart";
+}</code></pre>
+        <p>The returned title is the verification result. The <code>finally</code> cleanup means the named tab is closed whether the assertion passes or fails; do not leave named tabs open for later calls unless reuse is intentional.</p>
       </section>
 
       <section class="docs-section"><h2>Actions</h2>

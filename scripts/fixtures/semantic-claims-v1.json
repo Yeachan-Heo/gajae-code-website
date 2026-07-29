@@ -1,0 +1,166 @@
+{
+  "checks": [
+    {
+      "id": "sdk-app-guide-bootstrap-unactivated",
+      "kind": "unactivated_release_claim",
+      "path": "docs/sdk-app-guide.html",
+      "version_pattern": "\\bv[0-9]+\\.[0-9]+\\.[0-9]+\\b"
+    },
+    {
+      "id": "no-live-removed-ingress",
+      "kind": "forbidden",
+      "paths": [
+        "index.html",
+        "docs/index.html"
+      ],
+      "pattern": "\\b(?:rpc|rpc-ui)(?:(?:\\s+is)?\\s+supported|\\s+support)\\b|\\bsupported\\s+(?:rpc|rpc-ui)\\b|\\bsupport\\s+for\\s+(?:rpc|rpc-ui)\\b|\\bbridge mode\\b|\\brpcclient\\b|\\b(?:jsonl|sse)\\s+bridge(?:\\s+protocol)?\\b|\\bbridge\\s+(?:jsonl|sse)(?:\\s+protocol)?\\b|\\bpython\\s+rpc\\s+clients?\\b|\\bbridge\\s+command\\s+scopes?\\b|--mode (?:rpc|rpc-ui|bridge)"
+    },
+    {
+      "alternatives": [
+        [
+          "loopback sdk websocket",
+          "coordinator mcp"
+        ]
+      ],
+      "attribute": "data-migration-note",
+      "id": "removed-ingress-migration-boundary",
+      "kind": "migration_boundary",
+      "path": "docs/bridge-rpc.html",
+      "removed_pattern": "\\b(?:rpc|rpc-ui)(?:(?:\\s+is)?\\s+supported|\\s+support)\\b|\\bsupported\\s+(?:rpc|rpc-ui)\\b|\\bsupport\\s+for\\s+(?:rpc|rpc-ui)\\b|\\bbridge mode\\b|\\brpcclient\\b|\\b(?:jsonl|sse)\\s+bridge(?:\\s+protocol)?\\b|\\bbridge\\s+(?:jsonl|sse)(?:\\s+protocol)?\\b|\\bpython\\s+rpc\\s+clients?\\b|\\bbridge\\s+command\\s+scopes?\\b|--mode (?:rpc|rpc-ui|bridge)",
+      "required_records": [
+        "removed in v0.11.0",
+        "no compatibility shim"
+      ],
+      "version": "v0.11.0"
+    },
+    {
+      "id": "sdk-discovery-path-current",
+      "kind": "forbidden",
+      "paths": [
+        "docs/sdk-app-guide.html"
+      ],
+      "pattern": "\\.gjc/state/notifications/"
+    },
+    {
+      "id": "no-machine-tmux-routing",
+      "kind": "forbidden",
+      "paths": [
+        "docs/harness.html",
+        "docs/hermes-mcp-bridge.html"
+      ],
+      "pattern": "scripts/gjc-session/(?:prompt|tail)|\\{(?:prompt|tail)\\}"
+    },
+    {
+      "actions": [
+        "screenshot",
+        "click",
+        "double_click",
+        "move",
+        "drag",
+        "scroll",
+        "type",
+        "keypress",
+        "wait"
+      ],
+      "id": "computer-actions-current",
+      "kind": "actions",
+      "path": "docs/computer-use.html"
+    },
+    {
+      "id": "homepage-installation-current",
+      "kind": "install",
+      "path": "index.html",
+      "platforms": [
+        "linux x64",
+        "linux arm64",
+        "windows x64",
+        "macos arm64",
+        "macos x64"
+      ],
+      "required": [
+        "bun install -g gajae-code",
+        "@gajae-code/coding-agent",
+        "standalone binary",
+        "source availability"
+      ]
+    },
+    {
+      "anchors": [
+        {"kind": "nav", "path": "docs/architecture.html"},
+        {"kind": "nav", "path": "docs/browser-use.html"},
+        {"kind": "self_nav", "path": "docs/bridge-rpc.html"},
+        {"kind": "nav", "path": "docs/computer-use.html"},
+        {"kind": "nav", "path": "docs/gajae-remote.html"},
+        {"kind": "nav", "path": "docs/getting-started.html"},
+        {"kind": "nav", "path": "docs/harness.html"},
+        {"kind": "nav", "path": "docs/hermes-mcp-bridge.html"},
+        {"kind": "nav", "path": "docs/index.html"},
+        {"kind": "nav", "path": "docs/receipts.html"},
+        {"kind": "nav", "path": "docs/rlm.html"},
+        {"kind": "nav", "path": "docs/sdk-app-guide.html"},
+        {"kind": "nav", "path": "docs/skills.html"},
+        {"kind": "nav", "path": "docs/telegram-onboarding.html"},
+        {"kind": "nav", "path": "docs/troubleshooting.html"},
+        {"kind": "nav", "path": "docs/whats-new.html"},
+        {"kind": "pager", "path": "docs/hermes-mcp-bridge.html"},
+        {"kind": "pager", "path": "docs/receipts.html"},
+        {"kind": "pager", "path": "docs/sdk-app-guide.html"},
+        {"kind": "card", "path": "docs/index.html"},
+        {"kind": "card", "path": "index.html"},
+        {"kind": "card", "path": "index.html"},
+        {"kind": "footer", "path": "index.html"}
+      ],
+      "id": "preserved-sdk-migration-route",
+      "kind": "routes",
+      "label": "SDK & Migration",
+      "paths": [
+        "index.html",
+        "docs/architecture.html",
+        "docs/browser-use.html",
+        "docs/bridge-rpc.html",
+        "docs/computer-use.html",
+        "docs/gajae-remote.html",
+        "docs/getting-started.html",
+        "docs/harness.html",
+        "docs/hermes-mcp-bridge.html",
+        "docs/index.html",
+        "docs/receipts.html",
+        "docs/rlm.html",
+        "docs/sdk-app-guide.html",
+        "docs/skills.html",
+        "docs/telegram-onboarding.html",
+        "docs/troubleshooting.html",
+        "docs/whats-new.html"
+      ]
+    }
+  ],
+  "generated_ownership": [
+    {"end_marker": "<!-- release-sync:public-release-meta:end -->", "path": "index.html", "start_marker": "<!-- release-sync:public-release-meta:start -->"},
+    {"end_marker": "<!-- release-sync:homepage-hero-badge:end -->", "path": "index.html", "start_marker": "<!-- release-sync:homepage-hero-badge:start -->"},
+    {"end_marker": "<!-- release-sync:homepage-release-strip:end -->", "path": "index.html", "start_marker": "<!-- release-sync:homepage-release-strip:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/architecture.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/bridge-rpc.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/browser-use.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/computer-use.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/gajae-remote.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/getting-started.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/harness.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/hermes-mcp-bridge.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/receipts.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/rlm.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/skills.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/telegram-onboarding.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/troubleshooting.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/index.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-latest-release-card:end -->", "path": "docs/index.html", "start_marker": "<!-- release-sync:docs-latest-release-card:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/whats-new.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:whats-new-meta-description:end -->", "path": "docs/whats-new.html", "start_marker": "<!-- release-sync:whats-new-meta-description:start -->"},
+    {"end_marker": "<!-- release-sync:whats-new-title:end -->", "path": "docs/whats-new.html", "start_marker": "<!-- release-sync:whats-new-title:start -->"},
+    {"end_marker": "<!-- release-sync:whats-new-hero:end -->", "path": "docs/whats-new.html", "start_marker": "<!-- release-sync:whats-new-hero:start -->"},
+    {"end_marker": "<!-- release-sync:whats-new-body:end -->", "path": "docs/whats-new.html", "start_marker": "<!-- release-sync:whats-new-body:start -->"}
+  ],
+  "release": {
+    "release_bound": {"peeled_commit_sha": "4e927cca7e6dda31d715957a2ecfbcbc4e62869a", "tag": "v0.12.0"}
+  },
+  "schema_version": 1
+}

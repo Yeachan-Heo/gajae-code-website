@@ -15,6 +15,7 @@ import importlib.util
 import json
 import textwrap
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -51,6 +52,35 @@ REVIEW = load_script("check-review-eligibility.py", "release_sync_review")
 SYNC = load_script("sync-release.py", "release_sync_generator")
 RESOLVER = load_script("resolve-release.py", "release_sync_resolver")
 SITE_VALIDATOR = load_script("validate-site.py", "release_sync_site_validator")
+EXPECTED_RELEASE_REGIONS: dict[str, tuple[str, ...]] = {
+    "index.html": (
+        "public-release-meta",
+        "homepage-hero-badge",
+        "homepage-release-strip",
+    ),
+    "docs/architecture.html": ("docs-nav-release-label",),
+    "docs/bridge-rpc.html": ("docs-nav-release-label",),
+    "docs/browser-use.html": ("docs-nav-release-label",),
+    "docs/computer-use.html": ("docs-nav-release-label",),
+    "docs/gajae-remote.html": ("docs-nav-release-label",),
+    "docs/getting-started.html": ("docs-nav-release-label",),
+    "docs/harness.html": ("docs-nav-release-label",),
+    "docs/hermes-mcp-bridge.html": ("docs-nav-release-label",),
+    "docs/index.html": ("docs-nav-release-label", "docs-latest-release-card"),
+    "docs/receipts.html": ("docs-nav-release-label",),
+    "docs/rlm.html": ("docs-nav-release-label",),
+    "docs/skills.html": ("docs-nav-release-label",),
+    "docs/telegram-onboarding.html": ("docs-nav-release-label",),
+    "docs/troubleshooting.html": ("docs-nav-release-label",),
+    "docs/whats-new.html": (
+        "docs-nav-release-label",
+        "whats-new-meta-description",
+        "whats-new-title",
+        "whats-new-hero",
+        "whats-new-body",
+    ),
+}
+
 
 
 
@@ -276,6 +306,12 @@ class ReleaseSyncFixture(unittest.TestCase):
             True,
         )
         return status, json.loads(output)
+
+    def test_release_region_inventory_is_exact_and_shared(self) -> None:
+        self.assertEqual(SYNC.REQUIRED_REGIONS, EXPECTED_RELEASE_REGIONS)
+        self.assertEqual(OWNERSHIP.OWNED_REGIONS, EXPECTED_RELEASE_REGIONS)
+        self.assertEqual(sum(len(ids) for ids in EXPECTED_RELEASE_REGIONS.values()), 23)
+        self.assertEqual(OWNERSHIP.GENERATED_PATHS, frozenset((*EXPECTED_RELEASE_REGIONS, "release-sync.json")))
 
     def test_marker_bytes_and_historical_content_are_preserved(self) -> None:
         head_sha = self.update_release()
@@ -852,38 +888,45 @@ class ResolverGeneratorFixture(unittest.TestCase):
 
     def test_bootstrap_release_copy_is_neutral_and_resolver_requires_both_evidence_assets(self) -> None:
         release_state = json.loads((ROOT / "release-sync.json").read_text(encoding="utf-8"))
-        self.assertEqual(release_state["release"]["version"], "0.10.0")
-        self.assertEqual(SYNC.validate_static_release_site(ROOT)["release"]["version"], "0.10.0")
+        expected_release = {
+            "id": 361036923,
+            "published_at": "2026-07-28T11:29:01Z",
+            "tag": "v0.12.0",
+            "url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.0",
+            "version": "0.12.0",
+        }
+        self.assertEqual(release_state["release"], expected_release)
+        self.assertEqual(SYNC.validate_static_release_site(ROOT)["release"], expected_release)
         snapshot = {
             "release": {
-                "html_url": release_state["release"]["url"],
-                "id": release_state["release"]["id"],
-                "peeled_commit_sha": release_state["source"]["commit_sha"],
-                "published_at": release_state["release"]["published_at"],
-                "tag": release_state["release"]["tag"],
+                "html_url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.0",
+                "id": 361036923,
+                "peeled_commit_sha": "4e927cca7e6dda31d715957a2ecfbcbc4e62869a",
+                "published_at": "2026-07-28T11:29:01Z",
+                "tag": "v0.12.0",
             }
         }
         rendered = SYNC.render_regions(snapshot, [("Fixture", ["Bootstrap fixture."])])
         expected_homepage_strip = (
             "  <section class=\"section section--tight\" id=\"latest-release\">\n"
             "    <div class=\"section__header reveal\">\n"
-            "      <span class=\"section__eyebrow\">Latest stable · v0.10.0</span>\n"
-            "      <h2 class=\"section__title\">Gajae Code v0.10.0</h2>\n"
-            "      <p class=\"section__subtitle\">Published 2026-07-12. Release binaries and npm packages are available.</p>\n"
+            "      <span class=\"section__eyebrow\">Latest stable · v0.12.0</span>\n"
+            "      <h2 class=\"section__title\">Gajae Code v0.12.0</h2>\n"
+            "      <p class=\"section__subtitle\">Published 2026-07-28. Release binaries and npm packages are available.</p>\n"
             "      <div class=\"hero__cta\">\n"
             "        <a href=\"docs/whats-new.html\" class=\"btn btn--primary\">Read what’s new</a>\n"
-            "        <a href=\"https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.10.0\" class=\"btn btn--secondary\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub Release</a>\n"
+            "        <a href=\"https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.0\" class=\"btn btn--secondary\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub Release</a>\n"
             "      </div>\n"
             "    </div>\n"
             "  </section>\n"
         )
         expected_meta_description = (
-            "  <meta name=\"description\" content=\"What’s new in Gajae Code v0.10.0, published 2026-07-12: release highlights and upgrade guidance.\" />\n"
+            "  <meta name=\"description\" content=\"What’s new in Gajae Code v0.12.0, published 2026-07-28: release highlights and upgrade guidance.\" />\n"
         )
         expected_release_card = (
             "            <a class=\"card\" href=\"whats-new.html\">\n"
             "              <div class=\"card__icon\" aria-hidden=\"true\">✨</div>\n"
-            "              <h3 class=\"card__title\">What’s new (v0.10.0)</h3>\n"
+            "              <h3 class=\"card__title\">What’s new (v0.12.0)</h3>\n"
             "              <p class=\"card__text\">Read release highlights and upgrade guidance.</p>\n"
             "            </a>\n"
         )
@@ -903,7 +946,7 @@ class ResolverGeneratorFixture(unittest.TestCase):
         names = (*SYNC.REQUIRED_BINARY_ASSET_NAMES, SYNC.EXPECTED_EVIDENCE_NAME, SYNC.FINAL_EVIDENCE_NAME)
         metadata_assets = [
             {
-                "browser_download_url": f"https://github.com/{SOURCE_REPOSITORY}/releases/download/v0.10.0/{name}",
+                "browser_download_url": f"https://github.com/{SOURCE_REPOSITORY}/releases/download/v0.12.0/{name}",
                 "digest": "sha256:" + f"{asset_id:064x}",
                 "id": asset_id,
                 "name": name,
@@ -916,7 +959,7 @@ class ResolverGeneratorFixture(unittest.TestCase):
             with self.subTest(missing_name=missing_name):
                 missing_evidence = [asset for asset in metadata_assets if asset["name"] != missing_name]
                 with self.assertRaisesRegex(RESOLVER.ResolverError, f"missing required asset {missing_name}"):
-                    RESOLVER.normalize_assets(missing_evidence, "v0.10.0")
+                    RESOLVER.normalize_assets(missing_evidence, "v0.12.0")
 
     def test_atomic_rollback_fault_injection_reports_restoration_failures(self) -> None:
         with tempfile.TemporaryDirectory(prefix="release-sync-atomic-") as temporary:
@@ -1847,6 +1890,203 @@ class WorkflowContractFixture(unittest.TestCase):
         self.assertEqual(observed["verified_final_evidence_sha256"], digest)
 
 
+class SemanticClaimsFixture(unittest.TestCase):
+    def test_semantic_claims_trust_boundary_uses_trusted_bytes(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="semantic-claims-") as directory:
+            root = Path(directory)
+            trusted = root / "trusted"
+            candidate = root / "candidate"
+            shutil.copytree(ROOT, trusted, ignore=shutil.ignore_patterns(".git", ".gjc"))
+            shutil.copytree(ROOT, candidate, ignore=shutil.ignore_patterns(".git", ".gjc"))
+            write(candidate / "scripts" / "check-semantic-claims.py", "raise SystemExit(0)\n")
+            (candidate / "scripts" / "fixtures" / "semantic-claims-v1.json").unlink()
+            write(candidate / "scripts" / "sync-release.py", "raise SystemExit('candidate sync module executed')\n")
+            with (candidate / "index.html").open("a", encoding="utf-8") as output:
+                output.write("\n<p>--mode rpc</p>\n")
+            completed = subprocess.run(
+                [sys.executable, str(trusted / "scripts" / "check-semantic-claims.py"),
+                 "--trusted-root", str(trusted), "--candidate-root", str(candidate)],
+                check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            )
+            self.assertEqual(completed.returncode, 2, completed.stderr)
+            self.assertIn("no-live-removed-ingress", completed.stdout)
+
+    def copy_roots(self, root: Path) -> tuple[Path, Path]:
+        trusted, candidate = root / "trusted", root / "candidate"
+        shutil.copytree(ROOT, trusted, ignore=shutil.ignore_patterns(".git", ".gjc"))
+        shutil.copytree(ROOT, candidate, ignore=shutil.ignore_patterns(".git", ".gjc"))
+        return trusted, candidate
+
+    def semantic(self, trusted: Path, candidate: Path, mode: str = "evergreen") -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [sys.executable, str(trusted / "scripts" / "check-semantic-claims.py"), "--trusted-root", str(trusted),
+             "--candidate-root", str(candidate), "--mode", mode],
+            check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        )
+
+    def test_semantic_claims_reject_generated_region_and_state_tampering(self) -> None:
+        cases = (
+            ("generated-body", lambda candidate: write(candidate / "index.html", (candidate / "index.html").read_text().replace("Latest stable", "Forged stable", 1)), "OWNERSHIP_REJECTED"),
+            ("duplicate-marker", lambda candidate: write(candidate / "index.html", (candidate / "index.html").read_text().replace("<!-- release-sync:homepage-hero-badge:start -->", "<!-- release-sync:homepage-hero-badge:start --><!-- release-sync:homepage-hero-badge:end -->", 1)), "OWNERSHIP_REJECTED"),
+            ("extra-marker", lambda candidate: write(candidate / "docs" / "sdk-app-guide.html", (candidate / "docs" / "sdk-app-guide.html").read_text() + "\n<!-- release-sync:unowned:start -->\n<!-- release-sync:unowned:end -->\n"), "OWNERSHIP_REJECTED"),
+            ("malformed-state", lambda candidate: write(candidate / "release-sync.json", "{\"schema_version\": true}\n"), "OWNERSHIP_REJECTED"),
+            ("sdk-stale-version", lambda candidate: write(candidate / "docs" / "sdk-app-guide.html", (candidate / "docs" / "sdk-app-guide.html").read_text() + "\n<p>v0.11.0</p>\n"), "UNACTIVATED_RELEASE_CLAIM_PRESENT"),
+        )
+        with tempfile.TemporaryDirectory(prefix="semantic-claims-ownership-") as directory:
+            for case_id, mutate, code in cases:
+                with self.subTest(case=case_id):
+                    case_root = Path(directory) / case_id
+                    trusted, candidate = self.copy_roots(case_root)
+                    mutate(candidate)
+                    completed = self.semantic(trusted, candidate)
+                    self.assertEqual(completed.returncode, 2, completed.stderr)
+                    self.assertIn(code, completed.stdout)
+
+    def test_semantic_claims_enforce_binding_boundaries_and_claim_checks(self) -> None:
+        cases = (
+            ("actions", lambda candidate: write(candidate / "docs" / "computer-use.html", (candidate / "docs" / "computer-use.html").read_text().replace("keypress", "key_press", 1)), "COMPUTER_ACTION_SET_MISMATCH"),
+            ("install", lambda candidate: write(candidate / "index.html", (candidate / "index.html").read_text().replace("standalone binary", "portable binary")), "HOMEPAGE_INSTALLATION_REQUIRED_MISSING"),
+            ("routes", lambda candidate: write(candidate / "docs" / "sdk-app-guide.html", (candidate / "docs" / "sdk-app-guide.html").read_text().replace("SDK &amp; Migration", "SDK migration", 1)), "PRESERVED_ROUTE_ANCHOR_MISMATCH"),
+        )
+        with tempfile.TemporaryDirectory(prefix="semantic-claims-checks-") as directory:
+            root = Path(directory)
+            trusted, candidate = self.copy_roots(root / "positive")
+            self.assertEqual(self.semantic(trusted, candidate).returncode, 0)
+            expected = json.loads((trusted / "scripts" / "fixtures" / "semantic-claims-v1.json").read_text())
+            expected["release"]["release_bound"]["tag"] = "v9.9.9"
+            write(trusted / "scripts" / "fixtures" / "semantic-claims-v1.json", canonical_json(expected))
+            self.assertEqual(self.semantic(trusted, candidate, "evergreen").returncode, 0)
+            exact = self.semantic(trusted, candidate, "exact")
+            self.assertEqual(exact.returncode, 2, exact.stderr)
+            self.assertIn("RELEASE_BINDING_REJECTED", exact.stdout)
+            retired_option = subprocess.run(
+                [sys.executable, str(trusted / "scripts" / "check-semantic-claims.py"), "--trusted-root", str(trusted),
+                 "--candidate-root", str(candidate), "--base-sha", "a" * 40],
+                check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            )
+            self.assertEqual(retired_option.returncode, 2)
+            self.assertIn("unrecognized arguments: --base-sha", retired_option.stderr)
+            for case_id, mutate, code in cases:
+                with self.subTest(case=case_id):
+                    case_trusted, case_candidate = self.copy_roots(root / case_id)
+                    mutate(case_candidate)
+                    completed = self.semantic(case_trusted, case_candidate)
+                    self.assertEqual(completed.returncode, 2, completed.stderr)
+                    self.assertIn(code, completed.stdout)
+
+    def test_semantic_claims_enforce_removed_ingress_migration_boundary(self) -> None:
+        boundary = 'data-migration-note="v0.11.0"'
+        forbidden_phrases = (
+            "RPC is supported",
+            "RPC-UI is supported",
+            "supported RPC",
+            "supported RPC-UI",
+            "RPC support",
+            "RPC-UI support",
+            "support for RPC",
+            "support for RPC-UI",
+            "bridge mode",
+            "RpcClient",
+            "JSONL bridge protocol",
+            "SSE bridge protocol",
+            "bridge JSONL protocol",
+            "bridge SSE protocol",
+            "JSONL bridge",
+            "SSE bridge",
+            "bridge JSONL",
+            "bridge SSE",
+            "Python RPC client",
+            "Python RPC clients",
+            "bridge command scope",
+            "bridge command scopes",
+            "--mode rpc",
+            "--mode rpc-ui",
+            "--mode bridge",
+        )
+
+        def bridge(candidate: Path) -> Path:
+            return candidate / "docs" / "bridge-rpc.html"
+
+        def add_outside(candidate: Path, phrase: str, tag: str = "p") -> None:
+            write(bridge(candidate), bridge(candidate).read_text().replace("</main>", f"<{tag}>{phrase}</{tag}></main>", 1))
+
+        def add_inside(candidate: Path, phrase: str) -> None:
+            write(bridge(candidate), bridge(candidate).read_text().replace("</section>\n\n<nav", f"<p>{phrase}</p></section>\n\n<nav", 1))
+
+        cases = (
+            ("missing-attribute", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace(boundary, "", 1)), "MIGRATION_BOUNDARY_MISSING"),
+            ("wrong-version", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace(boundary, 'data-migration-note="v0.10.0"', 1)), "MIGRATION_BOUNDARY_VERSION_MISMATCH"),
+            ("duplicate-boundary", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace("</main>", f'<section {boundary}></section></main>', 1)), "MIGRATION_BOUNDARY_DUPLICATE"),
+            ("combined-record", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace("<p>removed in v0.11.0</p><p>no compatibility shim</p><p>loopback SDK WebSocket</p>", "<p>removed in v0.11.0 no compatibility shim loopback SDK WebSocket</p>", 1)), "MIGRATION_BOUNDARY_REQUIRED_RECORD_MISSING"),
+            ("missing-removed-record", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace("<p>removed in v0.11.0</p>", "<p>retired in v0.11.0</p>", 1)), "MIGRATION_BOUNDARY_REQUIRED_RECORD_MISSING"),
+            ("missing-shim-record", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace("<p>no compatibility shim</p>", "<p>compatibility unavailable</p>", 1)), "MIGRATION_BOUNDARY_REQUIRED_RECORD_MISSING"),
+            ("missing-alternative-record", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace("<p>loopback SDK WebSocket</p>", "<p>session transport</p>", 1)), "MIGRATION_BOUNDARY_ALTERNATIVE_RECORD_MISSING"),
+        )
+        valid_cases = (
+            ("sdk-alternative", lambda candidate: candidate),
+            ("coordinator-alternative", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace("<p>loopback SDK WebSocket</p>", "<p>Coordinator MCP</p>", 1))),
+            ("preserved-route-href", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace("</main>", '<a href="bridge-rpc.html">Current SDK migration</a></main>', 1))),
+            ("preserved-canonical-href", lambda candidate: write(bridge(candidate), bridge(candidate).read_text().replace("</head>", '<link rel="canonical" href="https://gajae-code.com/docs/bridge-rpc.html" /></head>', 1))),
+        )
+        with tempfile.TemporaryDirectory(prefix="semantic-claims-migration-boundary-") as directory:
+            root = Path(directory)
+            trusted, candidate = self.copy_roots(root / "fixture")
+            original = bridge(candidate).read_text()
+            self.assertEqual(self.semantic(trusted, candidate, "exact").returncode, 0)
+            for case_id, mutate, code in cases:
+                with self.subTest(case=case_id):
+                    write(bridge(candidate), original)
+                    mutate(candidate)
+                    completed = self.semantic(trusted, candidate, "exact")
+                    self.assertEqual(completed.returncode, 2, completed.stderr)
+                    self.assertIn(code, completed.stdout)
+            for phrase in forbidden_phrases:
+                with self.subTest(case=f"inside-{phrase}"):
+                    write(bridge(candidate), original)
+                    add_inside(candidate, phrase)
+                    completed = self.semantic(trusted, candidate, "exact")
+                    self.assertEqual(completed.returncode, 0, completed.stderr)
+            for case_id, mutate in valid_cases:
+                with self.subTest(case=case_id):
+                    write(bridge(candidate), original)
+                    mutate(candidate)
+                    completed = self.semantic(trusted, candidate, "exact")
+                    self.assertEqual(completed.returncode, 0, completed.stderr)
+            for phrase in forbidden_phrases:
+                for tag in ("p", 'meta name="migration-claim" content'):
+                    with self.subTest(case=f"outside-{tag}-{phrase}"):
+                        write(bridge(candidate), original)
+                        if tag == "p":
+                            add_outside(candidate, phrase)
+                        else:
+                            write(bridge(candidate), original.replace("</head>", f'<meta name="migration-claim" content="{phrase}" /></head>', 1))
+                        completed = self.semantic(trusted, candidate, "exact")
+                        self.assertEqual(completed.returncode, 2, completed.stderr)
+                        self.assertIn("REMOVED_INGRESS_OUTSIDE_MIGRATION_BOUNDARY", completed.stdout)
+            write(bridge(candidate), original)
+            add_outside(candidate, "RPC is supported", "a")
+            completed = self.semantic(trusted, candidate, "exact")
+            self.assertEqual(completed.returncode, 2, completed.stderr)
+            self.assertIn("REMOVED_INGRESS_OUTSIDE_MIGRATION_BOUNDARY", completed.stdout)
+
+    def test_semantic_claims_reject_symlinked_candidate_files(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="semantic-claims-symlink-") as directory:
+            root = Path(directory)
+            trusted, candidate = self.copy_roots(root)
+            escaped = root / "outside-state.json"
+            shutil.copyfile(candidate / "release-sync.json", escaped)
+            (candidate / "release-sync.json").unlink()
+            (candidate / "release-sync.json").symlink_to(escaped)
+            completed = self.semantic(trusted, candidate)
+            self.assertEqual(completed.returncode, 2, completed.stderr)
+            self.assertIn("OWNERSHIP_REJECTED", completed.stdout)
+            candidate_alias = root / "candidate-alias"
+            candidate_alias.symlink_to(candidate, target_is_directory=True)
+            alias = self.semantic(trusted, candidate_alias)
+            self.assertEqual(alias.returncode, 4, alias.stderr)
+            self.assertIn("must not be a symlink", alias.stdout)
+
+
 def suite_for(case: str) -> unittest.TestSuite:
     loader = unittest.defaultTestLoader
     if case == "resolver-generator":
@@ -1855,16 +2095,19 @@ def suite_for(case: str) -> unittest.TestSuite:
         return loader.loadTestsFromTestCase(ReleaseSyncFixture)
     if case == "workflow-contracts":
         return loader.loadTestsFromTestCase(WorkflowContractFixture)
+    if case == "semantic-claims-trust-boundary":
+        return loader.loadTestsFromTestCase(SemanticClaimsFixture)
     suite = unittest.TestSuite()
     suite.addTests(loader.loadTestsFromTestCase(ResolverGeneratorFixture))
     suite.addTests(loader.loadTestsFromTestCase(ReleaseSyncFixture))
     suite.addTests(loader.loadTestsFromTestCase(WorkflowContractFixture))
+    suite.addTests(loader.loadTestsFromTestCase(SemanticClaimsFixture))
     return suite
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--case", choices=("resolver-generator", "ownership-review-cas", "workflow-contracts", "all"), default="all")
+    parser.add_argument("--case", choices=("resolver-generator", "ownership-review-cas", "semantic-claims-trust-boundary", "workflow-contracts", "all"), default="all")
     args = parser.parse_args()
     result = unittest.TextTestRunner(verbosity=2).run(suite_for(args.case))
     return 0 if result.wasSuccessful() else 1
