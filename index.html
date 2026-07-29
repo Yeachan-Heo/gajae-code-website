@@ -3,29 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Gajae Code (gjc) is an external coding-agent harness: shape intent with interviews, act through reviewed plans and tmux-native execution, and prove the result with durable evidence. Bridge/RPC control plane, focused skills, and worktree-isolated workers." />
-  <meta name="keywords" content="Gajae Code, gjc, coding agent, autonomous agent, AI agent, CLI, developer tools, tmux, git worktree, RPC, bridge, agent harness" />
+  <meta name="description" content="Gajae Code (gjc) is an external coding-agent harness for reviewable work: shape intent, act through approved plans, and prove results with durable evidence. Direct clients use the SDK WebSocket; Coordinator MCP automates multiple sessions; ACP serves editor clients." />
+  <meta name="keywords" content="Gajae Code, gjc, coding agent, autonomous agent, AI agent, CLI, developer tools, SDK WebSocket, Coordinator MCP, ACP, git worktree, agent harness" />
   <meta name="author" content="Gajae Code" />
   <meta name="theme-color" content="#ff5347" />
 
   <!-- Open Graph / Social -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://yeachan-heo.github.io/gajae-code-website/" />
+  <meta property="og:url" content="https://gajae-code.com/" />
   <meta property="og:title" content="Gajae Code — Encode intention. Decode software." />
-  <meta property="og:description" content="An external coding-agent harness for interviews, reviewed plans, tmux-native execution, and durable verification. Shape · act · prove." />
-  <meta property="og:image" content="https://yeachan-heo.github.io/gajae-code-website/assets/hero.png" />
+  <meta property="og:description" content="An external coding-agent harness for reviewed work, with SDK WebSocket control, Coordinator MCP automation, ACP editor clients, and durable verification." />
+  <meta property="og:image" content="https://gajae-code.com/assets/hero.png" />
   <meta property="og:image:alt" content="Gajae Code autonomous coding-agent hero illustration" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Gajae Code — Encode intention. Decode software." />
-  <meta name="twitter:description" content="An external coding-agent harness: shape intent, act through reviewed plans, and prove the result with durable evidence." />
-  <meta name="twitter:image" content="https://yeachan-heo.github.io/gajae-code-website/assets/hero.png" />
+  <meta name="twitter:description" content="A reviewable coding-agent harness with SDK WebSocket control, Coordinator MCP automation, ACP editor clients, and durable evidence." />
+  <meta name="twitter:image" content="https://gajae-code.com/assets/hero.png" />
 
   <!-- release-sync:public-release-meta:start -->
-  <meta name="gajae-release" content="354535742:v0.11.0:8132409c3f10754fea5f3b0108a7bee979c43652" />
+  <meta name="gajae-release" content="361036923:v0.12.0:4e927cca7e6dda31d715957a2ecfbcbc4e62869a" />
   <!-- release-sync:public-release-meta:end -->
 
+  <link rel="canonical" href="https://gajae-code.com/" />
   <title>Gajae Code — Encode intention. Decode software.</title>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
@@ -67,14 +68,14 @@
     <div class="hero__content">
       <div class="hero__text">
         <!-- release-sync:homepage-hero-badge:start -->
-        <span class="hero__badge">🦀 v0.11.0 · beta · MIT licensed</span>
+        <span class="hero__badge">🦀 v0.12.0 · beta · MIT licensed</span>
         <!-- release-sync:homepage-hero-badge:end -->
         <h1 class="hero__title"><span class="gradient-text">Gajae Code</span></h1>
         <p class="hero__tagline">Encode intention. Decode software.</p>
         <p class="hero__description">
-          An external coding-agent harness for interviews, reviewed plans, tmux-native
-          execution, and durable verification. Run <code>gjc</code> from any repo or
-          worktree and give your agent a small, explicit workflow surface.
+          An external coding-agent harness for interviews, approved plans, and durable
+          verification. Run <code>gjc</code> from the repository or worktree you choose,
+          then integrate direct clients through the SDK WebSocket, Coordinator MCP, or ACP.
         </p>
         <div class="hero__pills">
           <span class="pill"><strong>shape</strong> · interview</span>
@@ -109,7 +110,7 @@
         <p class="card__text" style="font-size:1.05rem">
           It runs <em>beside</em> your existing tools — start it alongside Codex CLI,
           Claude Code, OpenCode, or Claw Code when you want structured planning,
-          persistent evidence, tmux-backed workers, or an isolated worktree.
+          persistent evidence, an SDK integration, or an isolated worktree.
         </p>
       </div>
       <div class="terminal reveal" aria-label="Recommended workflow example">
@@ -118,8 +119,8 @@
           <span class="terminal__label">recommended workflow</span>
         </div>
         <div class="terminal__body">
-<pre><code><span class="tok-comment"># run gjc beside your repo; create a worktree from a new branch</span>
-<span class="tok-prompt">$</span> <span class="tok-cmd">gjc</span> <span class="tok-flag">--tmux</span> <span class="tok-flag">--worktree</span> my-task-branch
+<pre><code><span class="tok-comment"># run gjc in the repository or worktree you want to change</span>
+<span class="tok-prompt">$</span> <span class="tok-cmd">gjc</span>
 
 
 <span class="tok-comment"># inside the session: shape -&gt; act -&gt; prove</span>
@@ -135,38 +136,34 @@
   <!-- release-sync:homepage-release-strip:start -->
   <section class="section section--tight" id="latest-release">
     <div class="section__header reveal">
-      <span class="section__eyebrow">Latest stable · v0.11.0</span>
-      <h2 class="section__title">Gajae Code v0.11.0</h2>
-      <p class="section__subtitle">Published 2026-07-15. Release binaries and npm packages are available.</p>
+      <span class="section__eyebrow">Latest stable · v0.12.0</span>
+      <h2 class="section__title">Gajae Code v0.12.0</h2>
+      <p class="section__subtitle">Published 2026-07-28. Release binaries and npm packages are available.</p>
       <div class="hero__cta">
         <a href="docs/whats-new.html" class="btn btn--primary">Read what’s new</a>
-        <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.11.0" class="btn btn--secondary" target="_blank" rel="noopener noreferrer">GitHub Release</a>
+        <a href="https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.0" class="btn btn--secondary" target="_blank" rel="noopener noreferrer">GitHub Release</a>
       </div>
     </div>
   </section>
   <!-- release-sync:homepage-release-strip:end -->
 
-  <!-- New in 0.7.2 -->
+  <!-- Integration surfaces -->
   <section class="section" id="whats-new">
     <div class="section__header reveal">
-      <span class="section__eyebrow">New in v0.7.2</span>
-      <h2 class="section__title">Mobile answers for coding agents</h2>
-      <p class="section__subtitle">The configure-once notifications SDK now adds Discord and Slack adapters and Telegram photo/file attachments, so asks, context updates, attachments, inline approvals, and free-text replies reach your phone — while native web search gains trustworthy citations over proxies and custom endpoints.</p>
+      <span class="section__eyebrow">Integration surfaces</span>
+      <h2 class="section__title">Choose the client boundary that fits</h2>
+      <p class="section__subtitle">Use the SDK WebSocket for direct control of one session, Coordinator MCP for multi-session automation, and ACP when an editor client is the right front end. Legacy Bridge and RPC modes are not current interfaces.</p>
     </div>
-    <a class="card reveal" href="docs/telegram-onboarding.html" style="margin:0 auto 2rem;max-width:980px;overflow:hidden;display:block">
-      <img src="assets/telegram-mobile-hero.png" alt="Gajae Code 0.7.2 mobile answers for coding agents hero illustration" style="width:100%;border-radius:20px;display:block" loading="lazy" />
-      <p class="card__text" style="margin-top:1rem">The Telegram flow creates a threaded per-session mobile surface with live/finalized output, image attachments, inline buttons, typing indicators, and double-check acknowledgements. <code>gjc daemon</code> keeps one safe long-poll owner per bot token so sessions attach cleanly instead of tripping Telegram 409 conflicts.</p>
-    </a>
     <div class="grid grid--2 reveal" style="gap:2.5rem;align-items:start">
-      <a class="card" href="docs/rlm.html">
-        <img src="assets/rlm.png" alt="gjc rlm research mode — Research. Experiment. Iterate." style="width:100%;border-radius:12px;margin-bottom:1.25rem" loading="lazy" />
-        <h3 class="card__title"><code>gjc rlm</code> — research / REPL mode</h3>
-        <p class="card__text">A Jupyter-notebook-style research session over a persistent Python kernel. The toolset is hard-gated to <code>python</code> + <code>read</code> + <code>web_search</code> (asserted after registry assembly, so no <code>edit</code>/<code>write</code> can leak in). Every cell streams into <code>.gjc/rlm/&lt;session&gt;/notebook.ipynb</code> and a <code>report.md</code> is synthesized on exit.</p>
+      <a class="card" href="docs/bridge-rpc.html">
+        <div class="card__icon" aria-hidden="true">🔌</div>
+        <h3 class="card__title">SDK &amp; Migration</h3>
+        <p class="card__text">Build direct session clients on the loopback SDK WebSocket. The preserved route also explains migration away from historical Bridge and RPC ingress modes.</p>
       </a>
       <a class="card" href="docs/computer-use.html">
         <img src="assets/computer-use.png" alt="computer-use desktop control — See. Click. Type. Control." style="width:100%;border-radius:12px;margin-bottom:1.25rem" loading="lazy" />
         <h3 class="card__title"><code>computer</code> — desktop control <span style="opacity:.6">(experimental)</span></h3>
-        <p class="card__text">A model-agnostic tool that drives a real Apple Silicon macOS desktop via the OpenAI computer-use action set — screenshot, click, type, scroll, and more. Native, HiDPI-safe coordinates, TCC-preflighted, and protected by a user-only kill-switch outside model control. Off by default; enable per session with <code>computer.enabled=true</code>.</p>
+        <p class="card__text">The opt-in <code>computer</code> tool is available on macOS. Its nine actions are <code>screenshot</code>, <code>click</code>, <code>double_click</code>, <code>move</code>, <code>drag</code>, <code>scroll</code>, <code>type</code>, <code>keypress</code>, and <code>wait</code>; Screen Recording and Accessibility permissions are required.</p>
       </a>
     </div>
   </section>
@@ -188,7 +185,7 @@
         <div class="pillar">
           <span class="pillar__num">02 — Act</span>
           <h3 class="pillar__title">Plan before mutation</h3>
-          <p class="pillar__text"><code>ralplan</code> builds and critiques the implementation plan, then <code>ultragoal</code> carries the approved plan through execution with tmux-backed workers when parallelism helps.</p>
+          <p class="pillar__text"><code>ralplan</code> builds and critiques the implementation plan, then <code>ultragoal</code> carries the approved plan through execution, revision, verification, and evidence.</p>
         </div>
         <div class="pillar">
           <span class="pillar__num">03 — Prove</span>
@@ -224,7 +221,7 @@
       <div class="flow__arrow" aria-hidden="true">→</div>
       <div class="flow__step">
         <h4>team <span style="opacity:.6">(optional)</span></h4>
-        <p>Coordinate tmux-backed workers when parallel execution is worth it.</p>
+        <p>Coordinate focused workers when parallel execution is worth it.</p>
       </div>
     </div>
   </section>
@@ -254,20 +251,19 @@
           <p class="card__text"><code>ultragoal</code> records goals, revisions, checks, and completion evidence under <code>.gjc/</code> — a verifiable trail for every task.</p>
         </article>
         <article class="card">
-          <div class="card__icon" aria-hidden="true">🪟</div>
-          <h3 class="card__title">tmux-native execution</h3>
-          <p class="card__text">Run a leader session with <code>--tmux</code> and coordinate workers without losing visibility into what each lane is doing.</p>
+          <div class="card__icon" aria-hidden="true">🧩</div>
+          <h3 class="card__title">Client integrations</h3>
+          <p class="card__text">Use the SDK WebSocket to control a direct session, Coordinator MCP to automate multiple sessions, or ACP to connect an editor client.</p>
         </article>
         <article class="card">
           <div class="card__icon" aria-hidden="true">🌿</div>
           <h3 class="card__title">Worktree isolation</h3>
-          <p class="card__text">Have <code>gjc</code> create an isolated git worktree from a new branch for risky or reviewable work, keeping your primary checkout clean.</p>
-
+          <p class="card__text">Create an isolated git worktree from a new branch for risky or reviewable work, keeping the primary checkout clean.</p>
         </article>
         <a class="card" href="docs/hermes-mcp-bridge.html">
           <div class="card__icon" aria-hidden="true">🧭</div>
-          <h3 class="card__title">Hermes / OpenClaw MCP Bridge</h3>
-          <p class="card__text">Drive GJC from a Hermes/OpenClaw coordinator. Start with the recommended <code>gjc</code> tmux skill-based routed session, then graduate to the MCP bridge and <code>gjc-delegation</code> skill — bounded polling turns and fail-closed mutation gates.</p>
+          <h3 class="card__title">Coordinator MCP</h3>
+          <p class="card__text">Coordinate multiple sessions with bounded turns, structured questions, durable status, and reports through the Coordinator MCP surface.</p>
         </a>
         <a class="card" href="docs/rlm.html">
           <div class="card__icon" aria-hidden="true">🔬</div>
@@ -277,7 +273,7 @@
         <a class="card" href="docs/computer-use.html">
           <div class="card__icon" aria-hidden="true">🖥️</div>
           <h3 class="card__title">Desktop control <span style="opacity:.6">(experimental)</span></h3>
-          <p class="card__text">The opt-in <code>computer</code> tool drives a real Apple Silicon macOS desktop via the OpenAI computer-use action set — native, HiDPI-safe, TCC-preflighted, and behind a user-only kill-switch.</p>
+          <p class="card__text">The opt-in <code>computer</code> tool is available on macOS with nine actions: screenshot, click, double-click, move, drag, scroll, type, keypress, and wait.</p>
         </a>
       </div>
     </section>
@@ -292,8 +288,8 @@
     </div>
     <div class="layers reveal">
       <div class="layer">
-        <div class="layer__name">CLI &amp; modes<span>coding-agent</span></div>
-        <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team</code>, <code>rlm</code>) and dispatches interactive, print, RPC, and bridge modes.</div>
+        <div class="layer__name">CLI &amp; client surfaces<span>coding-agent</span></div>
+        <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team</code>, <code>rlm</code>) and supports interactive sessions, print output, SDK WebSocket clients, Coordinator MCP automation, and ACP editor clients.</div>
       </div>
       <div class="layer">
         <div class="layer__name">Agent runtime<span>agent</span></div>
@@ -322,55 +318,35 @@
     <section class="section" id="install">
       <div class="section__header reveal">
         <span class="section__eyebrow">Get started</span>
-        <h2 class="section__title">Up and running in two steps</h2>
-        <p class="section__subtitle">Install with Bun, then launch in your repository.</p>
+        <h2 class="section__title">Choose an installation path</h2>
+        <p class="section__subtitle">Download a standalone binary, install a package with Bun, or build from source, then launch in your repository.</p>
       </div>
       <div class="install-grid reveal">
         <div class="install-step">
-          <div class="install-step__label"># 1 · install globally with Bun</div>
+          <div class="install-step__label"># 1 · download a standalone binary</div>
           <div class="code-block">
-            <div class="code-block__header">
-              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <button class="code-block__copy" data-copy="bun install -g gajae-code">Copy</button>
-            </div>
+            <div class="code-block__body"><code>macOS arm64: <a href="https://github.com/Yeachan-Heo/gajae-code/releases/download/v0.11.0/gjc-darwin-arm64">download</a> · macOS x64: <a href="https://github.com/Yeachan-Heo/gajae-code/releases/download/v0.11.0/gjc-darwin-x64">download</a><br>Linux x64: <a href="https://github.com/Yeachan-Heo/gajae-code/releases/download/v0.11.0/gjc-linux-x64">download</a> · Linux arm64: <a href="https://github.com/Yeachan-Heo/gajae-code/releases/download/v0.11.0/gjc-linux-arm64">download</a><br>Windows x64: <a href="https://github.com/Yeachan-Heo/gajae-code/releases/download/v0.11.0/gjc-windows-x64.exe">download</a></code></div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="install-step__label"># 2 · or install from a package</div>
+          <div class="code-block">
+            <div class="code-block__header"><div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div><button class="code-block__copy" data-copy="bun install -g gajae-code">Copy</button></div>
             <div class="code-block__body"><code>bun install -g gajae-code</code></div>
           </div>
         </div>
         <div class="install-step">
-          <div class="install-step__label"># 2 · verify the install</div>
+          <div class="install-step__label"># 3 · verify and launch</div>
           <div class="code-block">
-            <div class="code-block__header">
-              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <button class="code-block__copy" data-copy="gjc --version && gjc --smoke-test">Copy</button>
-            </div>
-            <div class="code-block__body"><code>gjc --version &amp;&amp; gjc --smoke-test</code></div>
-          </div>
-        </div>
-        <div class="install-step">
-          <div class="install-step__label"># 3 · launch in the current checkout</div>
-          <div class="code-block">
-            <div class="code-block__header">
-              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <button class="code-block__copy" data-copy="gjc">Copy</button>
-            </div>
-            <div class="code-block__body"><code>gjc</code></div>
-          </div>
-        </div>
-        <div class="install-step">
-          <div class="install-step__label"># 4 · or create a worktree from a new branch</div>
-          <div class="code-block">
-            <div class="code-block__header">
-              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <button class="code-block__copy" data-copy="gjc --tmux --worktree my-task-branch">Copy</button>
-            </div>
-            <div class="code-block__body"><code>gjc --tmux --worktree my-task-branch</code></div>
+            <div class="code-block__header"><div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div><button class="code-block__copy" data-copy="gjc --version && gjc">Copy</button></div>
+            <div class="code-block__body"><code>gjc --version &amp;&amp; gjc</code></div>
           </div>
         </div>
       </div>
       <p style="text-align:center;margin-top:2rem" class="reveal">
         <a href="docs/getting-started.html" class="btn btn--secondary">Full getting-started guide →</a>
         &nbsp;
-        <span class="card__text" style="display:inline">Also available as <code>@gajae-code/coding-agent</code>.</span>
+        <span class="card__text" style="display:inline">Packages: <code>gajae-code</code> and <code>@gajae-code/coding-agent</code>. Source availability: <a href="https://github.com/Yeachan-Heo/gajae-code" target="_blank" rel="noopener noreferrer">build from source on GitHub</a>.</span>
       </p>
     </section>
   </div>
@@ -392,7 +368,7 @@
               <tr><td><code>deep-interview</code></td><td>Clarifies ambiguous requirements before planning or code changes.</td></tr>
               <tr><td><code>ralplan</code></td><td>Builds and critiques an implementation plan before mutation.</td></tr>
               <tr><td><code>ultragoal</code></td><td>Tracks goals through execution, revision, verification, and evidence.</td></tr>
-              <tr><td><code>team</code></td><td>Coordinates tmux-backed workers when parallel execution is worth it.</td></tr>
+              <tr><td><code>team</code></td><td>Coordinates focused workers when parallel execution is worth it.</td></tr>
             </tbody>
           </table>
         </div>
@@ -450,8 +426,8 @@
         <div class="safety-item">
           <div class="safety-item__mark" aria-hidden="true">🔒</div>
           <div>
-            <h4>Fail-closed remote control</h4>
-            <p>Bridge mode is HTTPS-only with a mandatory bearer token, and session-control endpoints are disabled by default.</p>
+            <h4>Scoped client control</h4>
+            <p>The SDK WebSocket, Coordinator MCP, and ACP expose explicit client boundaries rather than historical Bridge or RPC ingress modes.</p>
           </div>
         </div>
       </div>
@@ -486,8 +462,8 @@
       </a>
       <a class="card" href="docs/bridge-rpc.html">
         <div class="card__icon" aria-hidden="true">🔌</div>
-        <h3 class="card__title">Bridge &amp; RPC</h3>
-        <p class="card__text">The remote-control surfaces: stdio RPC and the fail-closed HTTPS bridge.</p>
+        <h3 class="card__title">SDK &amp; Migration</h3>
+        <p class="card__text">Direct session control uses the SDK WebSocket; Coordinator MCP automates multiple sessions; ACP serves editor clients.</p>
       </a>
       <a class="card" href="docs/skills.html">
         <div class="card__icon" aria-hidden="true">🧩</div>
@@ -524,7 +500,7 @@
             <span class="nav__logo-mark" aria-hidden="true">🦀</span>
             <span>Gajae Code</span>
           </a>
-          <p>An external coding-agent harness for interviews, reviewed plans, tmux-native execution, and durable verification.</p>
+          <p>An external coding-agent harness for interviews, approved plans, SDK and editor integrations, and durable verification.</p>
         </div>
         <div class="footer__cols">
           <div class="footer__col">
@@ -532,7 +508,7 @@
             <a href="docs/index.html">Documentation Hub</a>
             <a href="docs/getting-started.html">Getting Started</a>
             <a href="docs/architecture.html">Architecture</a>
-            <a href="docs/bridge-rpc.html">Bridge &amp; RPC</a>
+            <a href="docs/bridge-rpc.html">SDK &amp; Migration</a>
           </div>
           <div class="footer__col">
             <h5>Reference</h5>

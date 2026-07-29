@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.11.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -37,7 +37,7 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link " href="bridge-rpc.html">SDK & Migration</a>
         <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
         <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
       </div>
@@ -52,10 +52,10 @@
       <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Receipts</h1><p>How Gajae Code-oriented workflows preserve proof: checks, verdicts, summaries, and public-safe evidence trails.</p></section>
 
       <section class="docs-section"><h2>Proof over vibes</h2><p>Good agent work needs receipts: what was attempted, what passed, what failed, what changed, and what remains blocked. Gajae Code workflows are designed to end with evidence rather than a vague status update.</p></section>
-      <section class="docs-section"><h2>What counts as evidence?</h2><ul><li>CI run names, conclusions, and links.</li><li>Local verification commands and summarized results.</li><li>PR review verdicts such as <code>MERGE_READY</code> or <code>REQUEST_CHANGES</code>.</li><li>Session state summaries and terminal outcomes.</li><li>Public-safe artifacts that avoid raw secrets, logs, or private payloads.</li></ul></section>
-      <section class="docs-section"><h2>Completion contract</h2><p>A task is not truly done until the result is observable and repeatable: code committed, docs published, tests passed or blockers recorded, and the next operator can understand the state.</p></section>
+      <section class="docs-section"><h2>What counts as evidence?</h2><ul><li>CI run names, conclusions, links, and the commit or change set they evaluated.</li><li>Narrowly scoped local verification commands, including their command, exit status, relevant result, and the revision or working tree they ran against.</li><li>PR review verdicts such as <code>MERGE_READY</code> or <code>REQUEST_CHANGES</code>, with the reviewed change reference.</li><li>Lifecycle receipts from the system that performed the action: its run or session identifier, timestamp, action, outcome, and artifact or change reference.</li><li>Public-safe artifacts that avoid raw secrets, logs, or private payloads.</li></ul><p>Terminal panes, pane scraping, tmux state, and unscoped terminal output are not evidence of an outcome. Use a provenance-bearing lifecycle receipt or a narrowly scoped local command result instead.</p></section>
+      <section class="docs-section"><h2>Completion contract</h2><p>A task is complete when its requested deliverables are observable and repeatable: required checks have passed or blockers are recorded, and the next operator can understand the state. Commit or publish only when the user requested that deliverable and the operator has the required authorization; otherwise record the resulting change and evidence without implying either action occurred.</p></section>
 
-<nav class="doc-pager"><a href="skills.html">← Skills</a><a href="bridge-rpc.html">Bridge & RPC →</a></nav>
+<nav class="doc-pager"><a href="skills.html">← Skills</a><a href="bridge-rpc.html">SDK & Migration →</a></nav>
     </main>
   </div>
   <script src="../js/main.js"></script>

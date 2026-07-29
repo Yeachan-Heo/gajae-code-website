@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Gajae Remote v0 design: a thin phone steering wheel for PC-side GJC sessions with gateway-only scopes and bounded transmitted data." />
+  <meta name="description" content="Gajae Remote is a proposed phone companion architecture; its gateway, TLS, scopes, and bounded-data controls are not yet shipped." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
   <title>Gajae Remote · Gajae Code Docs</title>
   <link rel="stylesheet" href="../css/styles.css" />
@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.11.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -37,8 +37,8 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link " href="bridge-rpc.html">Bridge & RPC</a>
-        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
+        <a class="docs-nav-link " href="bridge-rpc.html">SDK &amp; Migration</a>
+        <a class="docs-nav-link " href="hermes-mcp-bridge.html">Coordinator MCP</a>
         <a class="docs-nav-link is-active" href="gajae-remote.html">Gajae Remote</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
@@ -49,19 +49,17 @@
   </aside>
 
     <main class="docs-main">
-      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Gajae Remote v0</h1><p>A thin phone steering wheel for already-running PC-side <code>gjc</code> sessions. It observes bounded state and submits one-line instructions without becoming a shell, file editor, or remote desktop.</p></section>
+      <section class="docs-hero"><p class="eyebrow">Roadmap architecture · not yet available</p><h1>Gajae Remote</h1><p>Gajae Remote is a proposed thin phone steering wheel for already-running PC-side <code>gjc</code> sessions. It is not a shipped product surface: there is no released gateway, pairing flow, mobile client, TLS endpoint, bearer token, or <code>remote:*</code> scope to configure today.</p></section>
 
-      <section class="docs-section"><h2>Authority boundary</h2><div class="callout"><strong>PC stays authoritative:</strong> the gateway and phone are observers plus one-line submitters. File edits, shell execution, workflow-gate answers, approval prompts, raw transcripts, tool arguments/results, diffs, secrets, environment, and system prompts stay on the PC.</div><ul><li>Phone clients may list active sessions, open one bounded session view, submit one line through the owner submit path, and see idle/working/blocked/offline status.</li><li>The phone cannot bypass <code>readyForSubmit</code> or submit while the owner runtime is busy.</li><li>Held-back content is shown as a neutral “withheld on PC” marker, not as a redacted blob.</li></ul></section>
+      <section class="docs-section"><h2>Target authority boundary</h2><div class="callout"><strong>Design target, not a current guarantee:</strong> the PC would remain authoritative. The proposed phone companion would observe bounded state and submit one-line instructions only; it would not become a shell, file editor, remote desktop, SDK WebSocket client, or Coordinator MCP controller.</div><p>The proposed boundary keeps file edits, shell execution, workflow-gate answers, approval prompts, raw transcripts, tool arguments/results, diffs, secrets, environment, and system prompts on the PC. No runtime currently enforces this proposed remote boundary.</p></section>
 
-      <section class="docs-section"><h2>Gateway-only scopes</h2><p>v0 reuses the bridge transport posture — TLS, bearer tokens, fail-closed defaults — but it does <strong>not</strong> give phone bearers bridge/RPC command authority.</p><ul><li>Allowed gateway scopes: <code>remote:view</code> and <code>remote:submit</code>.</li><li>These are not aliases for <code>message:read</code> or <code>prompt</code>.</li><li>Phone bearers must not authorize bridge calls such as <code>get_messages</code>, <code>get_last_assistant_text</code>, <code>get_state</code> with <code>systemPrompt</code>/<code>tools</code>, <code>new_session</code>, <code>switch_session</code>, <code>branch</code>, <code>set_model</code>, shell, host, control, or admin surfaces.</li></ul></section>
+      <section class="docs-section"><h2>Proposed gateway-only scopes</h2><p>The planned gateway would be separate from Bridge mode, the per-session SDK WebSocket, Coordinator MCP, and ACP. TLS, bearer authentication, fail-closed behavior, and the following scopes are architecture targets rather than live security properties:</p><ul><li><code>remote:view</code> for bounded views.</li><li><code>remote:submit</code> for one-line submission through the owner submit path.</li><li>No scope would authorize raw session reads, session creation or switching, branching, model changes, shell or host control, or administrative surfaces.</li></ul></section>
 
-      <section class="docs-section"><h2>Transmitted-data allowlist</h2><p>Only a typed projection leaves the PC. Session summaries expose <code>sessionId</code>, a sanitized derived name, harness, status, last activity, and branch. Open-session views expose bounded lifecycle, owner liveness, blockers, observed signals, git delta enum, risk enum, submit readiness, and submit-unavailable reason.</p><p>Everything else is withheld by default: raw pane output, full transcript/message bodies, tool args/results, file contents, diffs, system prompt, env, tokens, secrets, and absolute paths beyond safe metadata.</p></section>
+      <section class="docs-section"><h2>Proposed transmitted-data allowlist</h2><p>The design would expose only a typed projection: session summaries with <code>sessionId</code>, a sanitized derived name, harness, status, last activity, and branch; and bounded open-session lifecycle, liveness, blockers, signals, git-delta/risk enums, and submit readiness.</p><p>Raw pane output, full transcript/message bodies, tool args/results, file contents, diffs, system prompt, env, tokens, secrets, and absolute paths would be withheld by default. These are intended requirements, not implemented filtering guarantees.</p></section>
 
-      <section class="docs-section"><h2>v0 architecture</h2><p>The new piece is a PC-side Gajae Remote gateway. It enumerates harness-control-plane session state, observes each owner through bounded control-plane data, and proxies one-line submits through the same owner submit path used locally.</p><ul><li>Network/auth posture: bridge mode’s TLS + bearer + fail-closed model.</li><li>Session/liveness source: harness control-plane state, leases, heartbeat, and bounded observation.</li><li>Client first target: mobile web, following the local server + SPA pattern already used by <code>packages/stats</code>.</li><li>Hosted relay is deferred to v1 and needs separate ADR-level trust-model review.</li></ul></section>
+      <section class="docs-section"><h2>Planned architecture and failure behavior</h2><p>The proposed PC-side gateway would enumerate harness control-plane state, observe each owner through bounded control-plane data, and proxy one-line submits through the local owner submit path. A mobile-web client is the first target; a hosted relay is deferred pending separate trust-model review.</p><p>The design calls for disabled submit when the owner is offline or busy, re-pairing after revoked credentials, typed authorization errors such as <code>scope_denied</code>, and a neutral “withheld on PC” marker. Do not depend on these behaviors until Gajae Remote ships with documented configuration and release notes.</p></section>
 
-      <section class="docs-section"><h2>Failure states</h2><ul><li><strong>Offline:</strong> owner lease dead or gateway unreachable; submit disabled.</li><li><strong>Expired pairing:</strong> token expired/revoked; re-pair on PC.</li><li><strong>Busy:</strong> <code>readyForSubmit == false</code>; show reason and disable submit.</li><li><strong>Rejected submit:</strong> typed error such as <code>scope_denied</code>.</li><li><strong>Withheld output:</strong> show “withheld on PC”.</li></ul></section>
-
-<nav class="doc-pager"><a href="hermes-mcp-bridge.html">← Hermes / OpenClaw MCP Bridge</a><a href="troubleshooting.html">Troubleshooting →</a></nav>
+<nav class="doc-pager"><a href="hermes-mcp-bridge.html">← Coordinator MCP</a><a href="troubleshooting.html">Troubleshooting →</a></nav>
     </main>
   </div>
   <script src="../js/main.js"></script>

@@ -37,7 +37,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html">What's new</a>
+        <a class="docs-nav-link " href="whats-new.html">Release notes</a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -52,7 +52,7 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link is-active" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link " href="bridge-rpc.html">Bridge &amp; RPC</a>
+        <a class="docs-nav-link " href="bridge-rpc.html">SDK &amp; Migration</a>
         <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
         <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
       </div>
@@ -66,11 +66,11 @@
     <main class="docs-main">
       <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Building applications on the SDK</h1><p>Use Gajae-Code as the agent runtime for your own product — mobile apps, desktop apps, custom web frontends, and vertical AI applications. Delete your agentic loop; keep your product.</p></section>
 
-      <section class="docs-section"><h2>Proven in production</h2><p>The bundled <strong>Telegram, Discord, and Slack integrations are themselves ordinary SDK clients</strong>. They use the exact same public contract described here — no private hooks, no upstream changes. Anything they do (render questions on your phone, route replies back to the exact session, stream turn summaries), your integration can do.</p></section>
+      <section class="docs-section"><h2>Built with bundled adapters</h2><p>The bundled Telegram, Discord, and Slack adapters use the SDK surface described here. They demonstrate how an integration can render questions on a phone, route replies to a session, and stream turn summaries without relying on private hooks.</p></section>
 
       <section class="docs-section"><h2>Why build on it</h2><div class="doc-grid">
         <article><h3>Delete the agentic loop</h3><p>Tools, retries, compaction, session persistence, model fallback chains, streaming — one <code>createAgentSession()</code> call instead of a bespoke backend every vertical AI team rebuilds.</p></article>
-        <article><h3>Remote comes free</h3><p>Every session hosts a loopback WebSocket endpoint. Embed Gajae-Code and phone notifications, remote ask approvals, CLI automation, and MCP orchestration all work with zero extra code.</p></article>
+        <article><h3>Remote-ready sessions</h3><p>Each top-level session can expose a loopback WebSocket endpoint. Configure the bundled adapters or your own client to receive notifications, resolve remote asks, automate CLI flows, or coordinate through MCP.</p></article>
         <article><h3>Many subscribers</h3><p>The event stream supports multiple simultaneous subscribers: your app UI, a remote notifier, and an audit logger can all watch one session.</p></article>
         <article><h3>Not just coding</h3><p>Tools, skills, rules, and the system prompt are injectable. The same runtime powers legal assistants, research agents, and data-analysis products.</p></article>
       </div></section>
@@ -82,7 +82,7 @@
             <tr><td>What it is</td><td>Import <code>@gajae-code/coding-agent</code> as a library</td><td>Connect to a running session's loopback endpoint</td></tr>
             <tr><td>Language</td><td>TypeScript / Bun</td><td>Any language (JSON frames)</td></tr>
             <tr><td>Telemetry</td><td>Full: token deltas, tool events, session events</td><td>Curated: ask/action frames, summarized turn stream, queries</td></tr>
-            <tr><td>Trust</td><td>You are the host</td><td>Token-authenticated client; secrets never cross the wire</td></tr>
+            <tr><td>Trust</td><td>You are the host</td><td>Token-authenticated client; the token crosses the loopback handshake and must never be logged or exposed</td></tr>
           </tbody>
         </table>
         <p>A common production shape uses both: your product UI subscribes in-process for full-fidelity streaming while remote channels attach over WebSocket for notifications and approvals.</p>
@@ -119,21 +119,21 @@ await session.dispose();</code></pre>
       </section>
 
       <section class="docs-section"><h2>Attach from outside</h2>
-        <p>Any running top-level session writes a discovery file at <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code> containing its <code>url</code> and <code>token</code>. Connect with any WebSocket client, or <code>bun add @gajae-code/bridge-client</code> and use <code>SdkClient</code>.</p>
+        <p>Any running top-level session writes a discovery file at <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code> containing its <code>url</code> and <code>token</code>. The token crosses the loopback handshake, so treat it as a credential: never log or expose it. Connect with any WebSocket client, or <code>bun add @gajae-code/bridge-client</code> and use <code>SdkClient</code>.</p>
         <p>A minimal client handles three server frames — <code>action_needed</code>, <code>action_resolved</code>, <code>reply_rejected</code> — and sends one: <code>reply</code>. Optional threaded frames add <code>turn_stream</code>, <code>context_update</code>, <code>activity</code>, and <code>image_attachment</code>. Typed control operations (<code>turn.prompt</code>, <code>turn.steer</code>, <code>model.set</code>, <code>session.fork</code>, …) and read queries (<code>transcript.*</code>, <code>diff.*</code>, <code>usage.get</code>, …) cover nearly everything the TUI can do.</p>
         <p>Sessions can be created programmatically with no pre-existing session: the SDK broker starts on demand (<code>gjc daemon session</code>, broker global <code>session.create/fork/resume/close/delete</code>), and multi-session controllers can use the Coordinator MCP.</p>
       </section>
 
       <section class="docs-section"><h2>Recipes</h2><div class="doc-grid">
-        <article><h3>Vertical AI app</h3><p>Embed with <code>toolNames</code> + <code>customTools</code> + <code>skills</code> + a domain system prompt. Your UI streams token deltas in-process; users get phone approvals via the bundled adapters for free.</p></article>
-        <article><h3>Custom web app</h3><p>Run sessions under the broker; your backend attaches over WebSocket, renders <code>turn_stream</code>, answers asks with <code>reply</code>, reads history via <code>transcript.*</code>.</p></article>
-        <article><h3>Mobile / desktop companion</h3><p>Exactly the contract the Telegram daemon implements: discover endpoints, render <code>action_needed</code>, send <code>reply</code>.</p></article>
+        <article><h3>Vertical AI app</h3><p>Embed with <code>toolNames</code> + <code>customTools</code> + <code>skills</code> + a domain system prompt. Your UI streams token deltas in-process; bundled adapters can provide phone approvals when configured for the session.</p></article>
+        <article><h3>Custom web app</h3><p>Run top-level sessions under the broker; your backend attaches over WebSocket, renders <code>turn_stream</code>, answers asks with <code>reply</code>, and reads history via <code>transcript.*</code>.</p></article>
+        <article><h3>Mobile / desktop companion</h3><p>Use the same SDK surface as a bundled adapter: discover a top-level session endpoint, render <code>action_needed</code>, and send <code>reply</code>.</p></article>
         <article><h3>Fleet orchestrator</h3><p>Coordinator MCP or broker globals to create and supervise many worktree-scoped sessions.</p></article>
       </div></section>
 
-      <section class="docs-section"><h2>Deliberate boundaries</h2><p>The WebSocket surface is loopback-only, never carries secrets (<code>config.patch</code> rejects secret fields; endpoint credentials are prohibited through chat adapters), streams summarized turn text (no thinking tokens; redaction-gated), and fails closed on stale action identity. Full-fidelity token streaming is an in-process embedding capability by design — the boundary is trust, not capability.</p></section>
+      <section class="docs-section"><h2>Deliberate boundaries</h2><p>The WebSocket surface is loopback-only. Its session token crosses the loopback handshake and must never be logged or exposed; other secrets do not cross the interface (<code>config.patch</code> rejects secret fields, and endpoint credentials are prohibited through chat adapters). The surface streams summarized turn text (no thinking tokens; redaction-gated) and fails closed on stale action identity. Full-fidelity token streaming is an in-process embedding capability by design — the boundary is trust, not capability.</p></section>
 
-<nav class="doc-pager"><a href="receipts.html">← Receipts</a><a href="bridge-rpc.html">Bridge &amp; RPC →</a></nav>
+<nav class="doc-pager"><a href="receipts.html">← Receipts</a><a href="bridge-rpc.html">SDK &amp; Migration →</a></nav>
     </main>
   </div>
   <script src="../js/main.js"></script>

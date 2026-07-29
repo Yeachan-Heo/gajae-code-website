@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="How Gajae Code is built: the gjc CLI and modes, the stateful agent runtime, the provider boundary, the built-in tool registry, and the native and TUI layers." />
+  <meta name="description" content="How Gajae Code is built: the gjc CLI, stateful agent runtime, SDK WebSocket, Coordinator MCP, provider boundary, tools, and native and TUI layers." />
   <meta property="og:title" content="Architecture | Gajae Code" />
-  <meta property="og:description" content="A layered runtime: CLI and modes, agent loop, provider boundary, tools, and native helpers." />
+  <meta property="og:description" content="A layered runtime: CLI and modes, agent loop, SDK WebSocket and Coordinator MCP boundaries, providers, tools, and native helpers." />
   <meta property="og:type" content="website" />
   <title>Architecture | Gajae Code</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
@@ -29,7 +29,7 @@
         <p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link" href="index.html">Docs Home</a>
         <a class="docs-nav-link" href="getting-started.html">Getting Started</a>
-        <a class="docs-nav-link" href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.11.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link" href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section">
         <p class="docs-nav-section__title">Modes &amp; tools</p>
@@ -47,8 +47,8 @@
       <div class="docs-nav-section">
         <p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link" href="bridge-rpc.html">Bridge &amp; RPC</a>
-        <a class="docs-nav-link" href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
+        <a class="docs-nav-link" href="bridge-rpc.html">SDK &amp; Migration</a>
+        <a class="docs-nav-link" href="hermes-mcp-bridge.html">Coordinator MCP</a>
         <a class="docs-nav-link" href="gajae-remote.html">Gajae Remote</a>
       </div>
       <div class="docs-nav-section">
@@ -63,29 +63,29 @@
         <div class="doc-hero">
           <p class="doc-hero__eyebrow">Concepts</p>
           <h1>Architecture</h1>
-          <p>Gajae Code is a layered runtime. From CLI launch to model streams, every layer has a clear responsibility — and the public workflow surface stays small on purpose.</p>
+          <p>Gajae Code is a layered runtime. From CLI launch to model streams, every layer has a clear responsibility — and SDK WebSocket, Coordinator MCP, and ACP each have a deliberately separate integration boundary.</p>
         </div>
 
         <div class="doc-body">
           <h2>The big picture</h2>
-          <p>A normal session starts at the <code>gjc</code> binary, routes through command handling into session creation, then runs a stateful agent loop that streams model events, executes tools, records results, and hands state back to the selected mode — interactive TUI, print, RPC, RPC-UI, or ACP.</p>
+          <p>A normal session starts at the <code>gjc</code> binary, routes through command handling into session creation, then runs a stateful agent loop that streams model events, executes tools, records results, and hands state back to an interactive TUI, print, or ACP client. Applications attach to one running session through its loopback SDK WebSocket; external controllers coordinate multiple sessions through Coordinator MCP.</p>
 
           <div class="code-block">
             <div class="code-block__header">
               <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <button class="code-block__copy" data-copy="cli -> main -> sdk -> agent loop -> mode">Copy</button>
+              <button class="code-block__copy" data-copy="cli -> main -> sdk -> agent loop -> TUI | print | ACP">Copy</button>
             </div>
             <div class="code-block__body"><code>cli.ts           # register commands, parse options, pick a mode
   └─ main.ts     # adapt options into a session, dispatch the mode
        └─ sdk.ts # assemble settings, models, auth, skills, tools, prompt
             └─ agent-core      # stateful turn loop over the model stream
-                 └─ mode       # interactive TUI · print · RPC · RPC-UI · ACP</code></div>
+                 └─ mode       # interactive TUI · print · ACP</code></div>
           </div>
 
           <h2>The layers</h2>
 
           <h3>CLI &amp; modes</h3>
-          <p>The <code>gjc</code> binary registers commands such as <code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, and <code>team</code>, plus the default launch path. It adapts CLI options into a session and dispatches the chosen mode. The SDK layer assembles settings, the model registry, auth, workspace/context discovery, skills, rules, tools, and the system prompt before constructing the agent.</p>
+          <p>The <code>gjc</code> binary registers commands such as <code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, and <code>team</code>, plus the default launch path. It adapts CLI options into a session and dispatches the chosen mode. The SDK layer assembles settings, the model registry, auth, workspace/context discovery, skills, rules, tools, and the system prompt before constructing the agent.</p><p>For external control, a top-level session publishes its loopback SDK discovery record at <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code>. Use its <code>url</code> and credential only for that session's WebSocket handshake. Use Coordinator MCP, rather than per-session WebSocket control, when a controller must coordinate multiple sessions and durable bounded turns.</p>
 
           <h3>Agent runtime</h3>
           <p>A stateful turn loop transforms context, calls the model stream, executes tool calls, appends tool results, and emits lifecycle events. Around the loop sits mutable state, subscriptions, prompt/continue/abort APIs, message queues, provider session state, telemetry, and compaction for long sessions.</p>
@@ -102,7 +102,7 @@
           <div class="layers" style="margin-top:1.5rem">
             <div class="layer">
               <div class="layer__name">CLI &amp; modes<span>coding-agent</span></div>
-              <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team</code>, <code>rlm</code>) and dispatches interactive, print, RPC, bridge, and research modes.</div>
+              <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team</code>, <code>rlm</code>) and dispatches interactive, print, ACP, and research modes. The SDK WebSocket and Coordinator MCP are separate external integration boundaries.</div>
             </div>
             <div class="layer">
               <div class="layer__name">Agent runtime<span>agent</span></div>

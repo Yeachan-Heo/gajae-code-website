@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Bounded remote control for Gajae Code sessions through bridge mode, RPC commands, scoped authority, and client SDKs." />
+  <meta name="description" content="Current SDK architecture, loopback security, integration choices, and migration guidance for Gajae Code." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
-  <title>Bridge & RPC · Gajae Code Docs</title>
+  <title>SDK &amp; Migration · Gajae Code Docs</title>
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,7 +22,7 @@
       <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link " href="index.html">Docs home</a>
         <a class="docs-nav-link " href="getting-started.html">Getting started</a>
-        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.11.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
         <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
@@ -37,7 +37,7 @@
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
         <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
-        <a class="docs-nav-link is-active" href="bridge-rpc.html">Bridge & RPC</a>
+        <a class="docs-nav-link is-active" href="bridge-rpc.html">SDK &amp; Migration</a>
         <a class="docs-nav-link " href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
         <a class="docs-nav-link " href="gajae-remote.html">Gajae Remote</a>
       </div>
@@ -49,11 +49,12 @@
   </aside>
 
     <main class="docs-main">
-      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Bridge & RPC</h1><p>Bounded remote control for Gajae Code sessions through bridge mode, RPC commands, scoped authority, and client SDKs.</p></section>
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>SDK &amp; Migration</h1><p>Build against the current session SDK and choose the right integration boundary. This route preserves legacy links.</p></section>
 
-      <section class="docs-section"><h2>Bridge mode</h2><p>Bridge mode exposes an agent session over a controlled local service. It is designed for automation and UI clients that need to observe state, submit prompts, or integrate with external workflows without pretending a terminal is an API.</p></section>
-      <section class="docs-section"><h2>RPC principles</h2><ul><li><strong>Scoped commands:</strong> client authority is explicit instead of ambient.</li><li><strong>Bounded observations:</strong> clients ask for structured state rather than raw process dumps.</li><li><strong>Fail-closed defaults:</strong> missing or invalid authority should deny action, not widen it.</li><li><strong>Idempotent control:</strong> request identity matters when automating repeated actions.</li></ul></section>
-      <section class="docs-section"><h2>Client surfaces</h2><p>The repository includes client-oriented packages and Python integration points for driving sessions from automation. Use them to build dashboards, triage bots, or lightweight steering interfaces while keeping the PC-side session authoritative.</p></section>
+      <section class="docs-section"><h2>Current SDK architecture</h2><p>Each running top-level session publishes a discovery record at <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code>. The record provides the session's loopback <code>url</code> and connection <code>token</code>. Connect with the transport-only <code>@gajae-code/bridge-client</code> package and its <code>SdkClient</code>; <code>@gajae-code/coding-agent/sdk</code> remains a compatibility re-export of the same class identity.</p></section>
+      <section class="docs-section"><h2>Loopback security</h2><p>The SDK endpoint is loopback-only. Its token authenticates the loopback handshake, so treat it as a credential: read it only from the discovery record for the intended session, pass it to the client handshake, and never log, display, or expose it through chat adapters. Invalid or stale authority fails closed.</p></section>
+      <section class="docs-section"><h2>Choose an integration boundary</h2><ul><li><strong>Direct SDK:</strong> attach a product or local companion to one running session over its loopback WebSocket endpoint.</li><li><strong>Coordinator MCP:</strong> use the coordinator boundary when an external controller needs to coordinate multiple sessions and bounded turns.</li><li><strong>ACP:</strong> use ACP for an ACP-speaking client. It is a separate client protocol, not a replacement for the session SDK or Coordinator MCP.</li></ul></section>
+      <section class="docs-section" data-migration-note="v0.11.0"><h2>Migration from removed modes</h2><p>removed in v0.11.0</p><p>no compatibility shim</p><p>loopback SDK WebSocket</p><p><strong>Historical only:</strong> <code>rpc</code>, <code>rpc-ui</code>, and <code>bridge</code> were removed. Do not depend on <code>RpcClient</code> or any removed mode.</p><p>Migrate machine clients to the current SDK WebSocket interfaces.</p></section>
 
 <nav class="doc-pager"><a href="receipts.html">← Receipts</a><a href="gajae-remote.html">Gajae Remote →</a></nav>
     </main>
