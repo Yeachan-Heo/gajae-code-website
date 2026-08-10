@@ -326,6 +326,7 @@
             <span class="install-step__label"># 1 · choose your platform</span>
             <label class="installer__label" for="homepage-download-platform">Standalone binary</label>
             <select class="installer__select" id="homepage-download-platform" data-gjc-platform>
+              <option value="" selected>Choose your platform</option>
               <option value="gjc-darwin-arm64">macOS arm64 (Apple silicon)</option>
               <option value="gjc-darwin-x64">macOS x64 (Intel)</option>
               <option value="gjc-linux-x64">Linux x64</option>
@@ -333,10 +334,10 @@
               <option value="gjc-windows-x64.exe">Windows x64</option>
             </select>
           </div>
-          <a class="btn btn--primary btn--lg installer__button" data-gjc-download href="https://github.com/Yeachan-Heo/gajae-code/releases/latest/download/gjc-darwin-arm64">Download latest for macOS arm64</a>
-          <p class="installer__hint" data-gjc-detection aria-live="polite">Platform can be changed before downloading.</p>
+          <a class="btn btn--primary btn--lg installer__button" data-gjc-download href="https://github.com/Yeachan-Heo/gajae-code/releases/latest">View latest downloads</a>
+          <p class="installer__hint" data-gjc-detection aria-live="polite">Choose the platform and architecture for this machine.</p>
         </div>
-        <div class="installer__setup">
+        <div class="installer__setup" data-gjc-details hidden>
           <span class="install-step__label"># 2 · put <code>gjc</code> on your PATH</span>
           <div class="code-block">
             <div class="code-block__header"><div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div><button class="code-block__copy" data-gjc-copy data-copy="chmod +x ~/Downloads/gjc-darwin-arm64&#10;sudo install ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc">Copy</button></div>
@@ -344,7 +345,7 @@
 sudo install ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc</code></div>
           </div>
         </div>
-        <div class="installer__verify">
+        <div class="installer__verify" data-gjc-details hidden>
           <span class="install-step__label"># 3 · verify and launch</span>
           <div class="code-block">
             <div class="code-block__header"><div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div><button class="code-block__copy" data-copy="gjc --version && gjc --smoke-test && gjc">Copy</button></div>
