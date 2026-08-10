@@ -889,44 +889,44 @@ class ResolverGeneratorFixture(unittest.TestCase):
     def test_bootstrap_release_copy_is_neutral_and_resolver_requires_both_evidence_assets(self) -> None:
         release_state = json.loads((ROOT / "release-sync.json").read_text(encoding="utf-8"))
         expected_release = {
-            "id": 367516716,
-            "published_at": "2026-08-09T15:39:49Z",
-            "tag": "v0.12.21",
-            "url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.21",
-            "version": "0.12.21",
+            "id": 361036923,
+            "published_at": "2026-07-28T11:29:01Z",
+            "tag": "v0.12.0",
+            "url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.0",
+            "version": "0.12.0",
         }
         self.assertEqual(release_state["release"], expected_release)
         self.assertEqual(SYNC.validate_static_release_site(ROOT)["release"], expected_release)
         snapshot = {
             "release": {
-                "html_url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.21",
-                "id": 367516716,
-                "peeled_commit_sha": "d89dc9da6ecfda4f045fb76aa4d553c8f95c3bee",
-                "published_at": "2026-08-09T15:39:49Z",
-                "tag": "v0.12.21",
+                "html_url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.0",
+                "id": 361036923,
+                "peeled_commit_sha": "4e927cca7e6dda31d715957a2ecfbcbc4e62869a",
+                "published_at": "2026-07-28T11:29:01Z",
+                "tag": "v0.12.0",
             }
         }
         rendered = SYNC.render_regions(snapshot, [("Fixture", ["Bootstrap fixture."])])
         expected_homepage_strip = (
             "  <section class=\"section section--tight\" id=\"latest-release\">\n"
             "    <div class=\"section__header reveal\">\n"
-            "      <span class=\"section__eyebrow\">Latest stable · v0.12.21</span>\n"
-            "      <h2 class=\"section__title\">Gajae Code v0.12.21</h2>\n"
-            "      <p class=\"section__subtitle\">Published 2026-08-09. Release binaries and npm packages are available.</p>\n"
+            "      <span class=\"section__eyebrow\">Latest stable · v0.12.0</span>\n"
+            "      <h2 class=\"section__title\">Gajae Code v0.12.0</h2>\n"
+            "      <p class=\"section__subtitle\">Published 2026-07-28. Release binaries and npm packages are available.</p>\n"
             "      <div class=\"hero__cta\">\n"
             "        <a href=\"docs/whats-new.html\" class=\"btn btn--primary\">Read what’s new</a>\n"
-            "        <a href=\"https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.21\" class=\"btn btn--secondary\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub Release</a>\n"
+            "        <a href=\"https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.0\" class=\"btn btn--secondary\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub Release</a>\n"
             "      </div>\n"
             "    </div>\n"
             "  </section>\n"
         )
         expected_meta_description = (
-            "  <meta name=\"description\" content=\"What’s new in Gajae Code v0.12.21, published 2026-08-09: release highlights and upgrade guidance.\" />\n"
+            "  <meta name=\"description\" content=\"What’s new in Gajae Code v0.12.0, published 2026-07-28: release highlights and upgrade guidance.\" />\n"
         )
         expected_release_card = (
             "            <a class=\"card\" href=\"whats-new.html\">\n"
             "              <div class=\"card__icon\" aria-hidden=\"true\">✨</div>\n"
-            "              <h3 class=\"card__title\">What’s new (v0.12.21)</h3>\n"
+            "              <h3 class=\"card__title\">What’s new (v0.12.0)</h3>\n"
             "              <p class=\"card__text\">Read release highlights and upgrade guidance.</p>\n"
             "            </a>\n"
         )
