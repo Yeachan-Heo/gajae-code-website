@@ -320,7 +320,7 @@
         <h2 class="section__title">Install the latest GJC binary</h2>
         <p class="section__subtitle">No Bun required. We detect your platform and link directly to the newest standalone release.</p>
       </div>
-      <div class="installer reveal" data-gjc-installer>
+      <div class="installer reveal" data-gjc-installer data-gjc-launch>
         <div class="installer__download">
           <div>
             <span class="install-step__label"># 1 · choose your platform</span>
@@ -348,8 +348,8 @@ sudo install ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc</code></div>
         <div class="installer__verify" data-gjc-details hidden>
           <span class="install-step__label"># 3 · verify and launch</span>
           <div class="code-block">
-            <div class="code-block__header"><div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div><button class="code-block__copy" data-copy="gjc --version && gjc --smoke-test && gjc">Copy</button></div>
-            <div class="code-block__body"><code>gjc --version &amp;&amp; gjc --smoke-test &amp;&amp; gjc</code></div>
+            <div class="code-block__header"><div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div><button class="code-block__copy" data-gjc-verify-copy data-copy="gjc --version && gjc --smoke-test && gjc">Copy</button></div>
+            <div class="code-block__body"><code data-gjc-verify>gjc --version &amp;&amp; gjc --smoke-test &amp;&amp; gjc</code></div>
           </div>
         </div>
       </div>
