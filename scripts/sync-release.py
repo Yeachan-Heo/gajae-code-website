@@ -1222,10 +1222,23 @@ def validate_whats_new_body_template(snapshot: dict[str, Any], body: str) -> Non
         "        </section>\n"
         "      </div>\n"
     )
-    if not body.startswith(prefix) or not body.endswith(suffix):
+    suffixes = [suffix]
+    if release["tag"] == "v0.12.0":
+        suffixes.append(
+            "        <section class=\"docs-section\">\n"
+            "          <h2>Upgrade</h2>\n"
+            "          <pre><code>bun install -g gajae-code\n"
+            "# or: bun install -g @gajae-code/coding-agent\n"
+            "gjc --version &amp;&amp; gjc --smoke-test</code></pre>\n"
+            f"          <p>See the full <a href=\"{release['html_url']}\" target=\"_blank\" rel=\"noopener noreferrer\">v{version} release</a> on GitHub.</p>\n"
+            "        </section>\n"
+            "      </div>\n"
+        )
+    matched_suffix = next((candidate for candidate in suffixes if body.endswith(candidate)), None)
+    if not body.startswith(prefix) or matched_suffix is None:
         fail("docs/whats-new.html whats-new-body has invalid fixed release template bytes")
 
-    middle = body[len(prefix) : len(body) - len(suffix)]
+    middle = body[len(prefix) : len(body) - len(matched_suffix)]
     cursor = 0
     category_count = 0
     item_count = 0
