@@ -176,6 +176,7 @@
       if (!select) return;
       apply(installer, select.value, false);
       select.addEventListener('change', function () {
+        installer.setAttribute('data-gjc-manual', 'true');
         apply(installer, select.value, false);
         heroDownloads.forEach(function (download) { applyHeroDownload(download, select.value); });
       });
@@ -193,8 +194,15 @@
       navigator.userAgentData.getHighEntropyValues(['architecture', 'platform']).then(function (values) {
         var asset = detectedAsset(values.platform, values.architecture);
         if (!asset) return;
-        installers.forEach(function (installer) { apply(installer, asset, true); });
-        heroDownloads.forEach(function (download) { applyHeroDownload(download, asset); });
+        installers.forEach(function (installer) {
+          if (installer.getAttribute('data-gjc-manual') !== 'true') apply(installer, asset, true);
+        });
+        var hasManualSelection = Array.prototype.some.call(installers, function (installer) {
+          return installer.getAttribute('data-gjc-manual') === 'true';
+        });
+        if (!hasManualSelection) {
+          heroDownloads.forEach(function (download) { applyHeroDownload(download, asset); });
+        }
       }).catch(function () { /* Keep the synchronous fallback. */ });
     }
   }
