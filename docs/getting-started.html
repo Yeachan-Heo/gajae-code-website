@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Install Gajae Code from a standalone release, Bun package, or source and run your first shape, act, prove loop in any repository or git worktree." />
+  <meta name="description" content="Download the latest standalone Gajae Code binary for macOS, Linux, or Windows without Bun, then run your first shape, act, prove loop." />
   <meta property="og:title" content="Getting Started | Gajae Code" />
   <meta property="og:description" content="Install, launch, and run your first Gajae Code session." />
   <meta property="og:type" content="website" />
@@ -29,7 +29,7 @@
         <p class="docs-nav-section__title">Start</p>
         <a class="docs-nav-link" href="index.html">Docs Home</a>
         <a class="docs-nav-link is-active" href="getting-started.html">Getting Started</a>
-        <a class="docs-nav-link" href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.0)<!-- release-sync:docs-nav-release-label:end --></a>
+        <a class="docs-nav-link" href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.21)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section">
         <p class="docs-nav-section__title">Modes &amp; tools</p>
@@ -67,59 +67,61 @@
 
         <div class="doc-body">
           <h2>Requirements</h2>
-          <p>Install the <code>gjc</code> CLI from a supported standalone release, through Bun, or from source. Git is needed only when you choose worktree isolation; a direct local TUI session does not require tmux.</p>
+          <p>The standalone <code>gjc</code> binary is self-contained. Bun is not required. Git is needed only when you choose worktree isolation; a direct local TUI session does not require tmux.</p>
 
-          <h2>Install</h2>
-          <p>Download a supported <a href="https://github.com/Yeachan-Heo/gajae-code/releases">standalone release binary</a>, install through Bun, or build from source. Choose the package command below only when using the Bun package path:</p>
+          <h2>Install the latest binary</h2>
+          <p>The installer below detects your current platform and downloads the matching asset from the <a href="https://github.com/Yeachan-Heo/gajae-code/releases/latest">latest stable GitHub release</a>. Change the selection when downloading for another machine.</p>
+          <div class="installer" data-gjc-installer>
+            <div class="installer__download">
+              <div>
+                <span class="install-step__label"># 1 · choose your platform</span>
+                <label class="installer__label" for="docs-download-platform">Standalone binary</label>
+                <select class="installer__select" id="docs-download-platform" data-gjc-platform>
+                  <option value="gjc-darwin-arm64">macOS arm64 (Apple silicon)</option>
+                  <option value="gjc-darwin-x64">macOS x64 (Intel)</option>
+                  <option value="gjc-linux-x64">Linux x64</option>
+                  <option value="gjc-linux-arm64">Linux arm64</option>
+                  <option value="gjc-windows-x64.exe">Windows x64</option>
+                </select>
+              </div>
+              <a class="btn btn--primary btn--lg installer__button" data-gjc-download href="https://github.com/Yeachan-Heo/gajae-code/releases/latest/download/gjc-darwin-arm64">Download latest for macOS arm64</a>
+              <p class="installer__hint" data-gjc-detection aria-live="polite">Platform can be changed before downloading.</p>
+            </div>
+            <div class="installer__setup">
+              <span class="install-step__label"># 2 · put <code>gjc</code> on your PATH</span>
+              <div class="code-block">
+                <div class="code-block__header">
+                  <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <button class="code-block__copy" data-gjc-copy data-copy="sudo install -m 0755 ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc">Copy</button>
+                </div>
+                <div class="code-block__body"><code data-gjc-command>sudo install -m 0755 ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc</code></div>
+              </div>
+            </div>
+            <div class="installer__verify">
+              <span class="install-step__label"># 3 · verify</span>
+              <div class="code-block">
+                <div class="code-block__header">
+                  <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <button class="code-block__copy" data-copy="gjc --version && gjc --smoke-test">Copy</button>
+                </div>
+                <div class="code-block__body"><code>gjc --version &amp;&amp; gjc --smoke-test</code></div>
+              </div>
+            </div>
+          </div>
+          <p>On Windows, run the generated setup commands in PowerShell, then open a new terminal so the updated user <code>PATH</code> is loaded. Downloads always use GitHub’s <code>releases/latest/download</code> route, so this page does not need a version-specific binary link.</p>
+
+          <h3>Supported standalone binaries</h3>
           <table>
-            <thead><tr><th>Use</th><th>Package and command</th></tr></thead>
+            <thead><tr><th>Platform</th><th>Architecture</th><th>Release asset</th></tr></thead>
             <tbody>
-              <tr><td>GJC CLI</td><td><code>bun install -g gajae-code</code></td></tr>
-              <tr><td>CLI package alias</td><td><code>bun install -g @gajae-code/coding-agent</code></td></tr>
-              <tr><td>Embed the runtime</td><td><code>bun add @gajae-code/coding-agent</code></td></tr>
-              <tr><td>Connect to a live session</td><td><code>bun add @gajae-code/bridge-client</code></td></tr>
+              <tr><td>macOS</td><td>arm64</td><td><code>gjc-darwin-arm64</code></td></tr>
+              <tr><td>macOS</td><td>x64</td><td><code>gjc-darwin-x64</code></td></tr>
+              <tr><td>Linux</td><td>x64</td><td><code>gjc-linux-x64</code></td></tr>
+              <tr><td>Linux</td><td>arm64</td><td><code>gjc-linux-arm64</code></td></tr>
+              <tr><td>Windows</td><td>x64</td><td><code>gjc-windows-x64.exe</code></td></tr>
             </tbody>
           </table>
-          <p>Install one global CLI package, not both aliases. The two <code>bun add</code> commands are application dependencies, not CLI installers.</p>
 
-          <h3>Platform install matrix</h3>
-          <table>
-            <thead><tr><th>Platform</th><th>Prebuilt standalone release binary</th><th>Other supported path</th></tr></thead>
-            <tbody>
-              <tr><td>macOS</td><td>arm64 and x64</td><td>Bun package or build from source</td></tr>
-              <tr><td>Linux</td><td>x64 and arm64</td><td>Bun package or build from source</td></tr>
-              <tr><td>Windows</td><td>x64</td><td>Bun package or build from source</td></tr>
-            </tbody>
-          </table>
-
-          <h3>Windows (native install)</h3>
-          <p>On Windows 11, install Bun, start a new PowerShell session so <code>PATH</code> refreshes, then install and verify the CLI:</p>
-          <div class="code-block">
-            <div class="code-block__header">
-              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <button class="code-block__copy" data-copy="powershell -c &quot;irm bun.sh/install.ps1|iex&quot;">Copy</button>
-            </div>
-            <div class="code-block__body"><code># 1. Install Bun
-powershell -c "irm bun.sh/install.ps1|iex"
-
-# 2. Start a new terminal, then confirm Bun
-bun --version
-
-# 3. Install and verify gjc
-bun install -g gajae-code
-gjc --version
-gjc --smoke-test</code></div>
-          </div>
-          <p><code>bun install -g</code> places the launcher in <code>%USERPROFILE%\.bun\bin</code>. Bun's installer adds that directory to <code>PATH</code>; start a new terminal if <code>gjc</code> is not recognized.</p>
-
-          <h2>Verify</h2>
-          <div class="code-block">
-            <div class="code-block__header">
-              <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <button class="code-block__copy" data-copy="gjc --version && gjc --smoke-test">Copy</button>
-            </div>
-            <div class="code-block__body"><code>gjc --version &amp;&amp; gjc --smoke-test</code></div>
-          </div>
 
           <h2>Quick start</h2>
           <p>Start the interactive TUI directly from the checkout you want to work in. For isolated work, create or enter a worktree yourself, then launch the same direct session there.</p>
@@ -154,16 +156,13 @@ gjc ultragoal complete-goals</code></div>
           <p>A running top-level session writes its loopback SDK discovery record to <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code>. Read its <code>url</code> and <code>token</code> with an SDK client such as <code>@gajae-code/bridge-client</code>; use Coordinator MCP for multi-session orchestration.</p>
 
           <h2>Updates</h2>
-          <p>Startup checks for a newer version without changing your installation. For a recognized Bun global install, run <code>gjc update</code> or reinstall the scoped package at <code>@latest</code>; otherwise update with the original installer or package manager.</p>
+          <p>Startup checks report when a newer version is available without changing your installation. Return to the installer above, download the latest standalone binary, and rerun its PATH command to replace the existing executable.</p>
           <div class="code-block">
             <div class="code-block__header">
               <div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <button class="code-block__copy" data-copy="gjc update">Copy</button>
+              <button class="code-block__copy" data-copy="gjc --version && gjc --smoke-test">Copy</button>
             </div>
-            <div class="code-block__body"><code>gjc update
-# or, for the Bun global package
-bun install -g @gajae-code/coding-agent@latest
-gjc --version &amp;&amp; gjc --smoke-test</code></div>
+            <div class="code-block__body"><code>gjc --version &amp;&amp; gjc --smoke-test</code></div>
           </div>
 
           <h2>Configuration</h2>
