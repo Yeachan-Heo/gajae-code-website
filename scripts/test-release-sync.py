@@ -1060,6 +1060,15 @@ class ResolverGeneratorFixture(unittest.TestCase):
             with self.assertRaisesRegex(SYNC.ReleaseSyncError, "local link missing.html"):
                 SYNC.validate_html_links(root, {"index.html": document})
 
+            assets = root / "css"
+            assets.mkdir()
+            (assets / "styles.css").write_text("body {}", encoding="utf-8")
+            versioned = b'<html><title>x</title><link rel="stylesheet" href="css/styles.css?v=20260810.2"></html>'
+            SYNC.validate_html_links(root, {"index.html": versioned})
+            invalid_version = versioned.replace(b"v=20260810.2", b"cache=latest")
+            with self.assertRaisesRegex(SYNC.ReleaseSyncError, "unsupported local asset query"):
+                SYNC.validate_html_links(root, {"index.html": invalid_version})
+
         marker_start = docs_nav.index("<!-- release-sync:docs-nav-release-label:start -->")
         fake_anchor_start = docs_nav.rfind("<a", 0, marker_start)
         fake_anchor_end = docs_nav.index("</a>", marker_start) + len("</a>")

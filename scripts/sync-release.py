@@ -1671,9 +1671,17 @@ def validate_html_links(root: Path, files: dict[str, bytes]) -> None:
         for href in hrefs:
             if href.startswith(("https://", "http://", "mailto:", "#", "data:")):
                 continue
-            if "?" in href:
-                fail(f"{relative_path} has a local link query {href}")
-            normalized = href.split("#", 1)[0]
+            parsed_href = urlparse(href)
+            if parsed_href.query:
+                if (
+                    parsed_href.fragment
+                    or not parsed_href.path.endswith((".css", ".js"))
+                    or re.fullmatch(r"v=[0-9]{8}\.[0-9]+", parsed_href.query) is None
+                ):
+                    fail(f"{relative_path} has an unsupported local asset query {href}")
+                normalized = parsed_href.path
+            else:
+                normalized = href.split("#", 1)[0]
             if not normalized:
                 continue
             target = require_real_child(
