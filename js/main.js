@@ -100,27 +100,38 @@
     var heroDownloads = document.querySelectorAll('[data-gjc-hero-download]');
     if (!installers.length && !heroDownloads.length) return;
 
-    var releasesBase = 'https://github.com/Yeachan-Heo/gajae-code/releases/latest/download/';
+    var releasesPage = 'https://github.com/Yeachan-Heo/gajae-code/releases/latest';
+    var releasesBase = releasesPage + '/download/';
     var platforms = {
       'gjc-darwin-arm64': {
         label: 'macOS arm64',
-        command: 'sudo install -m 0755 ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc'
+        command: 'sudo install -m 0755 ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc',
+        verify: 'gjc --version && gjc --smoke-test',
+        launchSuffix: ' && gjc'
       },
       'gjc-darwin-x64': {
         label: 'macOS x64',
-        command: 'sudo install -m 0755 ~/Downloads/gjc-darwin-x64 /usr/local/bin/gjc'
+        command: 'sudo install -m 0755 ~/Downloads/gjc-darwin-x64 /usr/local/bin/gjc',
+        verify: 'gjc --version && gjc --smoke-test',
+        launchSuffix: ' && gjc'
       },
       'gjc-linux-x64': {
         label: 'Linux x64',
-        command: 'sudo install -m 0755 ~/Downloads/gjc-linux-x64 /usr/local/bin/gjc'
+        command: 'sudo install -m 0755 ~/Downloads/gjc-linux-x64 /usr/local/bin/gjc',
+        verify: 'gjc --version && gjc --smoke-test',
+        launchSuffix: ' && gjc'
       },
       'gjc-linux-arm64': {
         label: 'Linux arm64',
-        command: 'sudo install -m 0755 ~/Downloads/gjc-linux-arm64 /usr/local/bin/gjc'
+        command: 'sudo install -m 0755 ~/Downloads/gjc-linux-arm64 /usr/local/bin/gjc',
+        verify: 'gjc --version && gjc --smoke-test',
+        launchSuffix: ' && gjc'
       },
       'gjc-windows-x64.exe': {
         label: 'Windows x64',
-        command: '$dir = "$env:LOCALAPPDATA\\Programs\\gjc"\nNew-Item -ItemType Directory -Force $dir | Out-Null\nMove-Item "$HOME\\Downloads\\gjc-windows-x64.exe" "$dir\\gjc.exe" -Force\n$userPath = [Environment]::GetEnvironmentVariable("Path", "User")\nif (($userPath -split ";") -notcontains $dir) { [Environment]::SetEnvironmentVariable("Path", "$userPath;$dir", "User") }'
+        command: '$dir = "$env:LOCALAPPDATA\\Programs\\gjc"\nNew-Item -ItemType Directory -Force $dir | Out-Null\nMove-Item "$HOME\\Downloads\\gjc-windows-x64.exe" "$dir\\gjc.exe" -Force\n$userPath = [Environment]::GetEnvironmentVariable("Path", "User")\nif (($userPath -split ";") -notcontains $dir) { [Environment]::SetEnvironmentVariable("Path", "$userPath;$dir", "User") }',
+        verify: 'gjc --version; if ($LASTEXITCODE -eq 0) { gjc --smoke-test }',
+        launchSuffix: '; if ($LASTEXITCODE -eq 0) { gjc }'
       }
     };
 
@@ -129,6 +140,7 @@
       var architectureName = String(architecture || '').toLowerCase();
       var isArm = /arm|aarch64/.test(architectureName);
 
+      if (/android/.test(platformName + ' ' + architectureName)) return '';
       if (/win/.test(platformName)) return 'gjc-windows-x64.exe';
       if (/mac/.test(platformName)) {
         if (isArm) return 'gjc-darwin-arm64';
@@ -145,10 +157,23 @@
       var download = installer.querySelector('[data-gjc-download]');
       var command = installer.querySelector('[data-gjc-command]');
       var copy = installer.querySelector('[data-gjc-copy]');
+      var verify = installer.querySelector('[data-gjc-verify]');
+      var verifyCopy = installer.querySelector('[data-gjc-verify-copy]');
       var detection = installer.querySelector('[data-gjc-detection]');
       var details = installer.querySelectorAll('[data-gjc-details]');
-      if (!config || !select || !download || !command) return;
+      if (!select || !download || !command) return;
 
+      if (!config) {
+        select.value = '';
+        download.href = releasesPage;
+        download.textContent = 'View latest downloads';
+        download.setAttribute('aria-label', 'View the latest GJC release downloads');
+        details.forEach(function (detail) { detail.setAttribute('hidden', ''); });
+        if (detection) detection.textContent = 'Choose the platform and architecture for this machine.';
+        return;
+      }
+
+      var verifyCommand = config.verify + (installer.hasAttribute('data-gjc-launch') ? config.launchSuffix : '');
       select.value = asset;
       download.href = releasesBase + asset;
       download.textContent = 'Download latest for ' + config.label;
@@ -156,6 +181,8 @@
       details.forEach(function (detail) { detail.removeAttribute('hidden'); });
       command.textContent = config.command;
       if (copy) copy.setAttribute('data-copy', config.command);
+      if (verify) verify.textContent = verifyCommand;
+      if (verifyCopy) verifyCopy.setAttribute('data-copy', verifyCommand);
       if (detection) {
         detection.textContent = detected
           ? 'Detected ' + config.label + '. Change it above when downloading for another machine.'
@@ -165,7 +192,12 @@
 
     function applyHeroDownload(download, asset) {
       var config = platforms[asset];
-      if (!config) return;
+      if (!config) {
+        download.href = '#install';
+        download.textContent = 'Download latest';
+        download.setAttribute('aria-label', 'Choose a GJC binary to download');
+        return;
+      }
       download.href = releasesBase + asset;
       download.textContent = 'Download for ' + config.label;
       download.setAttribute('aria-label', 'Download the latest GJC standalone binary for ' + config.label);
