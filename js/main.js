@@ -94,6 +94,105 @@
     document.body.removeChild(ta);
   }
 
+  /* ---- Latest standalone GJC binary installer ---- */
+  function initGjcInstallers() {
+    var installers = document.querySelectorAll('[data-gjc-installer]');
+    var heroDownloads = document.querySelectorAll('[data-gjc-hero-download]');
+    if (!installers.length && !heroDownloads.length) return;
+
+    var releasesBase = 'https://github.com/Yeachan-Heo/gajae-code/releases/latest/download/';
+    var platforms = {
+      'gjc-darwin-arm64': {
+        label: 'macOS arm64',
+        command: 'sudo install -m 0755 ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc'
+      },
+      'gjc-darwin-x64': {
+        label: 'macOS x64',
+        command: 'sudo install -m 0755 ~/Downloads/gjc-darwin-x64 /usr/local/bin/gjc'
+      },
+      'gjc-linux-x64': {
+        label: 'Linux x64',
+        command: 'sudo install -m 0755 ~/Downloads/gjc-linux-x64 /usr/local/bin/gjc'
+      },
+      'gjc-linux-arm64': {
+        label: 'Linux arm64',
+        command: 'sudo install -m 0755 ~/Downloads/gjc-linux-arm64 /usr/local/bin/gjc'
+      },
+      'gjc-windows-x64.exe': {
+        label: 'Windows x64',
+        command: '$dir = "$env:LOCALAPPDATA\\Programs\\gjc"\nNew-Item -ItemType Directory -Force $dir | Out-Null\nMove-Item "$HOME\\Downloads\\gjc-windows-x64.exe" "$dir\\gjc.exe" -Force\n$userPath = [Environment]::GetEnvironmentVariable("Path", "User")\nif (($userPath -split ";") -notcontains $dir) { [Environment]::SetEnvironmentVariable("Path", "$userPath;$dir", "User") }'
+      }
+    };
+
+    function detectedAsset(platform, architecture) {
+      var platformName = String(platform || '').toLowerCase();
+      var architectureName = String(architecture || '').toLowerCase();
+      var isArm = /arm|aarch64/.test(architectureName);
+
+      if (/win/.test(platformName)) return 'gjc-windows-x64.exe';
+      if (/mac/.test(platformName)) return isArm || !architectureName ? 'gjc-darwin-arm64' : 'gjc-darwin-x64';
+      if (/linux/.test(platformName)) return isArm ? 'gjc-linux-arm64' : 'gjc-linux-x64';
+      return '';
+    }
+
+    function apply(installer, asset, detected) {
+      var config = platforms[asset];
+      var select = installer.querySelector('[data-gjc-platform]');
+      var download = installer.querySelector('[data-gjc-download]');
+      var command = installer.querySelector('[data-gjc-command]');
+      var copy = installer.querySelector('[data-gjc-copy]');
+      var detection = installer.querySelector('[data-gjc-detection]');
+      if (!config || !select || !download || !command) return;
+
+      select.value = asset;
+      download.href = releasesBase + asset;
+      download.textContent = 'Download latest for ' + config.label;
+      download.setAttribute('aria-label', 'Download the latest GJC standalone binary for ' + config.label);
+      command.textContent = config.command;
+      if (copy) copy.setAttribute('data-copy', config.command);
+      if (detection) {
+        detection.textContent = detected
+          ? 'Detected ' + config.label + '. Change it above when downloading for another machine.'
+          : 'Platform selected manually. The link always resolves to the latest stable release.';
+      }
+    }
+
+    function applyHeroDownload(download, asset) {
+      var config = platforms[asset];
+      if (!config) return;
+      download.href = releasesBase + asset;
+      download.textContent = 'Download for ' + config.label;
+      download.setAttribute('aria-label', 'Download the latest GJC standalone binary for ' + config.label);
+    }
+
+    installers.forEach(function (installer) {
+      var select = installer.querySelector('[data-gjc-platform]');
+      if (!select) return;
+      apply(installer, select.value, false);
+      select.addEventListener('change', function () {
+        apply(installer, select.value, false);
+        heroDownloads.forEach(function (download) { applyHeroDownload(download, select.value); });
+      });
+    });
+
+    var fallbackPlatform = navigator.platform || navigator.userAgent;
+    var fallbackArchitecture = /linux/i.test(fallbackPlatform) ? navigator.userAgent : '';
+    var fallbackAsset = detectedAsset(fallbackPlatform, fallbackArchitecture);
+    if (fallbackAsset) {
+      installers.forEach(function (installer) { apply(installer, fallbackAsset, true); });
+      heroDownloads.forEach(function (download) { applyHeroDownload(download, fallbackAsset); });
+    }
+
+    if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+      navigator.userAgentData.getHighEntropyValues(['architecture', 'platform']).then(function (values) {
+        var asset = detectedAsset(values.platform, values.architecture);
+        if (!asset) return;
+        installers.forEach(function (installer) { apply(installer, asset, true); });
+        heroDownloads.forEach(function (download) { applyHeroDownload(download, asset); });
+      }).catch(function () { /* Keep the synchronous fallback. */ });
+    }
+  }
+
   /* ---- Reveal on scroll ---- */
   function initReveal() {
     var els = document.querySelectorAll('.reveal');
@@ -161,6 +260,7 @@
   function init() {
     initNav();
     initNavScroll();
+    initGjcInstallers();
     initCopy();
     initReveal();
     initYear();

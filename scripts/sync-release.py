@@ -1215,10 +1215,10 @@ def validate_whats_new_body_template(snapshot: dict[str, Any], body: str) -> Non
     suffix = (
         "        <section class=\"docs-section\">\n"
         "          <h2>Upgrade</h2>\n"
-        "          <pre><code>bun install -g gajae-code\n"
-        "# or: bun install -g @gajae-code/coding-agent\n"
-        "gjc --version &amp;&amp; gjc --smoke-test</code></pre>\n"
-        f"          <p>See the full <a href=\"{release['html_url']}\" target=\"_blank\" rel=\"noopener noreferrer\">v{version} release</a> on GitHub.</p>\n"
+        "          <p>Download the matching standalone binary from the latest release, replace the existing executable, then verify:</p>\n"
+        "          <pre><code>gjc --version &amp;&amp; gjc --smoke-test</code></pre>\n"
+        "          <p><a href=\"../index.html#install\">Download the latest standalone binary</a>. "
+        f"See the full <a href=\"{release['html_url']}\" target=\"_blank\" rel=\"noopener noreferrer\">v{version} release</a> on GitHub.</p>\n"
         "        </section>\n"
         "      </div>\n"
     )
@@ -1551,10 +1551,10 @@ def render_regions(snapshot: dict[str, Any], categories: list[tuple[str, list[st
         + "".join(category_parts)
         + "        <section class=\"docs-section\">\n"
         + "          <h2>Upgrade</h2>\n"
-        + "          <pre><code>bun install -g gajae-code\n"
-        + "# or: bun install -g @gajae-code/coding-agent\n"
-        + "gjc --version &amp;&amp; gjc --smoke-test</code></pre>\n"
-        + f"          <p>See the full <a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">v{version} release</a> on GitHub.</p>\n"
+        + "          <p>Download the matching standalone binary from the latest release, replace the existing executable, then verify:</p>\n"
+        + "          <pre><code>gjc --version &amp;&amp; gjc --smoke-test</code></pre>\n"
+        + "          <p><a href=\"../index.html#install\">Download the latest standalone binary</a>. "
+        + f"See the full <a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">v{version} release</a> on GitHub.</p>\n"
         + "        </section>\n"
         + "      </div>\n"
     )

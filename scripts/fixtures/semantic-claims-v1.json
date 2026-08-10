@@ -78,8 +78,8 @@
         "macos x64"
       ],
       "required": [
-        "bun install -g gajae-code",
-        "@gajae-code/coding-agent",
+        "no bun required",
+        "latest",
         "standalone binary",
         "source availability"
       ]
@@ -160,7 +160,7 @@
     {"end_marker": "<!-- release-sync:whats-new-body:end -->", "path": "docs/whats-new.html", "start_marker": "<!-- release-sync:whats-new-body:start -->"}
   ],
   "release": {
-    "release_bound": {"peeled_commit_sha": "4e927cca7e6dda31d715957a2ecfbcbc4e62869a", "tag": "v0.12.0"}
+    "release_bound": {"peeled_commit_sha": "d89dc9da6ecfda4f045fb76aa4d553c8f95c3bee", "tag": "v0.12.21"}
   },
   "schema_version": 1
 }
