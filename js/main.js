@@ -145,7 +145,7 @@
       if (/mac/.test(platformName)) {
         if (isArm) return 'gjc-darwin-arm64';
         if (/x86|x64|intel/.test(architectureName)) return 'gjc-darwin-x64';
-        return '';
+        return 'gjc-darwin-x64';
       }
       if (/linux/.test(platformName)) return isArm ? 'gjc-linux-arm64' : 'gjc-linux-x64';
       return '';
