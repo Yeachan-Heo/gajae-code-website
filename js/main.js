@@ -130,7 +130,11 @@
       var isArm = /arm|aarch64/.test(architectureName);
 
       if (/win/.test(platformName)) return 'gjc-windows-x64.exe';
-      if (/mac/.test(platformName)) return isArm || !architectureName ? 'gjc-darwin-arm64' : 'gjc-darwin-x64';
+      if (/mac/.test(platformName)) {
+        if (isArm) return 'gjc-darwin-arm64';
+        if (/x86|x64|intel/.test(architectureName)) return 'gjc-darwin-x64';
+        return '';
+      }
       if (/linux/.test(platformName)) return isArm ? 'gjc-linux-arm64' : 'gjc-linux-x64';
       return '';
     }
@@ -142,12 +146,14 @@
       var command = installer.querySelector('[data-gjc-command]');
       var copy = installer.querySelector('[data-gjc-copy]');
       var detection = installer.querySelector('[data-gjc-detection]');
+      var details = installer.querySelectorAll('[data-gjc-details]');
       if (!config || !select || !download || !command) return;
 
       select.value = asset;
       download.href = releasesBase + asset;
       download.textContent = 'Download latest for ' + config.label;
       download.setAttribute('aria-label', 'Download the latest GJC standalone binary for ' + config.label);
+      details.forEach(function (detail) { detail.removeAttribute('hidden'); });
       command.textContent = config.command;
       if (copy) copy.setAttribute('data-copy', config.command);
       if (detection) {
