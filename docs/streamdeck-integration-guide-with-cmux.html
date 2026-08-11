@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Build an Elgato Stream Deck control surface for Gajae Code sessions running in cmux, including SDK question answers, worktree sessions, model profiles, skills, and browser surfaces." />
+  <meta name="description" content="Build an Elgato Stream Deck control surface for Gajae Code sessions running in cmux, including SDK question answers, worktree sessions, model profiles, skills, and voice input." />
   <link rel="canonical" href="https://gajae-code.com/docs/streamdeck-integration-guide-with-cmux.html" />
   <meta property="og:title" content="Stream Deck + cmux integration · Gajae Code Docs" />
   <meta property="og:description" content="Build an operational Stream Deck for Gajae Code sessions running in cmux." />
@@ -73,7 +73,7 @@
       <section class="docs-section">
         <h2>What this integration controls</h2>
         <div class="doc-grid">
-          <article><h3>cmux topology</h3><p>Move between panes and surface tabs, open terminal or browser surfaces in the current pane, and close the focused surface.</p></article>
+          <article><h3>cmux topology</h3><p>Move between panes and surface tabs, create terminal surfaces in the current pane, and close the focused surface.</p></article>
           <article><h3>GJC sessions</h3><p>Start worktree-scoped sessions, steer or abort the focused turn, resume saved sessions, clear context, and exit cleanly.</p></article>
           <article><h3>Models and skills</h3><p>Apply model profiles to an attached session and type workflow skill commands without submitting them before arguments are ready.</p></article>
           <article><h3>SDK questions</h3><p>Render one to four options from the focused session and submit a reply using the exact transient action ID.</p></article>
@@ -99,12 +99,12 @@
         <p>Focus existing matching Chrome or Safari tabs. Create a Chrome tab only when no matching tab exists in either browser.</p>
 
         <h3>Page 2 — cmux and session entry</h3>
-<pre><code>PANE PREV | PANE NEXT | TAB PREV | TAB NEXT | GJC FOCUS
-NEW SESSION | CLOSE TAB | NEW WEBSITE | STEER | ESC X2
+<pre><code>PANE PREV | PANE NEXT | NEW SESSION | CLOSE TAB | GJC FOCUS
+TAB PREV | TAB NEXT | VOICE | STEER | ESC X2
 BACK | VibeQuant | gajae-code | HOME | NEXT</code></pre>
         <ul>
           <li><strong>NEW SESSION</strong> creates a terminal surface and asks for a worktree name. A blank answer starts a plain <code>gjc</code> session; a name starts <code>gjc --worktree &lt;name&gt;</code>. Model profiles are applied later from page 3.</li>
-          <li><strong>NEW WEBSITE</strong> creates a native cmux browser surface, not a Chrome or Safari window.</li>
+          <li><strong>VOICE</strong> toggles GJC speech-to-text with <code>Option+H</code> (<code>Alt+H</code>) on the focused <code>GJC:</code> surface.</li>
           <li><strong>GJC FOCUS</strong> submits <code>proceed</code> plus Enter only when the focused surface title starts with <code>GJC:</code>.</li>
           <li><strong>STEER</strong> sends Escape, waits 100 ms, then sends Enter.</li>
           <li><strong>ESC X2</strong> sends Escape, waits 100 ms, then sends Escape again.</li>
@@ -128,14 +128,13 @@ $CMUX identify --no-caller
 $CMUX tree --all
 $CMUX focus-panel --panel surface:7 --workspace workspace:1 --window window:1
 $CMUX new-surface --type terminal --pane pane:1 --focus true
-$CMUX new-surface --type browser --pane pane:1 --focus true
 $CMUX close-surface --surface surface:7 --workspace workspace:1 --window window:1</code></pre>
         <p>Use <code>cmux identify --no-caller</code> for the actual focused window, workspace, pane, and surface. Tree decorations are useful for display, but they are not sufficient routing authority.</p>
       </section>
 
       <section class="docs-section">
         <h2>Send keyboard controls precisely</h2>
-        <p>Text macros should use <code>cmux send</code>, followed by <code>cmux send-key ... enter</code>. Send thinking-level changes as one key event:</p>
+        <p>Text macros should use <code>cmux send</code>, followed by <code>cmux send-key ... enter</code>. GJC voice input maps to <code>Option+H</code>; deliver its terminal equivalent as one surface write with bytes <code>[27, 104]</code>. Send thinking-level changes as one atomic key event:</p>
 <pre><code>cmux send-key \
   --surface surface:7 \
   --workspace workspace:1 \
