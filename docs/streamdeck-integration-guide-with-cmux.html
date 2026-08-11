@@ -134,7 +134,7 @@ $CMUX close-surface --surface surface:7 --workspace workspace:1 --window window:
 
       <section class="docs-section">
         <h2>Send keyboard controls precisely</h2>
-        <p>Text macros should use <code>cmux send</code>, followed by <code>cmux send-key ... enter</code>. GJC's <code>Option+H</code> binding controls local Whisper STT, but cmux does not reliably forward that modifier and macOS denies Stream Deck plugin keystroke automation without Accessibility permission. The plugin therefore invokes the same registered action through <code>Ctrl+P</code>, types <code>Toggle speech-to-text</code>, and presses Enter. Send thinking-level changes as one atomic key event:</p>
+        <p>Text macros should use <code>cmux send</code>, followed by <code>cmux send-key ... enter</code>. GJC's <code>Option+H</code> binding controls local Whisper STT, but cmux does not reliably forward that modifier. The plugin focuses the exact <code>GJC:</code> surface and launches a dedicated signed helper that posts a real macOS <code>Option+H</code> event. Grant Accessibility permission only to that helper app; never fall back to typing command-palette search text into the active editor. Send thinking-level changes as one atomic key event:</p>
 <pre><code>cmux send-key \
   --surface surface:7 \
   --workspace workspace:1 \
