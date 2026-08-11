@@ -104,7 +104,7 @@ TAB PREV | TAB NEXT | VOICE | STEER | ESC X2
 BACK | VibeQuant | gajae-code | HOME | NEXT</code></pre>
         <ul>
           <li><strong>NEW SESSION</strong> creates a terminal surface and asks for a worktree name. A blank answer starts a plain <code>gjc</code> session; a name starts <code>gjc --worktree &lt;name&gt;</code>. Model profiles are applied later from page 3.</li>
-          <li><strong>VOICE</strong> invokes GJC's local <code>Toggle speech-to-text</code> action on the focused <code>GJC:</code> surface. It is the same in-machine Whisper action bound to <code>Option+H</code> (<code>Alt+H</code>).</li>
+          <li><strong>VOICE</strong> invokes local Whisper STT through the operator remap <code>app.stt.toggle = Ctrl+H</code> on the focused <code>GJC:</code> surface.</li>
           <li><strong>GJC FOCUS</strong> submits <code>proceed</code> plus Enter only when the focused surface title starts with <code>GJC:</code>.</li>
           <li><strong>STEER</strong> sends Escape, waits 100 ms, then sends Enter.</li>
           <li><strong>ESC X2</strong> sends Escape, waits 100 ms, then sends Escape again.</li>
@@ -134,7 +134,7 @@ $CMUX close-surface --surface surface:7 --workspace workspace:1 --window window:
 
       <section class="docs-section">
         <h2>Send keyboard controls precisely</h2>
-        <p>Text macros should use <code>cmux send</code>, followed by <code>cmux send-key ... enter</code>. GJC's <code>Option+H</code> binding controls local Whisper STT, but cmux does not reliably forward that modifier. The plugin focuses the exact <code>GJC:</code> surface and launches a dedicated signed helper that posts a real macOS <code>Option+H</code> event. Grant Accessibility permission only to that helper app; never fall back to typing command-palette search text into the active editor. Send thinking-level changes as one atomic key event:</p>
+        <p>Text macros should use <code>cmux send</code>, followed by <code>cmux send-key ... enter</code>. Remap <code>app.stt.toggle</code> to <code>Ctrl+H</code> in <code>~/.gjc/agent/keybindings.json</code>; the plugin then sends atomic <code>ctrl+h</code> to the focused surface. New sessions load the remap, while already-running sessions retain their startup keybindings and are left untouched. Send thinking-level changes as one atomic key event:</p>
 <pre><code>cmux send-key \
   --surface surface:7 \
   --workspace workspace:1 \
