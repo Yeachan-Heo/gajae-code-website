@@ -103,7 +103,7 @@
 NEW SESSION | CLOSE TAB | NEW WEBSITE | STEER | ESC X2
 BACK | VibeQuant | gajae-code | HOME | NEXT</code></pre>
         <ul>
-          <li><strong>NEW SESSION</strong> creates a terminal surface, asks for a worktree name, and runs <code>gjc --worktree &lt;name&gt;</code>.</li>
+          <li><strong>NEW SESSION</strong> creates a terminal surface and asks for a worktree name. A blank answer starts a plain <code>gjc</code> session; a name starts <code>gjc --worktree &lt;name&gt;</code>. Model profiles are applied later from page 3.</li>
           <li><strong>NEW WEBSITE</strong> creates a native cmux browser surface, not a Chrome or Safari window.</li>
           <li><strong>GJC FOCUS</strong> submits <code>proceed</code> plus Enter only when the focused surface title starts with <code>GJC:</code>.</li>
           <li><strong>STEER</strong> sends Escape, waits 100 ms, then sends Enter.</li>
