@@ -76,7 +76,7 @@
           <article><h3>cmux topology</h3><p>Move between panes and surface tabs, create terminal surfaces in the current pane, and close the focused surface.</p></article>
           <article><h3>GJC sessions</h3><p>Start worktree-scoped sessions, steer or abort the focused turn, resume saved sessions, clear context, and exit cleanly.</p></article>
           <article><h3>Models and skills</h3><p>Apply model profiles to an attached session and type workflow skill commands without submitting them before arguments are ready.</p></article>
-          <article><h3>SDK questions</h3><p>Render one to four options from the focused session and submit a reply using the exact transient action ID.</p></article>
+          <article><h3>SDK questions</h3><p>Render one to five scalar options from the focused session and submit a reply using the exact transient action ID.</p></article>
         </div>
       </section>
 
@@ -145,8 +145,8 @@ $CMUX close-surface --surface surface:7 --workspace workspace:1 --window window:
 
       <section class="docs-section">
         <h2>Turn questions into an answer pad</h2>
-        <p>Top-level GJC sessions publish a token-authenticated loopback SDK endpoint under <code>&lt;repo&gt;/.gjc/state/sdk/</code>. Treat the token as a credential and never log or persist it elsewhere.</p>
-        <p>For a focused session with one to four scalar options, temporarily replace the four profile keys with <code>ANSWER 1</code> through <code>ANSWER 4</code>. Render the real option labels with bounded wrapping and highlight a valid recommended index.</p>
+        <p>GJC sessions publish a token-authenticated loopback SDK endpoint under <code>&lt;cwd&gt;/.gjc/state/sdk/</code>. Resolve live GJC PIDs to their TTY and current working directory so managed <code>.gajae-code-worktrees</code> sessions are discovered as well. Treat the token as a credential and never log or persist it elsewhere.</p>
+        <p>For a focused session with one to five scalar options, temporarily replace all five top-row controls—the four profile keys plus <code>BTW EXPLAIN</code>—with <code>ANSWER 1</code> through <code>ANSWER 5</code>. Render the real option labels with bounded wrapping and highlight a valid recommended index.</p>
 <pre><code>{
   "type": "action_needed",
   "id": "act_9e31",
