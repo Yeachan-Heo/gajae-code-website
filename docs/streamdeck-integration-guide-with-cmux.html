@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Build an Elgato Stream Deck control surface for Gajae Code sessions running in cmux, including SDK question answers, worktree sessions, model profiles, skills, and voice input." />
+  <link rel="canonical" href="https://gajae-code.com/docs/streamdeck-integration-guide-with-cmux.html" />
+  <meta property="og:title" content="Stream Deck + cmux integration · Gajae Code Docs" />
+  <meta property="og:description" content="Build an operational Stream Deck for Gajae Code sessions running in cmux." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://gajae-code.com/docs/streamdeck-integration-guide-with-cmux.html" />
+  <meta property="og:image" content="https://gajae-code.com/assets/character.png" />
+  <meta property="og:image:alt" content="Gajae Code mascot" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Stream Deck + cmux integration · Gajae Code Docs" />
+  <meta name="twitter:description" content="Build an operational Stream Deck for Gajae Code sessions running in cmux." />
+  <meta name="twitter:image" content="https://gajae-code.com/assets/character.png" />
+  <meta name="twitter:image:alt" content="Gajae Code mascot" />
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://gajae-code.com/docs/streamdeck-integration-guide-with-cmux.html#webpage","url":"https://gajae-code.com/docs/streamdeck-integration-guide-with-cmux.html","name":"Stream Deck + cmux integration · Gajae Code Docs","description":"Build an operational Stream Deck for Gajae Code sessions running in cmux.","image":"https://gajae-code.com/assets/character.png"},{"@type":"TechArticle","@id":"https://gajae-code.com/docs/streamdeck-integration-guide-with-cmux.html#techarticle","url":"https://gajae-code.com/docs/streamdeck-integration-guide-with-cmux.html","headline":"Stream Deck integration with cmux","description":"Build an operational Stream Deck for Gajae Code sessions running in cmux.","image":"https://gajae-code.com/assets/character.png","mainEntityOfPage":{"@id":"https://gajae-code.com/docs/streamdeck-integration-guide-with-cmux.html#webpage"},"publisher":{"@type":"Organization","@id":"https://gajae-code.com/#organization","name":"Gajae Code","url":"https://gajae-code.com/"}}]}
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
+  <title>Stream Deck + cmux integration · Gajae Code Docs</title>
+  <link rel="stylesheet" href="../css/styles.css?v=20260810.2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="docs-topbar"><a class="docs-topbar__brand" href="../index.html">🦀 Gajae Code</a><button class="docs-menu" type="button" aria-controls="docs-sidebar" aria-expanded="false">Menu</button></div>
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <a class="docs-brand" href="../index.html"><span aria-hidden="true">🦀</span><span>Gajae Code</span></a>
+      <nav class="docs-nav" aria-label="Documentation">
+        <div class="docs-nav-section"><p class="docs-nav-section__title">Start</p>
+          <a class="docs-nav-link" href="index.html">Docs home</a>
+          <a class="docs-nav-link" href="getting-started.html">Getting started</a>
+          <a class="docs-nav-link" href="whats-new.html">Release notes</a>
+        </div>
+        <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
+          <a class="docs-nav-link" href="rlm.html">RLM research mode</a>
+          <a class="docs-nav-link" href="computer-use.html">Computer tool</a>
+          <a class="docs-nav-link" href="browser-use.html">Browser tool</a>
+          <a class="docs-nav-link is-active" href="streamdeck-integration-guide-with-cmux.html">Stream Deck + cmux</a>
+        </div>
+        <div class="docs-nav-section"><p class="docs-nav-section__title">Concepts</p>
+          <a class="docs-nav-link" href="architecture.html">Architecture</a>
+          <a class="docs-nav-link" href="harness.html">Harness</a>
+          <a class="docs-nav-link" href="skills.html">Skills</a>
+          <a class="docs-nav-link" href="receipts.html">Receipts</a>
+        </div>
+        <div class="docs-nav-section"><p class="docs-nav-section__title">Remote control</p>
+          <a class="docs-nav-link" href="sdk-app-guide.html">Building on the SDK</a>
+          <a class="docs-nav-link" href="bridge-rpc.html">SDK &amp; Migration</a>
+          <a class="docs-nav-link" href="hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
+          <a class="docs-nav-link" href="gajae-remote.html">Gajae Remote</a>
+        </div>
+        <div class="docs-nav-section"><p class="docs-nav-section__title">Help</p>
+          <a class="docs-nav-link" href="troubleshooting.html">Troubleshooting</a>
+          <a class="docs-nav-link" href="https://github.com/Yeachan-Heo/gajae-code">GitHub</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <section class="docs-hero">
+        <p class="eyebrow">Operator integration</p>
+        <h1>Stream Deck integration with cmux</h1>
+        <p>Turn an Elgato Stream Deck into a focused control surface for Gajae Code sessions, native cmux terminal and website tabs, model profiles, workflow skills, and SDK questions.</p>
+      </section>
+
+      <section class="docs-section">
+        <h2>What this integration controls</h2>
+        <div class="doc-grid">
+          <article><h3>cmux topology</h3><p>Move between panes and surface tabs, create terminal surfaces in the current pane, and close the focused surface.</p></article>
+          <article><h3>GJC sessions</h3><p>Start worktree-scoped sessions, steer or abort the focused turn, resume saved sessions, clear context, and exit cleanly.</p></article>
+          <article><h3>Models and skills</h3><p>Apply model profiles to an attached session and type workflow skill commands without submitting them before arguments are ready.</p></article>
+          <article><h3>SDK questions</h3><p>Render one to five scalar options from the focused session and submit a reply using the exact transient action ID.</p></article>
+        </div>
+      </section>
+
+      <section class="docs-section">
+        <h2>Recommended architecture</h2>
+<pre><code>Stream Deck hardware
+  -&gt; Elgato Stream Deck application
+     -&gt; native Stream Deck plugin
+        -&gt; cmux CLI / socket RPC
+        -&gt; GJC SDK WebSocket endpoints
+        -&gt; local worktree launcher
+        -&gt; generated mascot key art</code></pre>
+        <p>A native plugin is the useful boundary: it can render dynamic titles, track key settings, subscribe to SDK events, guard GJC-only actions, and route every operation to the exact cmux surface.</p>
+        <p>Keep the editable plugin under a user-owned source directory and synchronize it to <code>~/Library/Application Support/com.elgato.StreamDeck/Plugins/&lt;plugin&gt;.sdPlugin/</code>. Never commit local profiles, SDK state, API keys, endpoint tokens, or browser credentials.</p>
+      </section>
+
+      <section class="docs-section">
+        <h2>Three-page layout</h2>
+        <h3>Page 1 — daily web shortcuts</h3>
+        <p>Focus existing matching Chrome or Safari tabs. Create a Chrome tab only when no matching tab exists in either browser.</p>
+
+        <h3>Page 2 — cmux and session entry</h3>
+<pre><code>TAB PREV | TAB NEXT | NEW SESSION | CLOSE TAB | GJC FOCUS
+PANE PREV | PANE NEXT | VOICE | STEER | ESC X2
+BACK | PROJECT 1 | PROJECT 2 | HOME | NEXT</code></pre>
+        <ul>
+          <li><strong>NEW SESSION</strong> creates a terminal surface and asks for a worktree name. A blank answer starts a plain <code>gjc</code> session; a name starts <code>gjc --worktree &lt;name&gt;</code>. Model profiles are applied later from page 3.</li>
+          <li><strong>VOICE</strong> invokes local Whisper STT through the operator remap <code>app.stt.toggle = Ctrl+H</code> on the focused <code>GJC:</code> surface.</li>
+          <li><strong>GJC FOCUS</strong> submits <code>proceed</code> plus Enter only when the focused surface title starts with <code>GJC:</code>.</li>
+          <li><strong>STEER</strong> sends Escape, waits 100 ms, then sends Enter.</li>
+          <li><strong>ESC X2</strong> sends Escape, waits 100 ms, then sends Escape again.</li>
+          <li>The first two project keys are automatically bound to the repositories with the highest GJC session counts, merging the SDK session index with saved session headers and canonicalizing managed worktrees back to their parent repository. The third key always opens <code>$HOME</code>.</li>
+        </ul>
+        <p>The portable source, profile page manifests, and icon assets live under <code>integrations/streamdeck-cmux/</code> in the main repository. The installer derives runtime paths from <code>$HOME</code>, the plugin directory, and optional environment overrides; it does not embed operator-specific project paths.</p>
+
+        <h3>Page 3 — focused GJC operations</h3>
+<pre><code>SET FRONTIER | SET GPT | SET GLM DS | KIMI GPT | BTW EXPLAIN
+RESUME | EXIT | PR TO DEV | THINK LEVEL | CLEAR CTX
+BACK | DEEP INTERVIEW | RALPLAN | ULTRAGOAL | NEXT</code></pre>
+        <p>Profile keys submit <code>/model gajae-code/&lt;profile&gt;</code> to the focused session. A profile such as <code>kimi-gpt</code> may be user-defined; it must exist in the operator's model configuration before the button can apply it.</p>
+        <p><strong>PR TO DEV</strong> submits the convenience prompt <code>make a PR targeting dev and make it LGTM</code>. The prompt does not bypass repository rules, verification, review, or branch availability.</p>
+        <p>Skill keys type <code>/skill:deep-interview</code>, <code>/skill:ralplan</code>, or <code>/skill:ultragoal</code> without pressing Enter, leaving room for arguments.</p>
+      </section>
+
+      <section class="docs-section">
+        <h2>Use cmux as the topology authority</h2>
+<pre><code>CMUX=/Applications/cmux.app/Contents/Resources/bin/cmux
+
+$CMUX identify --no-caller
+$CMUX tree --all
+$CMUX focus-panel --panel surface:7 --workspace workspace:1 --window window:1
+$CMUX new-surface --type terminal --pane pane:1 --focus true
+$CMUX close-surface --surface surface:7 --workspace workspace:1 --window window:1</code></pre>
+        <p>Use <code>cmux identify --no-caller</code> for the actual focused window, workspace, pane, and surface. Tree decorations are useful for display, but they are not sufficient routing authority.</p>
+      </section>
+
+      <section class="docs-section">
+        <h2>Send keyboard controls precisely</h2>
+        <p>Text macros should use <code>cmux send</code>, followed by <code>cmux send-key ... enter</code>. Remap <code>app.stt.toggle</code> to <code>Ctrl+H</code> in <code>~/.gjc/agent/keybindings.json</code>; the plugin then sends atomic <code>ctrl+h</code> to the focused surface. New sessions load the remap, while already-running sessions retain their startup keybindings and are left untouched. Send thinking-level changes as one atomic key event:</p>
+<pre><code>cmux send-key \
+  --surface surface:7 \
+  --workspace workspace:1 \
+  --window window:1 \
+  'shift+tab'</code></pre>
+        <p>The expected terminal bytes are <code>[27, 91, 90]</code>. Sending escape-prefixed text through a text API can let the TUI consume the leading Escape first and report <code>Operation aborted</code>.</p>
+      </section>
+
+      <section class="docs-section">
+        <h2>Turn questions into an answer pad</h2>
+        <p>GJC sessions publish a token-authenticated loopback SDK endpoint under <code>&lt;cwd&gt;/.gjc/state/sdk/</code>. Resolve live GJC PIDs to their TTY and current working directory so managed <code>.gajae-code-worktrees</code> sessions are discovered as well. Treat the token as a credential and never log or persist it elsewhere.</p>
+        <p>For a focused session with one to five scalar options, temporarily replace all five top-row controls—the four profile keys plus <code>BTW EXPLAIN</code>—with <code>ANSWER 1</code> through <code>ANSWER 5</code>. Render the real option labels with bounded wrapping and highlight a valid recommended index.</p>
+<pre><code>{
+  "type": "action_needed",
+  "id": "act_9e31",
+  "kind": "ask",
+  "question": "Choose a target",
+  "options": ["A", "B"],
+  "recommendedIndex": 1
+}</code></pre>
+        <p>Reply with the exact active presentation ID:</p>
+<pre><code>{
+  "type": "reply",
+  "id": "act_9e31",
+  "answer": 1,
+  "token": "&lt;session token&gt;",
+  "idempotencyKey": "streamdeck-act_9e31-1"
+}</code></pre>
+        <p>For checkbox questions, negotiate <code>ask_controls_v1</code>. Render up to four options as <code>☐</code>/<code>☑</code> buttons and reserve the fifth top-row key for the typed <code>navigation_forward</code> control labeled <code>Done</code> or <code>Next</code>. An option press sends its numeric index against the exact current action ID; GJC reissues a fresh action with updated <code>selectedOptionIndices</code>. The final key sends <code>{ "controlId": "navigation_forward" }</code> only when the negotiated control is enabled.</p>
+        <p>Restore the profile keys after <code>action_resolved</code>. Do not infer authority or controls from question text, option labels, workflow IDs, or an earlier presentation. Leave free-text, checkbox questions with five or more options, malformed controls, and other unsupported shapes to the native GJC UI.</p>
+      </section>
+
+      <section class="docs-section">
+        <h2>Generate readable mascot keys</h2>
+        <p>Use the official character artwork as the identity reference. Give every key a distinct pose, expression, prop, and action. Optimize for 144-by-144 output with dark backgrounds, strong silhouettes, short high-contrast labels, and generous safe margins.</p>
+        <p>Suitable scenes include pane dividers, terminal tabs, browser windows, model cores, emergency controls, git branches, approval checks, interview notebooks, planning blueprints, and goal summits. Dim the art behind dynamic session or folder titles.</p>
+      </section>
+
+      <section class="docs-section">
+        <h2>Verification checklist</h2>
+        <ul>
+          <li>Back up the Stream Deck profile before changing page manifests.</li>
+          <li>Build the plugin with Bun and compare the source and installed copies.</li>
+          <li>Confirm every referenced image exists and every dynamic-title key has titles enabled.</li>
+          <li>Use temporary cmux surfaces to verify navigation, browser creation, folder entry, tab close, exact macros, Shift+Tab, steer, and abort.</li>
+          <li>Use a temporary SDK server to verify question rendering, recommended highlighting, exact zero-based replies, and resolution restoration.</li>
+          <li>Restore the original cmux focus after every destructive or visual test.</li>
+          <li>Restart Stream Deck and confirm every plugin-driven key renders.</li>
+        </ul>
+      </section>
+
+      <section class="docs-section">
+        <h2>AI skill workflow</h2>
+        <p>The source repository carries the long-form guide in an installable skill-template structure. An AI operator following that skill should first inventory hardware, application paths, profiles, cmux topology, GJC endpoints, and existing backups; then make one bounded layout change at a time; then prove the exact observable behavior before deployment.</p>
+        <p>The skill should report only observed profile names, page coordinates, backup paths, commands run, render counts, and unresolved environment-specific inputs. It should never report secrets or claim a test it did not execute.</p>
+      </section>
+
+      <section class="docs-section">
+        <h2>Troubleshooting</h2>
+        <div class="doc-grid">
+          <article><h3>GJC action is rejected</h3><p>Confirm the focused raw title starts with <code>GJC:</code>. GJC-only actions intentionally fail closed elsewhere.</p></article>
+          <article><h3>Think level aborts</h3><p>Send atomic <code>shift+tab</code> with <code>cmux send-key</code>; do not send an Escape-prefixed text sequence.</p></article>
+          <article><h3>Question keys do not appear</h3><p>Check SDK hosting, endpoint liveness, token-authenticated connection, exact TTY mapping, focused-session retention, and option count.</p></article>
+          <article><h3>Web shortcuts duplicate tabs</h3><p>Search every Chrome and Safari window before creating a new Chrome tab.</p></article>
+        </div>
+      </section>
+
+      <nav class="doc-pager"><a href="browser-use.html">← Browser tool</a><a href="sdk-app-guide.html">Building on the SDK →</a></nav>
+    </main>
+  </div>
+  <script src="../js/main.js?v=20260810.2"></script>
+</body>
+</html>
