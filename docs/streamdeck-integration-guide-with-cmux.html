@@ -101,15 +101,16 @@
         <h3>Page 2 — cmux and session entry</h3>
 <pre><code>TAB PREV | TAB NEXT | NEW SESSION | CLOSE TAB | GJC FOCUS
 PANE PREV | PANE NEXT | VOICE | STEER | ESC X2
-BACK | VibeQuant | gajae-code | HOME | NEXT</code></pre>
+BACK | PROJECT 1 | PROJECT 2 | HOME | NEXT</code></pre>
         <ul>
           <li><strong>NEW SESSION</strong> creates a terminal surface and asks for a worktree name. A blank answer starts a plain <code>gjc</code> session; a name starts <code>gjc --worktree &lt;name&gt;</code>. Model profiles are applied later from page 3.</li>
           <li><strong>VOICE</strong> invokes local Whisper STT through the operator remap <code>app.stt.toggle = Ctrl+H</code> on the focused <code>GJC:</code> surface.</li>
           <li><strong>GJC FOCUS</strong> submits <code>proceed</code> plus Enter only when the focused surface title starts with <code>GJC:</code>.</li>
           <li><strong>STEER</strong> sends Escape, waits 100 ms, then sends Enter.</li>
           <li><strong>ESC X2</strong> sends Escape, waits 100 ms, then sends Escape again.</li>
-          <li>The three folder keys use explicit operator-configured paths rather than recent-project discovery. They leave the cmux tab name automatic so a later <code>gjc</code> launch can publish its authoritative <code>GJC:</code> title for focus guards.</li>
+          <li>The first two project keys are automatically bound to the repositories with the highest GJC session counts, merging the SDK session index with saved session headers and canonicalizing managed worktrees back to their parent repository. The third key always opens <code>$HOME</code>.</li>
         </ul>
+        <p>The portable source, profile page manifests, and icon assets live under <code>integrations/streamdeck-cmux/</code> in the main repository. The installer derives runtime paths from <code>$HOME</code>, the plugin directory, and optional environment overrides; it does not embed operator-specific project paths.</p>
 
         <h3>Page 3 — focused GJC operations</h3>
 <pre><code>SET FRONTIER | SET GPT | SET GLM DS | KIMI GPT | BTW EXPLAIN
