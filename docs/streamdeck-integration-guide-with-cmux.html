@@ -163,7 +163,8 @@ $CMUX close-surface --surface surface:7 --workspace workspace:1 --window window:
   "token": "&lt;session token&gt;",
   "idempotencyKey": "streamdeck-act_9e31-1"
 }</code></pre>
-        <p>Restore the profile keys after <code>action_resolved</code>. Do not infer authority from question text, option text, workflow IDs, or an earlier presentation. Leave free-text, multi-select, and larger option sets to the native GJC UI.</p>
+        <p>For checkbox questions, negotiate <code>ask_controls_v1</code>. Render up to four options as <code>☐</code>/<code>☑</code> buttons and reserve the fifth top-row key for the typed <code>navigation_forward</code> control labeled <code>Done</code> or <code>Next</code>. An option press sends its numeric index against the exact current action ID; GJC reissues a fresh action with updated <code>selectedOptionIndices</code>. The final key sends <code>{ "controlId": "navigation_forward" }</code> only when the negotiated control is enabled.</p>
+        <p>Restore the profile keys after <code>action_resolved</code>. Do not infer authority or controls from question text, option labels, workflow IDs, or an earlier presentation. Leave free-text, checkbox questions with five or more options, malformed controls, and other unsupported shapes to the native GJC UI.</p>
       </section>
 
       <section class="docs-section">
