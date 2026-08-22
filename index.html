@@ -126,7 +126,8 @@
 <span class="tok-prompt">&gt;</span> /skill:deep-interview <span class="tok-comment"># clarify intent</span>
 <span class="tok-prompt">&gt;</span> /skill:ralplan        <span class="tok-comment"># plan &amp; critique</span>
 <span class="tok-prompt">&gt;</span> gjc ultragoal create-goals --brief-file plan.md
-<span class="tok-prompt">&gt;</span> gjc ultragoal complete-goals</code></pre>
+<span class="tok-prompt">&gt;</span> gjc ultragoal complete-goals
+<span class="tok-comment"># optional: /skill:autoresearch before the interview or after the spec</span></code></pre>
         </div>
       </div>
     </div>
@@ -145,6 +146,12 @@
     </div>
   </section>
   <!-- release-sync:homepage-release-strip:end -->
+
+  <section class="section section--tight">
+    <div class="callout reveal">
+      <p><strong>Published vs source.</strong> Generated badges and What’s new still bind to the last verified GitHub Release <code>v0.12.21</code>. These docs describe the 0.15.0 source surface (four skills, Autoresearch instead of Team/<code>gjc rlm</code>). A 0.15.0 GitHub Release is not published yet — do not expect <code>/skill:autoresearch</code> on the v0.12.21 binary.</p>
+    </div>
+  </section>
 
   <!-- Integration surfaces -->
   <section class="section" id="whats-new">
@@ -200,7 +207,7 @@
     <div class="section__header reveal">
       <span class="section__eyebrow">Workflow surface</span>
       <h2 class="section__title">A path you can read</h2>
-      <p class="section__subtitle">The default workflow is intentionally explicit. You always know what stage you are in.</p>
+      <p class="section__subtitle">Clarify, plan, and prove on a three-step loop. Autoresearch is the fourth skill: an optional evidence mission before an interview or after a spec — not the next arrow after ultragoal.</p>
     </div>
     <div class="flow reveal">
       <div class="flow__step">
@@ -217,12 +224,8 @@
         <h4>ultragoal</h4>
         <p>Track goals through execution, revision, verification, and evidence.</p>
       </div>
-      <div class="flow__arrow" aria-hidden="true">→</div>
-      <div class="flow__step">
-        <h4>team <span style="opacity:.6">(optional)</span></h4>
-        <p>Coordinate focused workers when parallel execution is worth it.</p>
-      </div>
     </div>
+    <p class="section__subtitle reveal" style="margin-top:1.25rem">Optional: <code>/skill:autoresearch</code> when evidence must ground that loop — web, REPL/data, or both — then a structured verdict, never product code.</p>
   </section>
 
   <!-- Features -->
@@ -264,10 +267,10 @@
           <h3 class="card__title">Coordinator MCP</h3>
           <p class="card__text">Coordinate multiple sessions with bounded turns, structured questions, durable status, and reports through the Coordinator MCP surface.</p>
         </a>
-        <a class="card" href="docs/rlm.html">
+        <a class="card" href="docs/autoresearch.html">
           <div class="card__icon" aria-hidden="true">🔬</div>
-          <h3 class="card__title">Research mode <span style="opacity:.6">(rlm)</span></h3>
-          <p class="card__text">Run <code>gjc rlm</code> for a notebook-style research session over a persistent Python kernel, with a hard-gated read-only toolset, a live <code>.ipynb</code>, and a synthesized report on exit.</p>
+          <h3 class="card__title">Autoresearch</h3>
+          <p class="card__text">Run <code>/skill:autoresearch</code> for a goal-directed research mission that interleaves web research with the persistent Python REPL and ends on a structured verdict — never product code.</p>
         </a>
         <a class="card" href="docs/computer-use.html">
           <div class="card__icon" aria-hidden="true">🖥️</div>
@@ -288,7 +291,7 @@
     <div class="layers reveal">
       <div class="layer">
         <div class="layer__name">CLI &amp; client surfaces<span>coding-agent</span></div>
-        <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team</code>, <code>rlm</code>) and supports interactive sessions, print output, SDK WebSocket clients, Coordinator MCP automation, and ACP editor clients.</div>
+        <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>autoresearch</code>) and supports interactive sessions, print output, SDK WebSocket clients, Coordinator MCP automation, and ACP editor clients.</div>
       </div>
       <div class="layer">
         <div class="layer__name">Agent runtime<span>agent</span></div>
@@ -364,7 +367,7 @@ sudo install ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc</code></div>
     <div class="section__header reveal">
       <span class="section__eyebrow">Workflow surface</span>
       <h2 class="section__title">Four skills, four role agents</h2>
-      <p class="section__subtitle">A small, fixed surface — no default skill sprawl.</p>
+      <p class="section__subtitle">Four skills, four role agents — a surface people can hold without overhead. Parallel workers coordinate over IRC (in-session agent DM/broadcast). Multi-session machines still use Coordinator MCP or the SDK — not a fifth skill.</p>
     </div>
     <div class="grid grid--2 reveal">
       <div>
@@ -376,7 +379,7 @@ sudo install ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc</code></div>
               <tr><td><code>deep-interview</code></td><td>Clarifies ambiguous requirements before planning or code changes.</td></tr>
               <tr><td><code>ralplan</code></td><td>Builds and critiques an implementation plan before mutation.</td></tr>
               <tr><td><code>ultragoal</code></td><td>Tracks goals through execution, revision, verification, and evidence.</td></tr>
-              <tr><td><code>team</code></td><td>Coordinates focused workers when parallel execution is worth it.</td></tr>
+              <tr><td><code>autoresearch</code></td><td>Runs goal-directed research missions (web + REPL/data) and ends on a structured verdict.</td></tr>
             </tbody>
           </table>
         </div>
@@ -524,7 +527,7 @@ sudo install ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc</code></div>
             <a href="docs/hermes-mcp-bridge.html">Hermes / OpenClaw MCP Bridge</a>
             <a href="docs/skills.html">Skills &amp; Agents</a>
             <a href="docs/troubleshooting.html">Troubleshooting</a>
-            <a href="docs/rlm.html">RLM research mode</a>
+            <a href="docs/autoresearch.html">Autoresearch</a>
             <a href="docs/browser-use.html">Browser tool</a>
           </div>
           <div class="footer__col">

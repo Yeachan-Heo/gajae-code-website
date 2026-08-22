@@ -33,7 +33,7 @@
       </div>
       <div class="docs-nav-section">
         <p class="docs-nav-section__title">Modes &amp; tools</p>
-        <a class="docs-nav-link" href="rlm.html">RLM research mode</a>
+        <a class="docs-nav-link" href="autoresearch.html">Autoresearch</a>
         <a class="docs-nav-link" href="computer-use.html">Computer tool</a>
         <a class="docs-nav-link" href="browser-use.html">Browser tool</a>
       </div>
@@ -151,7 +151,7 @@ gjc</code></div>
 gjc ultragoal create-goals --brief-file &lt;approved-plan&gt;
 gjc ultragoal complete-goals</code></div>
           </div>
-          <p>Use <code>gjc team ...</code> only when coordinated workers materially help with implementation or verification. Machine controllers should use the SDK WebSocket for direct session control, Coordinator MCP for multi-session automation, or ACP for editor clients—never terminal prompt injection, tail helpers, or pane scraping.</p>
+          <p>Use <code>/skill:autoresearch</code> when the next step is evidence, not code: landscape research before an interview, or a verdict after a spec. Parallel coordination is IRC, not a fifth workflow skill. Machine controllers should use the SDK WebSocket for direct session control, Coordinator MCP for multi-session automation, or ACP for editor clients—never terminal prompt injection, tail helpers, or pane scraping.</p>
 
           <h2>SDK discovery</h2>
           <p>A running top-level session writes its loopback SDK discovery record to <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code>. Read its <code>url</code> and <code>token</code> with an SDK client such as <code>@gajae-code/bridge-client</code>; use Coordinator MCP for multi-session orchestration.</p>

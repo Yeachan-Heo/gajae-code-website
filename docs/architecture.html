@@ -33,7 +33,7 @@
       </div>
       <div class="docs-nav-section">
         <p class="docs-nav-section__title">Modes &amp; tools</p>
-        <a class="docs-nav-link" href="rlm.html">RLM research mode</a>
+        <a class="docs-nav-link" href="autoresearch.html">Autoresearch</a>
         <a class="docs-nav-link" href="computer-use.html">Computer tool</a>
         <a class="docs-nav-link" href="browser-use.html">Browser tool</a>
       </div>
@@ -85,7 +85,7 @@
           <h2>The layers</h2>
 
           <h3>CLI &amp; modes</h3>
-          <p>The <code>gjc</code> binary registers commands such as <code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, and <code>team</code>, plus the default launch path. It adapts CLI options into a session and dispatches the chosen mode. The SDK layer assembles settings, the model registry, auth, workspace/context discovery, skills, rules, tools, and the system prompt before constructing the agent.</p><p>For external control, a top-level session publishes its loopback SDK discovery record at <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code>. Use its <code>url</code> and credential only for that session's WebSocket handshake. Use Coordinator MCP, rather than per-session WebSocket control, when a controller must coordinate multiple sessions and durable bounded turns.</p>
+          <p>The <code>gjc</code> binary registers commands such as <code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, and <code>autoresearch</code>, plus the default launch path. It adapts CLI options into a session and dispatches the chosen mode. The SDK layer assembles settings, the model registry, auth, workspace/context discovery, skills, rules, tools, and the system prompt before constructing the agent.</p><p>For external control, a top-level session publishes its loopback SDK discovery record at <code>&lt;repo&gt;/.gjc/state/sdk/&lt;sessionId&gt;.json</code>. Use its <code>url</code> and credential only for that session's WebSocket handshake. Use Coordinator MCP, rather than per-session WebSocket control, when a controller must coordinate multiple sessions and durable bounded turns.</p>
 
           <h3>Agent runtime</h3>
           <p>A stateful turn loop transforms context, calls the model stream, executes tool calls, appends tool results, and emits lifecycle events. Around the loop sits mutable state, subscriptions, prompt/continue/abort APIs, message queues, provider session state, telemetry, and compaction for long sessions.</p>
@@ -102,7 +102,7 @@
           <div class="layers" style="margin-top:1.5rem">
             <div class="layer">
               <div class="layer__name">CLI &amp; modes<span>coding-agent</span></div>
-              <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team</code>, <code>rlm</code>) and dispatches interactive, print, ACP, and research modes. The SDK WebSocket and Coordinator MCP are separate external integration boundaries.</div>
+              <div class="layer__desc">The <code>gjc</code> binary registers commands (<code>setup</code>, <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>autoresearch</code>) and dispatches interactive, print, ACP, and Autoresearch missions. The SDK WebSocket and Coordinator MCP are separate external integration boundaries.</div>
             </div>
             <div class="layer">
               <div class="layer__name">Agent runtime<span>agent</span></div>
@@ -123,7 +123,7 @@
           </div>
 
           <h2>Workflow state on disk</h2>
-          <p>Runtime state, specs, plans, goals, team state, and local overrides live under <code>.gjc/</code> in the working repository or worktree. Default workflow skills and role-agent prompts are bundled in source, so a missing project <code>.gjc</code> directory never removes the default workflow surface; project and user overrides are still discovered when present.</p>
+          <p>Runtime state, specs, plans, goals, research missions, and local overrides live under <code>.gjc/</code> in the working repository or worktree. Default workflow skills and role-agent prompts are bundled in source, so a missing project <code>.gjc</code> directory never removes the default workflow surface; project and user overrides are still discovered when present.</p>
 
           <div class="callout callout--safe">
             <span class="callout__icon" aria-hidden="true">🦀</span>

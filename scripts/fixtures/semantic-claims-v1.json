@@ -87,6 +87,7 @@
     {
       "anchors": [
         {"kind": "nav", "path": "docs/architecture.html"},
+        {"kind": "nav", "path": "docs/autoresearch.html"},
         {"kind": "nav", "path": "docs/browser-use.html"},
         {"kind": "self_nav", "path": "docs/bridge-rpc.html"},
         {"kind": "nav", "path": "docs/computer-use.html"},
@@ -116,6 +117,7 @@
       "paths": [
         "index.html",
         "docs/architecture.html",
+        "docs/autoresearch.html",
         "docs/browser-use.html",
         "docs/bridge-rpc.html",
         "docs/computer-use.html",
@@ -139,6 +141,7 @@
     {"end_marker": "<!-- release-sync:homepage-hero-badge:end -->", "path": "index.html", "start_marker": "<!-- release-sync:homepage-hero-badge:start -->"},
     {"end_marker": "<!-- release-sync:homepage-release-strip:end -->", "path": "index.html", "start_marker": "<!-- release-sync:homepage-release-strip:start -->"},
     {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/architecture.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
+    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/autoresearch.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
     {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/bridge-rpc.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
     {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/browser-use.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
     {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/computer-use.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},

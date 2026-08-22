@@ -30,6 +30,7 @@ MARKER_COMMENT_RE = re.compile(r"<!--\s*release-sync:.*?-->")
 
 NAV_PATHS = (
     "docs/architecture.html",
+    "docs/autoresearch.html",
     "docs/bridge-rpc.html",
     "docs/browser-use.html",
     "docs/computer-use.html",

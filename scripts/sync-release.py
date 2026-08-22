@@ -85,6 +85,7 @@ REQUIRED_REGIONS: dict[str, tuple[str, ...]] = {
         "homepage-release-strip",
     ),
     "docs/architecture.html": ("docs-nav-release-label",),
+    "docs/autoresearch.html": ("docs-nav-release-label",),
     "docs/bridge-rpc.html": ("docs-nav-release-label",),
     "docs/browser-use.html": ("docs-nav-release-label",),
     "docs/computer-use.html": ("docs-nav-release-label",),
