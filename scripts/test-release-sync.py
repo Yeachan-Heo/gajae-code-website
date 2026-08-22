@@ -59,7 +59,6 @@ EXPECTED_RELEASE_REGIONS: dict[str, tuple[str, ...]] = {
         "homepage-release-strip",
     ),
     "docs/architecture.html": ("docs-nav-release-label",),
-    "docs/autoresearch.html": ("docs-nav-release-label",),
     "docs/bridge-rpc.html": ("docs-nav-release-label",),
     "docs/browser-use.html": ("docs-nav-release-label",),
     "docs/computer-use.html": ("docs-nav-release-label",),
@@ -311,7 +310,7 @@ class ReleaseSyncFixture(unittest.TestCase):
     def test_release_region_inventory_is_exact_and_shared(self) -> None:
         self.assertEqual(SYNC.REQUIRED_REGIONS, EXPECTED_RELEASE_REGIONS)
         self.assertEqual(OWNERSHIP.OWNED_REGIONS, EXPECTED_RELEASE_REGIONS)
-        self.assertEqual(sum(len(ids) for ids in EXPECTED_RELEASE_REGIONS.values()), 24)
+        self.assertEqual(sum(len(ids) for ids in EXPECTED_RELEASE_REGIONS.values()), 23)
         self.assertEqual(OWNERSHIP.GENERATED_PATHS, frozenset((*EXPECTED_RELEASE_REGIONS, "release-sync.json")))
 
     def test_marker_bytes_and_historical_content_are_preserved(self) -> None:
@@ -331,7 +330,7 @@ class ReleaseSyncFixture(unittest.TestCase):
     def test_generated_ownership_rejects_unowned_tampering_and_hold(self) -> None:
         head_sha = self.update_release()
         result = OWNERSHIP.validate_generated_change(self.repo, self.base_sha, head_sha, ROOT)
-        self.assertEqual(result["generated_region_count"], 24)
+        self.assertEqual(result["generated_region_count"], 23)
 
         source = self.repo / "docs/computer-use.html"
         source.write_text(source.read_text().replace("historical", "rewritten"))

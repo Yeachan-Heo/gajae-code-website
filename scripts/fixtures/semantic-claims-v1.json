@@ -141,7 +141,6 @@
     {"end_marker": "<!-- release-sync:homepage-hero-badge:end -->", "path": "index.html", "start_marker": "<!-- release-sync:homepage-hero-badge:start -->"},
     {"end_marker": "<!-- release-sync:homepage-release-strip:end -->", "path": "index.html", "start_marker": "<!-- release-sync:homepage-release-strip:start -->"},
     {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/architecture.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
-    {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/autoresearch.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
     {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/bridge-rpc.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
     {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/browser-use.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
     {"end_marker": "<!-- release-sync:docs-nav-release-label:end -->", "path": "docs/computer-use.html", "start_marker": "<!-- release-sync:docs-nav-release-label:start -->"},
