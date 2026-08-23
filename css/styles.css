@@ -7,31 +7,40 @@
    1. Design tokens
    ============================================================ */
 :root {
-  /* Brand — red-claw primary */
-  --accent: #ff5347;
-  --accent-light: #ff8275;
-  --accent-dark: #cf2a23;
-  --accent-rgb: 255, 83, 71;
+  /* Brand — red-claw theme (defaults/red-claw.json): claw / coral / brandRed / sand */
+  --accent: #ff6a3d;          /* claw */
+  --accent-light: #ff8a65;    /* coral */
+  --accent-dark: #ff3b30;     /* brandRed */
+  --accent-rgb: 255, 106, 61;
+  --sand: #ffd7a8;
+  --kelp: #6ee7b7;
+  --btn-fg: #fff;
 
-  /* Secondary — blue-crab */
-  --crab: #4ea1ff;
-  --crab-light: #7cc0ff;
+  /* Secondary — blue-crab theme: crabShell / claw / azure */
+  --crab: #2f9bff;            /* crabShell */
+  --crab-light: #5ec8ff;      /* claw */
+  --crab-rgb: 47, 155, 255;
 
-  /* Surfaces */
-  --bg-primary: #0c0a09;
-  --bg-secondary: #14100e;
-  --bg-tertiary: #1d1714;
-  --surface: rgba(255, 255, 255, 0.035);
-  --surface-strong: rgba(255, 255, 255, 0.06);
+  /* Ouroboros brand mark — petLime, used by the snake pet and its theme card */
+  --ouro-lime: #aee80e;
 
-  /* Text */
-  --text-primary: #fdf6f3;
-  --text-secondary: #c2b3ab;
-  --text-tertiary: #8c7d76;
+  /* Surfaces — red-claw ink / mantle / surface (rgb triplets drive every tinted layer) */
+  --ink-rgb: 17, 11, 11;      /* ink #110b0b */
+  --mantle-rgb: 27, 16, 16;   /* mantle #1b1010 */
+  --foam-rgb: 255, 231, 220;  /* foam #ffe7dc */
+  --bg-primary: #110b0b;
+  --bg-secondary: #1b1010;
+  --bg-tertiary: #2a1515;
+  --surface: rgba(var(--foam-rgb), 0.04);
 
-  /* Lines */
-  --border: #2a2018;
-  --border-strong: #3a2c23;
+  /* Text — red-claw shell / mutedShell */
+  --text-primary: #ffe7dc;
+  --text-secondary: rgba(var(--foam-rgb), 0.78);
+  --text-tertiary: #b98f86;   /* mutedShell */
+
+  /* Lines — red-claw surfaceBright / dimShell */
+  --border: #3a1d1d;
+  --border-strong: #6f4743;
 
   /* Type */
   --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -127,7 +136,7 @@ h1, h2, h3, h4 {
 }
 
 .gradient-text {
-  background: linear-gradient(120deg, var(--accent-light) 0%, var(--accent) 45%, #ffd9b0 100%);
+  background: linear-gradient(120deg, var(--accent-light) 0%, var(--accent) 45%, var(--sand) 100%);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -217,14 +226,14 @@ h1, h2, h3, h4 {
 
 .btn--primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  color: #fff;
+  color: var(--btn-fg);
   box-shadow: 0 14px 30px -8px rgba(var(--accent-rgb), 0.55);
 }
 
 .btn--primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 20px 40px -8px rgba(var(--accent-rgb), 0.65);
-  color: #fff;
+  color: var(--btn-fg);
 }
 
 .btn--secondary {
@@ -254,14 +263,14 @@ h1, h2, h3, h4 {
   right: 0;
   z-index: 100;
   padding: 0.9rem 1.5rem;
-  background: linear-gradient(180deg, rgba(12, 10, 9, 0.92), rgba(12, 10, 9, 0.72));
+  background: linear-gradient(180deg, rgba(var(--ink-rgb), 0.92), rgba(var(--ink-rgb), 0.72));
   backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .nav.scrolled {
-  background: rgba(12, 10, 9, 0.9);
+  background: rgba(var(--ink-rgb), 0.9);
   border-bottom-color: rgba(var(--accent-rgb), 0.2);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
@@ -417,7 +426,7 @@ h1, h2, h3, h4 {
   overflow: hidden;
   background:
     radial-gradient(ellipse at 15% 12%, rgba(var(--accent-rgb), 0.16) 0%, transparent 42%),
-    radial-gradient(ellipse at 85% 30%, rgba(78, 161, 255, 0.1) 0%, transparent 42%),
+    radial-gradient(ellipse at 85% 30%, rgba(var(--crab-rgb), 0.1) 0%, transparent 42%),
     radial-gradient(ellipse at 50% 100%, rgba(var(--accent-rgb), 0.08) 0%, transparent 45%),
     var(--bg-primary);
 }
@@ -571,7 +580,7 @@ h1, h2, h3, h4 {
 .terminal {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-strong);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%), rgba(10, 8, 7, 0.86);
+  background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.04), transparent 22%), rgba(var(--ink-rgb), 0.86);
   overflow: hidden;
   box-shadow: var(--shadow-card);
 }
@@ -581,7 +590,7 @@ h1, h2, h3, h4 {
   align-items: center;
   justify-content: space-between;
   padding: 0.8rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(var(--foam-rgb), 0.03);
   border-bottom: 1px solid var(--border);
 }
 
@@ -616,12 +625,12 @@ h1, h2, h3, h4 {
   font-family: var(--font-mono);
   font-size: 0.88rem;
   line-height: 1.85;
-  color: #ffe7e2;
+  color: var(--text-primary);
 }
 
 .terminal__body .tok-comment { color: var(--text-tertiary); }
 .terminal__body .tok-prompt { color: var(--accent-light); }
-.terminal__body .tok-cmd { color: #fff; }
+.terminal__body .tok-cmd { color: var(--text-primary); }
 .terminal__body .tok-flag { color: var(--crab-light); }
 
 /* ============================================================
@@ -641,7 +650,7 @@ h1, h2, h3, h4 {
 }
 
 .card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 24%), rgba(22, 17, 14, 0.9);
+  background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.035), transparent 24%), rgba(var(--mantle-rgb), 0.9);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.85rem;
@@ -713,7 +722,7 @@ h1, h2, h3, h4 {
 }
 
 .pillar {
-  background: rgba(22, 17, 14, 0.9);
+  background: rgba(var(--mantle-rgb), 0.9);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 2rem 1.85rem;
@@ -763,7 +772,7 @@ h1, h2, h3, h4 {
 .flow__step {
   flex: 1 1 180px;
   min-width: 170px;
-  background: rgba(22, 17, 14, 0.92);
+  background: rgba(var(--mantle-rgb), 0.92);
   border: 1px solid var(--border-strong);
   border-radius: 14px;
   padding: 1.25rem;
@@ -810,7 +819,7 @@ h1, h2, h3, h4 {
   grid-template-columns: 200px 1fr;
   gap: 1.5rem;
   align-items: center;
-  background: rgba(22, 17, 14, 0.9);
+  background: rgba(var(--mantle-rgb), 0.9);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1.4rem 1.6rem;
@@ -888,14 +897,14 @@ h1, h2, h3, h4 {
   appearance: none;
   -webkit-appearance: none;
   color: var(--text-primary);
-  background-color: rgba(10, 8, 7, 0.72);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ff8275' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-color: rgba(var(--ink-rgb), 0.72);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ff8a65' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 16px;
   border: 1px solid var(--border-strong);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 1px 0 rgba(var(--foam-rgb), 0.04), 0 10px 24px rgba(0, 0, 0, 0.18);
   font: inherit;
   font-weight: 500;
   line-height: 1.2;
@@ -908,7 +917,7 @@ h1, h2, h3, h4 {
 }
 
 .installer__select:hover {
-  background-color: rgba(22, 17, 14, 0.9);
+  background-color: rgba(var(--mantle-rgb), 0.9);
   border-color: rgba(var(--accent-rgb), 0.55);
 }
 
@@ -971,7 +980,7 @@ h1, h2, h3, h4 {
   align-items: center;
   justify-content: space-between;
   padding: 0.55rem 0.85rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(var(--foam-rgb), 0.03);
   border-bottom: 1px solid var(--border);
 }
 
@@ -1006,8 +1015,8 @@ h1, h2, h3, h4 {
 }
 
 .code-block__copy.copied {
-  color: #27c93f;
-  border-color: #27c93f;
+  color: var(--kelp);
+  border-color: var(--kelp);
 }
 
 .code-block__body {
@@ -1029,7 +1038,7 @@ h1, h2, h3, h4 {
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: rgba(22, 17, 14, 0.7);
+  background: rgba(var(--mantle-rgb), 0.7);
 }
 
 table.data {
@@ -1086,7 +1095,7 @@ table.data tr:hover {
   gap: 0.9rem;
   align-items: flex-start;
   padding: 1.4rem;
-  background: rgba(22, 17, 14, 0.85);
+  background: rgba(var(--mantle-rgb), 0.85);
   border: 1px solid var(--border);
   border-radius: 14px;
 }
@@ -1126,7 +1135,7 @@ table.data tr:hover {
   border: 1px solid rgba(var(--accent-rgb), 0.28);
   background:
     radial-gradient(circle at 50% 0%, rgba(var(--accent-rgb), 0.18), transparent 60%),
-    rgba(22, 17, 14, 0.9);
+    rgba(var(--mantle-rgb), 0.9);
   position: relative;
   overflow: hidden;
 }
@@ -1244,4 +1253,243 @@ table.data tr:hover {
     scroll-behavior: auto !important;
   }
   .reveal { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   17. Gajae pets
+   ============================================================ */
+.pet-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+  padding: 2.2rem 1.6rem;
+  background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.035), transparent 24%), rgba(var(--mantle-rgb), 0.9);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.pet-card__stage {
+  width: 128px;
+  height: 128px;
+  image-rendering: pixelated;
+  margin-bottom: 0.9rem;
+}
+
+.pet-card--red .pet-card__stage {
+  filter: drop-shadow(0 12px 26px rgba(var(--accent-rgb), 0.28));
+}
+
+.pet-card--blue .pet-card__stage {
+  filter: drop-shadow(0 12px 26px rgba(var(--crab-rgb), 0.32));
+}
+
+.pet-card--ouroboros .pet-card__stage {
+  filter: drop-shadow(0 12px 26px rgba(174, 232, 14, 0.22));
+}
+
+.pet-card h3 {
+  font-size: 1.15rem;
+}
+
+.pet-card__desc {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+}
+
+.pet-card--red .pet-card__desc { color: var(--accent-light); }
+.pet-card--blue .pet-card__desc { color: var(--crab-light); }
+.pet-card--ouroboros .pet-card__desc { color: var(--ouro-lime); }
+
+.pet-card__note {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  max-width: 320px;
+}
+
+/* ============================================================
+   18. Theme showcase
+   ============================================================ */
+.theme-card {
+  display: block;
+  width: 100%;
+  padding: 1.85rem;
+  background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.035), transparent 24%), rgba(var(--mantle-rgb), 0.9);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-card:hover {
+  transform: translateY(-3px);
+}
+
+.theme-card__state {
+  display: block;
+  margin-top: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.theme-card--red[aria-pressed="true"] { box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.55); }
+.theme-card--blue[aria-pressed="true"] { box-shadow: 0 0 0 2px rgba(47, 155, 255, 0.55); }
+.theme-card--ouroboros[aria-pressed="true"] { box-shadow: 0 0 0 2px rgba(174, 232, 14, 0.5); }
+
+.theme-card--red[aria-pressed="true"] .theme-card__state { color: var(--accent-light); }
+.theme-card--blue[aria-pressed="true"] .theme-card__state { color: #5ec8ff; }
+.theme-card--ouroboros[aria-pressed="true"] .theme-card__state { color: var(--ouro-lime); }
+
+.theme-card--red { border-top: 2px solid var(--accent); }
+.theme-card--blue { border-top: 2px solid var(--crab); }
+.theme-card--ouroboros { border-top: 2px solid var(--ouro-lime); }
+
+.theme-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.05rem;
+}
+
+.theme-card h3 {
+  font-family: var(--font-mono);
+  font-size: 1.02rem;
+}
+
+.theme-card__role {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.theme-card--red .theme-card__role { color: var(--accent-light); border-color: rgba(var(--accent-rgb), 0.45); }
+.theme-card--blue .theme-card__role { color: var(--crab-light); border-color: rgba(var(--crab-rgb), 0.45); }
+.theme-card--ouroboros .theme-card__role { color: var(--ouro-lime); border-color: rgba(174, 232, 14, 0.4); }
+
+.swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.swatch {
+  width: 27px;
+  height: 27px;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+}
+
+.theme-card__symbols {
+  margin-top: 0.8rem;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.theme-card__note {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+}
+
+.themes-footnote {
+  max-width: 760px;
+  margin: 1.75rem auto 0;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.pets-credit {
+  text-align: center;
+  margin-top: 1.75rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.pets-credit a {
+  color: var(--ouro-lime);
+}
+
+.hero-pet {
+  position: absolute;
+  left: -30px;
+  bottom: -20px;
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+  transform: rotate(-8deg);
+  filter: drop-shadow(0 12px 26px rgba(var(--accent-rgb), 0.38));
+  z-index: 2;
+}
+
+@media (max-width: 900px) {
+  .hero-pet {
+    left: -10px;
+    bottom: -14px;
+    width: 72px;
+    height: 72px;
+  }
+}
+
+/* ============================================================
+   19. Live theme slots — values copied verbatim from the bundled
+   theme JSONs (blue-crab.json, ouroboros.json). red-claw is :root.
+   ============================================================ */
+[data-site-theme='blue-crab'] {
+  --accent: #5ec8ff;          /* claw */
+  --accent-light: #7dd3fc;    /* azure */
+  --accent-dark: #2f9bff;     /* crabShell */
+  --accent-rgb: 94, 200, 255;
+  --sand: #f4d6a0;
+  --kelp: #62d9a8;
+  --btn-fg: #020812;          /* abyss */
+  --crab: #80f2d3;            /* seafoam */
+  --crab-light: #7dd3fc;      /* azure */
+  --crab-rgb: 128, 242, 211;
+  --ink-rgb: 2, 8, 18;        /* abyss #020812 */
+  --mantle-rgb: 6, 19, 33;    /* deepNavy #061321 */
+  --foam-rgb: 230, 247, 255;  /* foam #e6f7ff */
+  --bg-primary: #020812;
+  --bg-secondary: #061321;
+  --bg-tertiary: #0a1d31;     /* surface */
+  --text-primary: #e6f7ff;
+  --text-tertiary: #9db5c9;   /* mutedShell */
+  --border: #12314a;          /* surfaceBright */
+  --border-strong: #55708a;   /* dimShell */
+}
+
+[data-site-theme='ouroboros'] {
+  --accent: #aee80e;          /* petLime */
+  --accent-light: #38bfa7;    /* ouroTeal */
+  --accent-dark: #78c878;     /* serpentGreen */
+  --accent-rgb: 174, 232, 14;
+  --sand: #ffe786;            /* eyeGold */
+  --kelp: #78c878;            /* serpentGreen */
+  --btn-fg: #050b18;          /* abyss */
+  --crab: #38bfa7;            /* ouroTeal */
+  --crab-light: #7092be;      /* coolScale */
+  --crab-rgb: 56, 191, 167;
+  --ink-rgb: 5, 11, 24;       /* abyss #050b18 */
+  --mantle-rgb: 11, 22, 48;   /* deepNavy #0b1630 */
+  --foam-rgb: 231, 241, 233;  /* foam #e7f1e9 */
+  --bg-primary: #050b18;
+  --bg-secondary: #0b1630;
+  --bg-tertiary: #102b30;     /* surface */
+  --text-primary: #e7f1e9;
+  --text-tertiary: #a9bbb2;   /* mutedScale */
+  --border: #1b3b3b;          /* surfaceBright */
+  --border-strong: #5b756d;   /* dimScale */
 }
