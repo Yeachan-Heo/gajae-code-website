@@ -38,9 +38,10 @@
   --text-secondary: rgba(var(--foam-rgb), 0.78);
   --text-tertiary: #b98f86;   /* mutedShell */
 
-  /* Lines — red-claw surfaceBright / dimShell */
-  --border: #3a1d1d;
-  --border-strong: #6f4743;
+  /* Lines — red-claw colors.border / borderAccent / borderMuted */
+  --border: #7f1d1d;          /* deepRed */
+  --border-accent: #ff3b30;   /* brandRed */
+  --border-muted: #6f4743;    /* dimShell */
 
   /* Type */
   --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -121,7 +122,7 @@ pre {
   background: var(--bg-secondary);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
+  background: var(--border);
   border-radius: 8px;
   border: 2px solid var(--bg-secondary);
 }
@@ -197,8 +198,8 @@ h1, h2, h3, h4 {
 
 .bg-alt-wrap {
   background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border-muted);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 /* ============================================================
@@ -239,7 +240,7 @@ h1, h2, h3, h4 {
 .btn--secondary {
   background: var(--surface);
   color: var(--text-primary);
-  border-color: var(--border-strong);
+  border-color: var(--border);
 }
 
 .btn--secondary:hover {
@@ -387,7 +388,7 @@ h1, h2, h3, h4 {
     max-width: 80vw;
     height: 100vh;
     background: var(--bg-secondary);
-    border-left: 1px solid var(--border);
+    border-left: 1px solid var(--border-muted);
     flex-direction: column;
     align-items: flex-start;
     padding: 88px 1.75rem 2rem;
@@ -404,7 +405,7 @@ h1, h2, h3, h4 {
   .nav__link {
     width: 100%;
     padding: 1rem 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-muted);
     font-size: 1rem;
   }
 
@@ -511,7 +512,7 @@ h1, h2, h3, h4 {
   padding: 0.4rem 0.85rem;
   border-radius: 9999px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   font-size: 0.82rem;
   color: var(--text-secondary);
   font-family: var(--font-mono);
@@ -588,7 +589,7 @@ h1, h2, h3, h4 {
    ============================================================ */
 .terminal {
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.04), transparent 22%), rgba(var(--ink-rgb), 0.86);
   overflow: hidden;
   box-shadow: var(--shadow-card);
@@ -600,7 +601,7 @@ h1, h2, h3, h4 {
   justify-content: space-between;
   padding: 0.8rem 1rem;
   background: rgba(var(--foam-rgb), 0.03);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .terminal__dots {
@@ -660,7 +661,7 @@ h1, h2, h3, h4 {
 
 .card {
   background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.035), transparent 24%), rgba(var(--mantle-rgb), 0.9);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: var(--radius);
   padding: 1.85rem;
   position: relative;
@@ -732,7 +733,7 @@ h1, h2, h3, h4 {
 
 .pillar {
   background: rgba(var(--mantle-rgb), 0.9);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: var(--radius);
   padding: 2rem 1.85rem;
   position: relative;
@@ -782,7 +783,7 @@ h1, h2, h3, h4 {
   flex: 1 1 180px;
   min-width: 170px;
   background: rgba(var(--mantle-rgb), 0.92);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1.25rem;
   text-align: center;
@@ -829,7 +830,7 @@ h1, h2, h3, h4 {
   gap: 1.5rem;
   align-items: center;
   background: rgba(var(--mantle-rgb), 0.9);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: 14px;
   padding: 1.4rem 1.6rem;
   transition: border-color 0.3s ease;
@@ -911,7 +912,7 @@ h1, h2, h3, h4 {
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 16px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: inset 0 1px 0 rgba(var(--foam-rgb), 0.04), 0 10px 24px rgba(0, 0, 0, 0.18);
   font: inherit;
@@ -979,7 +980,7 @@ h1, h2, h3, h4 {
 /* Code block (copyable) */
 .code-block {
   background: var(--bg-tertiary);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -990,7 +991,7 @@ h1, h2, h3, h4 {
   justify-content: space-between;
   padding: 0.55rem 0.85rem;
   background: rgba(var(--foam-rgb), 0.03);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .code-block__dots {
@@ -1012,7 +1013,7 @@ h1, h2, h3, h4 {
   font-family: var(--font-mono);
   color: var(--text-tertiary);
   background: transparent;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: 6px;
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease;
@@ -1045,7 +1046,7 @@ h1, h2, h3, h4 {
    ============================================================ */
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: var(--radius);
   background: rgba(var(--mantle-rgb), 0.7);
 }
@@ -1060,7 +1061,7 @@ table.data th,
 table.data td {
   text-align: left;
   padding: 0.9rem 1.15rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-muted);
   font-size: 0.92rem;
 }
 
@@ -1105,7 +1106,7 @@ table.data tr:hover {
   align-items: flex-start;
   padding: 1.4rem;
   background: rgba(var(--mantle-rgb), 0.85);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: 14px;
 }
 
@@ -1171,7 +1172,7 @@ table.data tr:hover {
    15. Footer
    ============================================================ */
 .footer {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-muted);
   background: var(--bg-secondary);
   padding: 3rem 1.5rem 2.25rem;
 }
@@ -1229,7 +1230,7 @@ table.data tr:hover {
 }
 
 .footer__bottom {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-muted);
   padding-top: 1.5rem;
   display: flex;
   flex-wrap: wrap;
@@ -1276,7 +1277,7 @@ table.data tr:hover {
   padding: 2.2rem 1.6rem;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.035), transparent 24%), rgba(var(--mantle-rgb), 0.9);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: var(--radius);
 }
 
@@ -1324,7 +1325,7 @@ table.data tr:hover {
 .theme-card {
   padding: 1.85rem;
   background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.035), transparent 24%), rgba(var(--mantle-rgb), 0.9);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: var(--radius);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -1486,7 +1487,7 @@ table.data tr:hover {
 .pet-anim__btn {
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   background: rgba(var(--ink-rgb), 0.55);
   color: var(--text-secondary);
   font-family: var(--font-mono);
@@ -1561,8 +1562,9 @@ table.data tr:hover {
   --bg-tertiary: #0a1d31;     /* surface */
   --text-primary: #e6f7ff;
   --text-tertiary: #9db5c9;   /* mutedShell */
-  --border: #12314a;          /* surfaceBright */
-  --border-strong: #55708a;   /* dimShell */
+  --border: #0b4f8a;          /* ocean */
+  --border-accent: #2f9bff;   /* brandBlue */
+  --border-muted: #55708a;    /* dimShell */
 }
 
 [data-site-theme='ouroboros'] {
@@ -1584,6 +1586,7 @@ table.data tr:hover {
   --bg-tertiary: #102b30;     /* surface */
   --text-primary: #e7f1e9;
   --text-tertiary: #a9bbb2;   /* mutedScale */
-  --border: #1b3b3b;          /* surfaceBright */
-  --border-strong: #5b756d;   /* dimScale */
+  --border: #38bfa7;          /* ouroTeal */
+  --border-accent: #f2c94c;   /* ritualGold */
+  --border-muted: #5b756d;    /* dimScale */
 }
