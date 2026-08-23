@@ -1216,6 +1216,8 @@ class WorkflowContractFixture(unittest.TestCase):
         script = self.candidate_status_script()
         sync = self.workflow("sync-release.yml")
         self.assertIn('PYTHONDONTWRITEBYTECODE: "1"', sync)
+        self.assertEqual(sync.count("SNAPSHOT: ${{ github.workspace }}/release-resolve/snapshot.json"), 2)
+        self.assertNotIn("SNAPSHOT: ${{ runner.temp }}/release-resolve/snapshot.json", sync)
         self.assertIn("git add -A -- index.html docs release-sync.json", sync)
         self.assertIn('git status --porcelain=v1 --untracked-files=all', sync)
         self.assertIn("candidate commit did not leave a clean worktree", sync)
