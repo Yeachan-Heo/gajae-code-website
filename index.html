@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Gajae Code (gjc) is an external coding-agent harness for reviewable work: shape intent, act through approved plans, and prove results with durable evidence. Direct clients use the SDK WebSocket; Coordinator MCP automates multiple sessions; ACP serves editor clients." />
-  <meta name="keywords" content="Gajae Code, gjc, coding agent, autonomous agent, AI agent, CLI, developer tools, SDK WebSocket, Coordinator MCP, ACP, git worktree, agent harness" />
+  <meta name="description" content="Gajae Code (gjc) is an external coding-agent harness for reviewable work: shape intent, act through approved plans, and prove results with durable evidence. Run it on the coding plan you already pay for, and connect bots, editors, and agent shells through the SDK session CLI, Coordinator MCP, or ACP." />
+  <meta name="keywords" content="Gajae Code, gjc, coding agent, autonomous agent, AI agent, CLI, developer tools, coding plan, OAuth providers, SDK session CLI, SDK WebSocket, Coordinator MCP, ACP, Paseo, git worktree, agent harness" />
   <meta name="author" content="Gajae Code" />
   <meta name="theme-color" content="#ff6a3d" />
 
@@ -12,14 +12,14 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gajae-code.com/" />
   <meta property="og:title" content="Gajae Code — Encode intention. Decode software." />
-  <meta property="og:description" content="An external coding-agent harness for reviewed work, with SDK WebSocket control, Coordinator MCP automation, ACP editor clients, and durable verification." />
+  <meta property="og:description" content="An external coding-agent harness for reviewed work: bring your own coding plan, then drive sessions over the SDK session CLI, Coordinator MCP, or ACP with durable verification." />
   <meta property="og:image" content="https://gajae-code.com/assets/hero.png" />
   <meta property="og:image:alt" content="Gajae Code autonomous coding-agent hero illustration" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Gajae Code — Encode intention. Decode software." />
-  <meta name="twitter:description" content="A reviewable coding-agent harness with SDK WebSocket control, Coordinator MCP automation, ACP editor clients, and durable evidence." />
+  <meta name="twitter:description" content="A reviewable coding-agent harness: bring your own coding plan, connect bots and editors over the SDK session CLI, Coordinator MCP, or ACP, and finish with durable evidence." />
   <meta name="twitter:image" content="https://gajae-code.com/assets/hero.png" />
 
   <!-- release-sync:public-release-meta:start -->
@@ -54,6 +54,8 @@
       <div class="nav__links" id="navLinks">
         <a href="#latest-release" class="nav__link">What's new</a>
         <a href="#pillars" class="nav__link">Method</a>
+        <a href="#providers" class="nav__link">Providers</a>
+        <a href="#connections" class="nav__link">Connections</a>
         <a href="#features" class="nav__link">Features</a>
         <a href="#architecture" class="nav__link">Architecture</a>
         <a href="#skills" class="nav__link">Skills</a>
@@ -76,7 +78,8 @@
         <p class="hero__description">
           An external coding-agent harness for interviews, approved plans, and durable
           verification. Run <code>gjc</code> from the repository or worktree you choose,
-          then integrate direct clients through the SDK WebSocket, Coordinator MCP, or ACP.
+          on the coding plan you already pay for — then connect bots, editors, and agent
+          shells through the SDK session CLI, Coordinator MCP, or ACP.
         </p>
         <div class="hero__pills">
           <span class="pill"><strong>shape</strong> · interview</span>
@@ -149,24 +152,106 @@
   </section>
   <!-- release-sync:homepage-release-strip:end -->
 
-  <!-- Integration surfaces -->
-  <section class="section" id="whats-new">
+  <!-- Coding plans & providers -->
+  <section class="section" id="providers">
     <div class="section__header reveal">
-      <span class="section__eyebrow">Integration surfaces</span>
-      <h2 class="section__title">Choose the client boundary that fits</h2>
-      <p class="section__subtitle">Use the SDK WebSocket for direct control of one session, Coordinator MCP for multi-session automation, and ACP when an editor client is the right front end. Legacy Bridge and RPC modes are not current interfaces.</p>
+      <span class="section__eyebrow">Providers</span>
+      <h2 class="section__title">Bring your coding plan</h2>
+      <p class="section__subtitle">Log in once and run GJC on the subscription you already pay for. Run <code>/login</code> inside a session and pick your plan — no second bill for the same tokens.</p>
     </div>
-    <div class="grid grid--2 reveal" style="gap:2.5rem;align-items:start">
+    <div class="grid grid--2 reveal" style="align-items:start">
+      <div>
+        <h3 style="margin-bottom:1rem;font-size:1.15rem">OAuth plans</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Plan / subscription</th><th>OAuth login</th></tr></thead>
+            <tbody>
+              <tr><td>Claude Pro / Max</td><td><code>anthropic</code></td></tr>
+              <tr><td>ChatGPT Plus / Pro (Codex)</td><td><code>openai-codex</code> (browser) · <code>openai-codex-device</code> (headless)</td></tr>
+              <tr><td>Cursor</td><td><code>cursor</code></td></tr>
+              <tr><td>GitHub Copilot</td><td><code>github-copilot</code></td></tr>
+              <tr><td>OpenCode Zen / OpenCode Go</td><td><code>opencode-zen</code> · <code>opencode-go</code></td></tr>
+              <tr><td>Kimi Code / Coding Plan / Moonshot</td><td><code>kimi-code</code> · <code>moonshot</code></td></tr>
+              <tr><td>Z.AI GLM Coding Plan</td><td><code>zai</code></td></tr>
+              <tr><td>MiniMax Coding Plan (Intl / CN)</td><td><code>minimax-code</code> · <code>minimax-code-cn</code></td></tr>
+              <tr><td>xAI (Grok)</td><td><code>xai</code></td></tr>
+              <tr><td>Alibaba Token Plan / Qwen Portal</td><td><code>alibaba-token-plan</code> · <code>qwen-portal</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="card__text" style="margin-top:1rem">More OAuth plans — Google Gemini CLI, GitLab Duo, Perplexity Pro/Max, Fire Pass, Xiaomi Token Plan — are covered in the models reference.</p>
+      </div>
+      <div>
+        <h3 style="margin-bottom:1rem;font-size:1.15rem">Coding-plan presets</h3>
+        <p class="card__text" style="margin-bottom:1rem">Key-based plans onboard with one command. A preset writes the API type, base URL, env var, compatibility flags, and a <strong>live model catalog</strong> together, so new models appear without a GJC update.</p>
+        <div class="code-block">
+          <div class="code-block__header"><div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div><button class="code-block__copy">Copy</button></div>
+          <div class="code-block__body"><code>gjc setup provider --preset commandcode-goat   # Command Code GOAT (CMD_API_KEY)
+gjc setup provider --preset cline-pass         # ClinePass (CLINE_API_KEY)</code></div>
+        </div>
+        <ul class="card__text" style="margin-top:1rem;padding-left:1.1rem">
+          <li><strong>Command Code GOAT</strong> — pulls the provider&rsquo;s live <code>/models</code> catalog; <code>claude-*</code> models route through native Anthropic Messages, everything else through Chat Completions. Aliases: <code>commandcode</code>, <code>goat</code>.</li>
+          <li><strong>ClinePass</strong> — no hardcoded models; GJC fetches Cline&rsquo;s live catalog the same way Cline does. Aliases: <code>clinepass</code>, <code>cline</code>.</li>
+          <li>Also available: <code>minimax</code>, <code>minimax-cn</code>, <code>glm</code>, <code>alibaba-token-plan</code> — or <code>/provider add --preset &lt;name&gt;</code> inside the TUI.</li>
+        </ul>
+        <p class="card__text" style="margin-top:1rem">Beyond coding plans: 50+ API-key providers, local runtimes (Ollama, LM Studio, vLLM), and gateways (Cloudflare AI Gateway, Vercel AI Gateway, LiteLLM) all work. Register endpoints in <code>models.yml</code>, pool multiple accounts per provider with usage-aware routing, mix vendors per agent role with presets and profiles, or centralize team credentials with the auth broker/gateway.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- External connections -->
+  <section class="section" id="connections">
+    <div class="section__header reveal">
+      <span class="section__eyebrow">External connections</span>
+      <h2 class="section__title">Choose the client boundary that fits</h2>
+      <p class="section__subtitle">Drive one session over the SDK, fan work out across worktrees with Coordinator MCP, or run GJC inside an agent shell over ACP. Every route is credential-free JSON — never terminal scraping. Legacy Bridge and RPC modes are not current interfaces.</p>
+    </div>
+    <div class="grid grid--3 reveal" style="align-items:start">
       <a class="card" href="docs/bridge-rpc.html">
         <div class="card__icon" aria-hidden="true">🔌</div>
         <h3 class="card__title">SDK &amp; Migration</h3>
         <p class="card__text">Build direct session clients on the loopback SDK WebSocket. The preserved route also explains migration away from historical Bridge and RPC ingress modes.</p>
       </a>
-      <a class="card" href="docs/computer-use.html">
-        <img src="assets/computer-use.png" alt="computer-use desktop control — See. Click. Type. Control." style="width:100%;border-radius:12px;margin-bottom:1.25rem" loading="lazy" />
-        <h3 class="card__title"><code>computer</code> — desktop control <span style="opacity:.6">(experimental)</span></h3>
-        <p class="card__text">The opt-in <code>computer</code> tool is available on macOS. Its nine actions are <code>screenshot</code>, <code>click</code>, <code>double_click</code>, <code>move</code>, <code>drag</code>, <code>scroll</code>, <code>type</code>, <code>keypress</code>, and <code>wait</code>; Screen Recording and Accessibility permissions are required.</p>
+      <a class="card" href="docs/sdk-app-guide.html">
+        <div class="card__icon" aria-hidden="true">🤖</div>
+        <h3 class="card__title">Bots &amp; controllers</h3>
+        <p class="card__text">OpenClaw, Hermes, Grokbot, a Discord bot, or a cron script drives real sessions through the broker-bound SDK session CLI (<code>gjc sdk session list · send · status · tail</code>) and the bundled <code>gjc-sdk-discover</code> / <code>operate</code> / <code>author</code> procedures.</p>
       </a>
+      <a class="card" href="docs/hermes-mcp-bridge.html">
+        <div class="card__icon" aria-hidden="true">🧭</div>
+        <h3 class="card__title">Coordinator MCP</h3>
+        <p class="card__text">Need event-driven fan-out across many worktrees instead of one session at a time? <code>gjc mcp-serve coordinator</code> — installed by <code>gjc setup hermes</code> — exposes the delegation tools for that shape.</p>
+      </a>
+    </div>
+    <div class="grid grid--2 reveal" style="margin-top:2.5rem;align-items:start">
+      <div>
+        <h3 style="margin-bottom:1rem;font-size:1.15rem">Run GJC inside an agent shell</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Host</th><th>Support</th><th>What you get</th></tr></thead>
+            <tbody>
+              <tr><td><a href="https://paseo.sh" target="_blank" rel="noopener noreferrer">Paseo</a></td><td>★★★★★<br /><small>first-class</small></td><td>Native ACP provider installed by GJC itself: model catalog, Default/Plan modes, thinking levels, real permission prompts, cancel that terminates owned subagents, mobile control.</td></tr>
+              <tr><td><a href="https://onorca.dev" target="_blank" rel="noopener noreferrer">Orca</a></td><td>★★★★☆<br /><small>works, one field</small></td><td>GJC runs as a custom CLI agent, one worktree per session, with diff review, terminal splits, SSH worktrees, and the mobile companion. No usage tracking or account hot-swap yet.</td></tr>
+              <tr><td><a href="https://t3.codes" target="_blank" rel="noopener noreferrer">T3 Code</a></td><td>★★★☆☆<br /><small>experimental</small></td><td>No GJC harness upstream yet — T3 Code ships harnesses for Codex, Claude, Cursor, Grok, and OpenCode only. Run GJC beside it; the native provider is proposed upstream.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:1rem;font-size:1.15rem">Paseo, in one paste</h3>
+        <div class="code-block">
+          <div class="code-block__header"><div class="code-block__dots" aria-hidden="true"><span></span><span></span><span></span></div><button class="code-block__copy">Copy</button></div>
+          <div class="code-block__body"><code>gjc setup paseo            # writes the ACP provider entry, backs up, never restarts your daemon
+paseo daemon restart
+paseo provider ls          # gjc must read `available`
+paseo run --provider gjc --cwd /path/to/repo "your prompt"
+
+gjc setup paseo --check    # pass / stale / drift, with a machine-readable --json
+gjc setup paseo --remove   # rolls back only the keys GJC itself created</code></div>
+        </div>
+        <p class="card__text" style="margin-top:1rem">Orca, in one field: install GJC, then add a custom agent with command <code>gjc</code> and no arguments. Orca pre-fills a permission-bypass flag for agents that expose one — GJC has none by design, so leave the arguments empty and keep GJC&rsquo;s own approval gates.</p>
+        <p class="card__text" style="margin-top:1rem">Long prompts are safe to leave running: the SDK prompt deadline is a progress-aware inactivity lease (<code>sdk.promptDeadlineMs</code>, 30 min default) bounded by <code>sdk.promptMaxRuntimeMs</code> (6 h default), renewed only by attributable tool execution for the accepted turn.</p>
+      </div>
     </div>
   </section>
 
@@ -268,10 +353,10 @@
           <h3 class="card__title">Autoresearch</h3>
           <p class="card__text">Run <code>/skill:autoresearch</code> for a goal-directed research mission that interleaves web research with the persistent Python REPL and ends on a structured verdict — never product code.</p>
         </a>
-        <a class="card" href="docs/computer-use.html">
-          <div class="card__icon" aria-hidden="true">🖥️</div>
-          <h3 class="card__title">Desktop control <span style="opacity:.6">(experimental)</span></h3>
-          <p class="card__text">The opt-in <code>computer</code> tool is available on macOS with nine actions: screenshot, click, double-click, move, drag, scroll, type, keypress, and wait.</p>
+        <a class="card" href="#providers">
+          <div class="card__icon" aria-hidden="true">🔑</div>
+          <h3 class="card__title">Your own coding plan</h3>
+          <p class="card__text">Run <code>/login</code> and use the subscription you already pay for — Claude, Codex, Cursor, Copilot, OpenCode, Kimi, GLM, MiniMax, Grok, Qwen — or onboard a key-based plan with <code>gjc setup provider --preset</code>.</p>
         </a>
       </div>
     </section>
