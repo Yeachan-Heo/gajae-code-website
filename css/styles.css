@@ -527,6 +527,11 @@ h1, h2, h3, h4 {
   gap: 0.85rem;
 }
 
+/* A CTA row inherits the centring of the block it sits in (release banner). */
+.section__header .hero__cta {
+  justify-content: center;
+}
+
 .hero__visual {
   display: flex;
   align-items: center;
