@@ -34,6 +34,9 @@ permissions:
   pull-requests: read
   statuses: read
 
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
 jobs:
   cleanup-policy-revocation:
     name: Cleanup revoked Policy Reviewer approvals
