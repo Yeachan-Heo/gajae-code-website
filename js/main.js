@@ -325,9 +325,13 @@
     Array.prototype.forEach.call(picks, function (pick) {
       var selected = pick.getAttribute('data-theme-pick') === theme;
       pick.setAttribute('aria-pressed', selected ? 'true' : 'false');
-      var state = pick.querySelector('.theme-card__state');
-      if (state) {
-        state.textContent = selected ? '● applied' : 'click to apply';
+      var card = pick.parentNode;
+      if (card && card.classList) {
+        card.classList.toggle('is-applied', selected);
+        var state = card.querySelector('.pick-state');
+        if (state) {
+          state.textContent = selected ? '● applied' : 'click to apply';
+        }
       }
       if (selected && meta) {
         meta.setAttribute('content', window.getComputedStyle(pick).getPropertyValue('--accent').trim() || meta.content);

@@ -1265,6 +1265,7 @@ table.data tr:hover {
   text-align: center;
   gap: 0.4rem;
   padding: 2.2rem 1.6rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.035), transparent 24%), rgba(var(--mantle-rgb), 0.9);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1312,24 +1313,54 @@ table.data tr:hover {
    18. Theme showcase
    ============================================================ */
 .theme-card {
-  display: block;
-  width: 100%;
   padding: 1.85rem;
   background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.035), transparent 24%), rgba(var(--mantle-rgb), 0.9);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.theme-card:hover {
+/* One stretched control per card: the whole card is clickable, but the button
+   keeps a phrasing-content-only child so the markup stays valid. */
+.theme-card,
+.pet-card {
+  position: relative;
+}
+
+.card-pick {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.card-pick:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.theme-card:hover,
+.pet-card:hover {
   transform: translateY(-3px);
 }
 
-.theme-card__state {
+.pick-state {
   display: block;
   margin-top: 0.7rem;
   font-family: var(--font-mono);
@@ -1339,13 +1370,19 @@ table.data tr:hover {
   color: var(--text-tertiary);
 }
 
-.theme-card--red[aria-pressed="true"] { box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.55); }
-.theme-card--blue[aria-pressed="true"] { box-shadow: 0 0 0 2px rgba(47, 155, 255, 0.55); }
-.theme-card--ouroboros[aria-pressed="true"] { box-shadow: 0 0 0 2px rgba(174, 232, 14, 0.5); }
+.theme-card--red.is-applied { box-shadow: 0 0 0 2px rgba(255, 106, 61, 0.55); }
+.theme-card--blue.is-applied { box-shadow: 0 0 0 2px rgba(47, 155, 255, 0.55); }
+.theme-card--ouroboros.is-applied { box-shadow: 0 0 0 2px rgba(174, 232, 14, 0.5); }
+.pet-card--red.is-applied { box-shadow: 0 0 0 2px rgba(255, 106, 61, 0.4); }
+.pet-card--blue.is-applied { box-shadow: 0 0 0 2px rgba(47, 155, 255, 0.4); }
+.pet-card--ouroboros.is-applied { box-shadow: 0 0 0 2px rgba(174, 232, 14, 0.35); }
 
-.theme-card--red[aria-pressed="true"] .theme-card__state { color: var(--accent-light); }
-.theme-card--blue[aria-pressed="true"] .theme-card__state { color: #5ec8ff; }
-.theme-card--ouroboros[aria-pressed="true"] .theme-card__state { color: var(--ouro-lime); }
+.theme-card--red.is-applied .pick-state,
+.pet-card--red.is-applied .pick-state { color: #ff8a65; }
+.theme-card--blue.is-applied .pick-state,
+.pet-card--blue.is-applied .pick-state { color: #5ec8ff; }
+.theme-card--ouroboros.is-applied .pick-state,
+.pet-card--ouroboros.is-applied .pick-state { color: var(--ouro-lime); }
 
 .theme-card--red { border-top: 2px solid var(--accent); }
 .theme-card--blue { border-top: 2px solid var(--crab); }
@@ -1410,6 +1447,39 @@ table.data tr:hover {
   text-align: center;
   color: var(--text-secondary);
   font-size: 0.92rem;
+}
+
+.pet-anim {
+  position: relative;
+  z-index: 2;               /* above the stretched theme-apply control */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+}
+
+.pet-anim__btn {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: rgba(var(--ink-rgb), 0.55);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.pet-anim__btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.pet-anim__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .pets-credit {
