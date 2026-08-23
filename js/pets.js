@@ -223,8 +223,49 @@
     var skin = THEME_SKIN[theme] || DEFAULT_SKIN;
     for (var i = 0; i < players.length; i++) {
       if (!players[i].followTheme) continue;
-      if (setSkin(players[i], skin) && withBurst) playMode(players[i], 'signature');
+      if (setSkin(players[i], skin) && withBurst && !players[i].brand) {
+        playMode(players[i], 'signature');
+      }
     }
+    updateFavicon(PETS[skin]);
+  }
+
+  /* The favicon is the active pet, nearest-neighbour scaled so the 16x16 art
+     stays crisp. The emoji-SVG icon in the markup remains the no-JS fallback. */
+  function updateFavicon(pet) {
+    var link = document.querySelector('link[rel="icon"]');
+    if (!link || !pet) return;
+    var source = document.createElement('canvas');
+    source.width = CELL;
+    source.height = CELL;
+    drawFrame(source, pet, pet.baseFrame);
+    var out = document.createElement('canvas');
+    out.width = 64;
+    out.height = 64;
+    var ctx = out.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    ctx.msImageSmoothingEnabled = false;
+    ctx.drawImage(source, 0, 0, out.width, out.height);
+    try {
+      link.setAttribute('href', out.toDataURL('image/png'));
+    } catch (e) { /* tainted canvas or data-URL policy: keep the emoji icon. */ }
+  }
+
+  /* Brand marks ship an emoji so they work without JS; upgrade them in place. */
+  function upgradeBrandMarks() {
+    var marks = document.querySelectorAll('[data-gajae-brand]');
+    Array.prototype.forEach.call(marks, function (mark) {
+      var canvas = document.createElement('canvas');
+      canvas.className = 'brand-pet';
+      canvas.setAttribute('data-gajae-pet', DEFAULT_SKIN);
+      canvas.setAttribute('data-gajae-pet-follow-theme', '');
+      mark.textContent = '';
+      mark.appendChild(canvas);
+      initCanvas(canvas);
+      var player = playerFor(canvas);
+      if (player) player.brand = true;
+    });
   }
 
   function cardPlayer(card) {
@@ -251,9 +292,12 @@
   }
 
   function init() {
+    upgradeBrandMarks();
     var canvases = document.querySelectorAll('canvas[data-gajae-pet]');
     if (!canvases.length) return;
-    Array.prototype.forEach.call(canvases, initCanvas);
+    Array.prototype.forEach.call(canvases, function (canvas) {
+      if (!playerFor(canvas)) initCanvas(canvas);
+    });
     if (!players.length) return;
     syncThemedPets(false);
     initPetInteraction();
