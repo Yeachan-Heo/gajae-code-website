@@ -14,7 +14,7 @@
   --accent-rgb: 255, 106, 61;
   --sand: #ffd7a8;
   --kelp: #6ee7b7;
-  --btn-fg: #fff;
+  --btn-fg: #110b0b;          /* ink: AA-legible on the claw/brandRed gradient */
 
   /* Secondary — blue-crab theme: crabShell / claw / azure */
   --crab: #2f9bff;            /* crabShell */
