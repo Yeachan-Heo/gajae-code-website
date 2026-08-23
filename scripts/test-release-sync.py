@@ -896,44 +896,44 @@ class ResolverGeneratorFixture(unittest.TestCase):
     def test_bootstrap_release_copy_is_neutral_and_resolver_requires_both_evidence_assets(self) -> None:
         release_state = json.loads((ROOT / "release-sync.json").read_text(encoding="utf-8"))
         expected_release = {
-            "id": 367516716,
-            "published_at": "2026-08-09T15:39:49Z",
-            "tag": "v0.12.21",
-            "url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.21",
-            "version": "0.12.21",
+            "id": 374998403,
+            "published_at": "2026-08-22T17:56:33Z",
+            "tag": "v0.15.0",
+            "url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.15.0",
+            "version": "0.15.0",
         }
         self.assertEqual(release_state["release"], expected_release)
         self.assertEqual(SYNC.validate_static_release_site(ROOT)["release"], expected_release)
         snapshot = {
             "release": {
-                "html_url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.21",
-                "id": 367516716,
-                "peeled_commit_sha": "d89dc9da6ecfda4f045fb76aa4d553c8f95c3bee",
-                "published_at": "2026-08-09T15:39:49Z",
-                "tag": "v0.12.21",
+                "html_url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.15.0",
+                "id": 374998403,
+                "peeled_commit_sha": "fceb3c8da75719c43691ba492185dba012ec6481",
+                "published_at": "2026-08-22T17:56:33Z",
+                "tag": "v0.15.0",
             }
         }
         rendered = SYNC.render_regions(snapshot, [("Fixture", ["Bootstrap fixture."])])
         expected_homepage_strip = (
             "  <section class=\"section section--tight\" id=\"latest-release\">\n"
             "    <div class=\"section__header reveal\">\n"
-            "      <span class=\"section__eyebrow\">Latest stable · v0.12.21</span>\n"
-            "      <h2 class=\"section__title\">Gajae Code v0.12.21</h2>\n"
-            "      <p class=\"section__subtitle\">Published 2026-08-09. Release binaries and npm packages are available.</p>\n"
+            "      <span class=\"section__eyebrow\">Latest stable · v0.15.0</span>\n"
+            "      <h2 class=\"section__title\">Gajae Code v0.15.0</h2>\n"
+            "      <p class=\"section__subtitle\">Published 2026-08-22. Release binaries and npm packages are available.</p>\n"
             "      <div class=\"hero__cta\">\n"
             "        <a href=\"docs/whats-new.html\" class=\"btn btn--primary\">Read what’s new</a>\n"
-            "        <a href=\"https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.12.21\" class=\"btn btn--secondary\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub Release</a>\n"
+            "        <a href=\"https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.15.0\" class=\"btn btn--secondary\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub Release</a>\n"
             "      </div>\n"
             "    </div>\n"
             "  </section>\n"
         )
         expected_meta_description = (
-            "  <meta name=\"description\" content=\"What’s new in Gajae Code v0.12.21, published 2026-08-09: release highlights and upgrade guidance.\" />\n"
+            "  <meta name=\"description\" content=\"What’s new in Gajae Code v0.15.0, published 2026-08-22: release highlights and upgrade guidance.\" />\n"
         )
         expected_release_card = (
             "            <a class=\"card\" href=\"whats-new.html\">\n"
             "              <div class=\"card__icon\" aria-hidden=\"true\">✨</div>\n"
-            "              <h3 class=\"card__title\">What’s new (v0.12.21)</h3>\n"
+            "              <h3 class=\"card__title\">What’s new (v0.15.0)</h3>\n"
             "              <p class=\"card__text\">Read release highlights and upgrade guidance.</p>\n"
             "            </a>\n"
         )
@@ -1215,6 +1215,7 @@ class WorkflowContractFixture(unittest.TestCase):
     def test_complete_worktree_rejects_unexpected_changes_and_stages_deleted_pages(self) -> None:
         script = self.candidate_status_script()
         sync = self.workflow("sync-release.yml")
+        self.assertIn('PYTHONDONTWRITEBYTECODE: "1"', sync)
         self.assertIn("git add -A -- index.html docs release-sync.json", sync)
         self.assertIn('git status --porcelain=v1 --untracked-files=all', sync)
         self.assertIn("candidate commit did not leave a clean worktree", sync)
