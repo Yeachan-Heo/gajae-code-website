@@ -24,7 +24,7 @@ body {
   top: 0;
   left: 0;
   background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.03), transparent 20%), rgba(var(--ink-rgb), 0.94);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border-muted);
   overflow-y: auto;
   z-index: 60;
   display: flex;
@@ -107,7 +107,7 @@ body {
   padding: 0.75rem 1rem;
   background: rgba(var(--ink-rgb), 0.92);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .docs-topbar__brand {
@@ -127,7 +127,7 @@ body {
   gap: 5px;
   padding: 10px;
   background: transparent;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
 }
@@ -171,7 +171,7 @@ body {
 .doc-hero {
   margin-bottom: 2.5rem;
   padding-bottom: 1.75rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .doc-hero__eyebrow {
@@ -253,7 +253,7 @@ body {
 
 .doc-body pre {
   background: var(--bg-tertiary);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: 12px;
   padding: 1.1rem 1.25rem;
   overflow-x: auto;
@@ -292,7 +292,7 @@ body {
 .doc-body table td {
   text-align: left;
   padding: 0.7rem 0.95rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
 }
 
 .doc-body table th {
@@ -314,7 +314,7 @@ body {
   gap: 0.85rem;
   padding: 1.1rem 1.25rem;
   border-radius: 12px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   background: rgba(var(--mantle-rgb), 0.85);
   margin: 0 0 1.5rem;
 }
@@ -353,14 +353,14 @@ body {
   gap: 1rem;
   margin-top: 3.5rem;
   padding-top: 1.75rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-muted);
   flex-wrap: wrap;
 }
 
 .doc-pager a {
   flex: 1 1 220px;
   padding: 1rem 1.25rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: 12px;
   background: rgba(var(--mantle-rgb), 0.7);
   text-decoration: none;
@@ -419,7 +419,7 @@ body {
   justify-content: center;
   padding: 10px;
   background: transparent;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
   color: var(--text-primary);
@@ -437,7 +437,7 @@ aside.docs-sidebar {
   top: 0;
   left: 0;
   background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.03), transparent 20%), rgba(var(--ink-rgb), 0.94);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border-muted);
   overflow-y: auto;
   z-index: 60;
   display: flex;
@@ -468,7 +468,7 @@ aside.docs-sidebar {
 .docs-hero {
   margin-bottom: 2.5rem;
   padding-bottom: 1.75rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .docs-hero .eyebrow {
@@ -538,7 +538,7 @@ aside.docs-sidebar {
 
 .docs-section pre {
   background: var(--bg-tertiary);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-muted);
   border-radius: 12px;
   padding: 1.1rem 1.25rem;
   overflow-x: auto;
