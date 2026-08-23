@@ -6,7 +6,7 @@
   <meta name="description" content="Gajae Code (gjc) is an external coding-agent harness for reviewable work: shape intent, act through approved plans, and prove results with durable evidence. Direct clients use the SDK WebSocket; Coordinator MCP automates multiple sessions; ACP serves editor clients." />
   <meta name="keywords" content="Gajae Code, gjc, coding agent, autonomous agent, AI agent, CLI, developer tools, SDK WebSocket, Coordinator MCP, ACP, git worktree, agent harness" />
   <meta name="author" content="Gajae Code" />
-  <meta name="theme-color" content="#ff5347" />
+  <meta name="theme-color" content="#ff6a3d" />
 
   <!-- Open Graph / Social -->
   <meta property="og:type" content="website" />
@@ -35,7 +35,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="css/styles.css?v=20260810.2" />
+  <link rel="stylesheet" href="css/styles.css?v=20260823.2" />
+  <script>(function(){try{var t=localStorage.getItem('gjc-site-theme');if(t==='red-claw'||t==='blue-crab'||t==='ouroboros'){document.documentElement.setAttribute('data-site-theme',t);}}catch(e){}})();</script>
 </head>
 <body>
   <!-- Navigation -->
@@ -90,6 +91,7 @@
       <div class="hero__visual">
         <div class="hero__illustration">
           <img src="assets/hero.png" alt="Gajae Code autonomous coding-agent hero illustration" width="520" height="520" loading="eager" />
+          <canvas class="hero-pet" data-gajae-pet="red" aria-hidden="true"></canvas>
         </div>
       </div>
     </div>
@@ -404,6 +406,137 @@ sudo install ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc</code></div>
     </p>
   </section>
 
+  <!-- Gajae pets -->
+  <div class="bg-alt-wrap">
+    <section class="section" id="pets">
+      <div class="section__header reveal">
+        <span class="section__eyebrow">Mascots</span>
+        <h2 class="section__title">Meet the Gajae pets</h2>
+        <p class="section__subtitle">
+          GJC ships three terminal pets — pick one with <code>/pet</code> and it lives on your
+          status line, rendered over Kitty, Sixel, and iTerm2. These are the exact 16×16 pixel
+          frames and palettes from the source, replaying their real idle loops.
+        </p>
+      </div>
+      <div class="grid grid--3 reveal">
+        <article class="pet-card pet-card--red">
+          <canvas class="pet-card__stage" data-gajae-pet="red" role="img" aria-label="RedGajae, the red crab pet, playing its idle animation"></canvas>
+          <h3>RedGajae</h3>
+          <p class="pet-card__desc">The Red Crab, who likes to work-out.</p>
+          <p class="pet-card__note">The default skin. It idles through glances and visor flickers, and throws both claws up in a <code>^^</code> flex when it shows off.</p>
+        </article>
+        <article class="pet-card pet-card--blue">
+          <canvas class="pet-card__stage" data-gajae-pet="blue" role="img" aria-label="BlueGajae, the blue crab pet, playing its idle animation"></canvas>
+          <h3>BlueGajae</h3>
+          <p class="pet-card__desc">The Blue Crab, who wants to rest.</p>
+          <p class="pet-card__note">The same crab in blue-crab colors — crabShell shell, claw highlight, azure belly. Its signature burst is a little <code>&gt;&lt;</code> sob with foam tears.</p>
+        </article>
+        <article class="pet-card pet-card--ouroboros">
+          <canvas class="pet-card__stage" data-gajae-pet="ouroboros" role="img" aria-label="Ouroboros, the lime snake pet, playing its idle animation"></canvas>
+          <h3>Ouroboros</h3>
+          <p class="pet-card__desc">The little snake who keeps going.</p>
+          <p class="pet-card__note">Blinks, flicks its tongue upward, occasionally sobs. Agent work enters a six-frame infinity loop, and its heart flex rolls the coil into a 180° heart pose.</p>
+        </article>
+      </div>
+      <p class="pets-credit reveal">
+        Pet pixel art by
+        <a href="https://github.com/project-catsy" target="_blank" rel="noopener noreferrer">@project-catsy</a>,
+        the artist behind RedGajae, BlueGajae, and Ouroboros.
+      </p>
+    </section>
+  </div>
+
+  <!-- Themes -->
+  <section class="section" id="themes">
+    <div class="section__header reveal">
+      <span class="section__eyebrow">Appearance</span>
+      <h2 class="section__title">Two crabs and a serpent</h2>
+      <p class="section__subtitle">
+        GJC compiles its bundled themes into the binary — browse them live with <code>/theme</code>.
+        Every swatch below is copied verbatim from the shipped theme files.
+      </p>
+    </div>
+    <div class="grid grid--3 reveal">
+      <button type="button" class="theme-card theme-card--red" data-theme-pick="red-claw" aria-pressed="true">
+        <header>
+          <h3>red-claw</h3>
+          <span class="theme-card__role">default dark</span>
+        </header>
+        <div class="swatch-row" role="img" aria-label="red-claw accent colors">
+          <span class="swatch" style="background:#ff6a3d" title="claw #ff6a3d"></span>
+          <span class="swatch" style="background:#ff3b30" title="brandRed #ff3b30"></span>
+          <span class="swatch" style="background:#ff8a65" title="coral #ff8a65"></span>
+          <span class="swatch" style="background:#ffd7a8" title="sand #ffd7a8"></span>
+          <span class="swatch" style="background:#7dd3c7" title="seafoam #7dd3c7"></span>
+          <span class="swatch" style="background:#6ee7b7" title="kelp #6ee7b7"></span>
+          <span class="swatch" style="background:#ffe7dc" title="foam #ffe7dc"></span>
+        </div>
+        <div class="swatch-row" role="img" aria-label="red-claw surface ramp">
+          <span class="swatch" style="background:#110b0b" title="ink #110b0b"></span>
+          <span class="swatch" style="background:#1b1010" title="mantle #1b1010"></span>
+          <span class="swatch" style="background:#2a1515" title="surface #2a1515"></span>
+          <span class="swatch" style="background:#3a1d1d" title="surfaceBright #3a1d1d"></span>
+        </div>
+        <p class="theme-card__symbols">🦀 running · 🦞 agents · ▸ bullets</p>
+        <p class="theme-card__note">Warm ink surfaces under claw-orange and crab-shell red — the TUI&rsquo;s default identity.</p>
+        <span class="theme-card__state" aria-live="polite"></span>
+      </button>
+      <button type="button" class="theme-card theme-card--blue" data-theme-pick="blue-crab" aria-pressed="false">
+        <header>
+          <h3>blue-crab</h3>
+          <span class="theme-card__role">light slot</span>
+        </header>
+        <div class="swatch-row" role="img" aria-label="blue-crab accent colors">
+          <span class="swatch" style="background:#5ec8ff" title="claw #5ec8ff"></span>
+          <span class="swatch" style="background:#2f9bff" title="brandBlue #2f9bff"></span>
+          <span class="swatch" style="background:#7dd3fc" title="azure #7dd3fc"></span>
+          <span class="swatch" style="background:#80f2d3" title="seafoam #80f2d3"></span>
+          <span class="swatch" style="background:#62d9a8" title="kelp #62d9a8"></span>
+          <span class="swatch" style="background:#f4d6a0" title="sand #f4d6a0"></span>
+          <span class="swatch" style="background:#e6f7ff" title="foam #e6f7ff"></span>
+        </div>
+        <div class="swatch-row" role="img" aria-label="blue-crab surface ramp">
+          <span class="swatch" style="background:#020812" title="abyss #020812"></span>
+          <span class="swatch" style="background:#061321" title="deepNavy #061321"></span>
+          <span class="swatch" style="background:#0a1d31" title="surface #0a1d31"></span>
+          <span class="swatch" style="background:#12314a" title="surfaceBright #12314a"></span>
+        </div>
+        <p class="theme-card__symbols">🌊 running · 🦞 agents · ▸ bullets</p>
+        <p class="theme-card__note">Deep-ocean navy with crabShell blues and foam text — the light-appearance default.</p>
+        <span class="theme-card__state" aria-live="polite"></span>
+      </button>
+      <button type="button" class="theme-card theme-card--ouroboros" data-theme-pick="ouroboros" aria-pressed="false">
+        <header>
+          <h3>ouroboros</h3>
+          <span class="theme-card__role">dark</span>
+        </header>
+        <div class="swatch-row" role="img" aria-label="ouroboros accent colors">
+          <span class="swatch" style="background:#aee80e" title="petLime #aee80e"></span>
+          <span class="swatch" style="background:#38bfa7" title="ouroTeal #38bfa7"></span>
+          <span class="swatch" style="background:#f2c94c" title="ritualGold #f2c94c"></span>
+          <span class="swatch" style="background:#ffe786" title="eyeGold #ffe786"></span>
+          <span class="swatch" style="background:#78c878" title="serpentGreen #78c878"></span>
+          <span class="swatch" style="background:#7092be" title="coolScale #7092be"></span>
+          <span class="swatch" style="background:#e7f1e9" title="foam #e7f1e9"></span>
+        </div>
+        <div class="swatch-row" role="img" aria-label="ouroboros surface ramp">
+          <span class="swatch" style="background:#050b18" title="abyss #050b18"></span>
+          <span class="swatch" style="background:#0b1630" title="deepNavy #0b1630"></span>
+          <span class="swatch" style="background:#102b30" title="surface #102b30"></span>
+          <span class="swatch" style="background:#1b3b3b" title="surfaceBright #1b3b3b"></span>
+        </div>
+        <p class="theme-card__symbols">∞ running · ◇ bullets</p>
+        <p class="theme-card__note">Navy-teal depths lit by the pet&rsquo;s vivid lime — the snake&rsquo;s own theme.</p>
+        <span class="theme-card__state" aria-live="polite"></span>
+      </button>
+    </div>
+    <p class="themes-footnote reveal">
+      Also bundled: the <code>claude-code</code>, <code>codex</code>, and <code>opencode</code> migration
+      themes for easy eye-migration — six built-ins in total, selectable in either appearance slot.
+      Pair any theme with a mascot via <code>/pet off|red|blue|ouroboros</code>.
+    </p>
+  </section>
+
   <!-- Safety / proof / receipts -->
   <div class="bg-alt-wrap">
     <section class="section" id="safety">
@@ -545,6 +678,7 @@ sudo install ~/Downloads/gjc-darwin-arm64 /usr/local/bin/gjc</code></div>
     </div>
   </footer>
 
-  <script src="js/main.js?v=20260810.2"></script>
+  <script src="js/pets.js?v=20260823.2"></script>
+  <script src="js/main.js?v=20260823.2"></script>
 </body>
 </html>

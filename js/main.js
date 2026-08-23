@@ -303,6 +303,51 @@
     });
   }
 
+  /* ---- Site theme slots (red-claw default, blue-crab, ouroboros) ---- */
+  var THEME_KEY = 'gjc-site-theme';
+  var SITE_THEMES = ['red-claw', 'blue-crab', 'ouroboros'];
+  var DEFAULT_THEME = 'red-claw';
+
+  function storedTheme() {
+    try {
+      var value = window.localStorage.getItem(THEME_KEY);
+      return SITE_THEMES.indexOf(value) >= 0 ? value : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function applyTheme(name) {
+    var theme = SITE_THEMES.indexOf(name) >= 0 ? name : DEFAULT_THEME;
+    document.documentElement.setAttribute('data-site-theme', theme);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    var picks = document.querySelectorAll('[data-theme-pick]');
+    Array.prototype.forEach.call(picks, function (pick) {
+      var selected = pick.getAttribute('data-theme-pick') === theme;
+      pick.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      var state = pick.querySelector('.theme-card__state');
+      if (state) {
+        state.textContent = selected ? '● applied' : 'click to apply';
+      }
+      if (selected && meta) {
+        meta.setAttribute('content', window.getComputedStyle(pick).getPropertyValue('--accent').trim() || meta.content);
+      }
+    });
+    return theme;
+  }
+
+  function initThemePicker() {
+    applyTheme(storedTheme() || DEFAULT_THEME);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-theme-pick]'), function (pick) {
+      pick.addEventListener('click', function () {
+        var theme = applyTheme(pick.getAttribute('data-theme-pick'));
+        try {
+          window.localStorage.setItem(THEME_KEY, theme);
+        } catch (e) { /* storage disabled: the choice still applies for this page. */ }
+      });
+    });
+  }
+
   function init() {
     initNav();
     initNavScroll();
@@ -311,6 +356,7 @@
     initReveal();
     initYear();
     initDocsSidebar();
+    initThemePicker();
   }
 
   if (document.readyState === 'loading') {
