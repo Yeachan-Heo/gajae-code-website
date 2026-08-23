@@ -55,7 +55,6 @@ CHANGELOG_CONTINUATION_BLOCK_RE = re.compile(
 EXPECTED_PACKAGES = {
     "@gajae-code/agent-core": "packages/agent",
     "@gajae-code/ai": "packages/ai",
-    "@gajae-code/bridge-client": "packages/bridge-client",
     "@gajae-code/coding-agent": "packages/coding-agent",
     "@gajae-code/natives": "packages/natives",
     "@gajae-code/natives-darwin-arm64": "packages/natives-darwin-arm64",
@@ -423,7 +422,7 @@ def validate_final_evidence(value: Any, *, expected_sha256: str | None = None) -
         fail("final evidence does not link to the downloaded expected evidence asset")
     packages = evidence["packages"]
     if not isinstance(packages, list) or len(packages) != len(EXPECTED_PACKAGES):
-        fail("final evidence.packages must contain exactly the 14 production packages")
+        fail("final evidence.packages must contain exactly the 13 production packages")
     names: list[str] = []
     for index, record in enumerate(packages):
         item = validate_package_record(record, version, f"final evidence.packages[{index}]")
@@ -444,7 +443,7 @@ def validate_expected_evidence(value: Any) -> dict[str, Any]:
     require_match(evidence["source_commit"], SHA_RE, "expected evidence.source_commit")
     packages = evidence["packages"]
     if not isinstance(packages, list) or len(packages) != len(EXPECTED_PACKAGES):
-        fail("expected evidence.packages must contain exactly the 14 production packages")
+        fail("expected evidence.packages must contain exactly the 13 production packages")
     names: list[str] = []
     expected_keys = {
         "dir",
@@ -1023,7 +1022,7 @@ def render_inline(text: str, path: str, line: int, *, nested: bool = False) -> t
         plain = text[plain_start:end]
         if not plain:
             return
-        if any(character in plain for character in ("*", "`", "[", "]", "<", ">")):
+        if any(character in plain for character in ("*", "`", "[", "]", "<")):
             fail(f"unsupported changelog inline syntax at {path}:{line}")
         cursor = 0
         if nested:

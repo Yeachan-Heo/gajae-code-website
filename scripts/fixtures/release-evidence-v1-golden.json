@@ -24,17 +24,6 @@
         "version": "1.2.3"
       },
       {
-        "dir": "packages/bridge-client",
-        "expected_sri": "sha512-ZCkIv9wR7qW812EHeNM7Jz2ZYyEKMl3vw0iY8WtF2dhdM18NInOZjPswtrjvMAQxaYZygAbrws/w9aJNODiVNg==",
-        "file_count": 2,
-        "internal_dependencies": {},
-        "manifest_sha256": "eb80bc2338f67e7d22411d4c11f736305213bf4b9a6982d37513954c11a42e1e",
-        "name": "@gajae-code/bridge-client",
-        "tarball_sha512": "642908bfdc11eea5bcd7610778d33b273d9963210a325defc34898f16b45d9d85d335f0d2273998cfb30b6b8ef3004316986728006ebc2cff0f5a24d38389536",
-        "unpacked_size": 65,
-        "version": "1.2.3"
-      },
-      {
         "dir": "packages/coding-agent",
         "expected_sri": "sha512-0TsFR0dX2YtO227Tqj9E1U024V8uaBArUk4/autQB0e3s9AE3YVrUVce9DPsbmC4xFeq8aWkmzHqw3/oB+v23Q==",
         "file_count": 2,
@@ -162,9 +151,9 @@
     "schema_version": 1,
     "source_commit": "0000000000000000000000000000000000000000"
   },
-  "expected_evidence_sha256": "4416b26a8e0c0fa674423101c394891a52c03dbc7f68679971881958f1f20395",
+  "expected_evidence_sha256": "36d4e147a45ad8e823f22b92a82717b5494056395bcff8e010528df8c398cef1",
   "final_evidence": {
-    "expected_evidence_sha256": "4416b26a8e0c0fa674423101c394891a52c03dbc7f68679971881958f1f20395",
+    "expected_evidence_sha256": "36d4e147a45ad8e823f22b92a82717b5494056395bcff8e010528df8c398cef1",
     "packages": [
       {
         "dir": "packages/agent",
@@ -194,21 +183,6 @@
         "registry_tarball_sha512": "9bd793cecc29c1b7ca00ebea2c84f4ca73b8618257cc333930f5d0ff4643cbda6065a979c68b068ec1a074ddc5c800c7d42626dd4bc31f3343870d6d0feec090",
         "tarball_sha512": "9bd793cecc29c1b7ca00ebea2c84f4ca73b8618257cc333930f5d0ff4643cbda6065a979c68b068ec1a074ddc5c800c7d42626dd4bc31f3343870d6d0feec090",
         "unpacked_size": 54,
-        "version": "1.2.3"
-      },
-      {
-        "dir": "packages/bridge-client",
-        "expected_sri": "sha512-ZCkIv9wR7qW812EHeNM7Jz2ZYyEKMl3vw0iY8WtF2dhdM18NInOZjPswtrjvMAQxaYZygAbrws/w9aJNODiVNg==",
-        "file_count": 2,
-        "internal_dependencies": {},
-        "manifest_sha256": "eb80bc2338f67e7d22411d4c11f736305213bf4b9a6982d37513954c11a42e1e",
-        "name": "@gajae-code/bridge-client",
-        "registry_internal_dependencies": {},
-        "registry_manifest_sha256": "eb80bc2338f67e7d22411d4c11f736305213bf4b9a6982d37513954c11a42e1e",
-        "registry_sri": "sha512-ZCkIv9wR7qW812EHeNM7Jz2ZYyEKMl3vw0iY8WtF2dhdM18NInOZjPswtrjvMAQxaYZygAbrws/w9aJNODiVNg==",
-        "registry_tarball_sha512": "642908bfdc11eea5bcd7610778d33b273d9963210a325defc34898f16b45d9d85d335f0d2273998cfb30b6b8ef3004316986728006ebc2cff0f5a24d38389536",
-        "tarball_sha512": "642908bfdc11eea5bcd7610778d33b273d9963210a325defc34898f16b45d9d85d335f0d2273998cfb30b6b8ef3004316986728006ebc2cff0f5a24d38389536",
-        "unpacked_size": 65,
         "version": "1.2.3"
       },
       {
@@ -385,5 +359,5 @@
     "schema_version": 1,
     "source_commit": "0000000000000000000000000000000000000000"
   },
-  "final_evidence_sha256": "8faaa18358e07eff7c55d7cdee3f8e788474e7fde477e5fc0f27f03033e1899c"
+  "final_evidence_sha256": "231892257a6e141b9cc5c2ee2120e2198f59869f52dd9fc1221399728d6e0c80"
 }

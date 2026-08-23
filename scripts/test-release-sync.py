@@ -29,8 +29,8 @@ SCRIPTS = ROOT / "scripts"
 SOURCE_REPOSITORY = "Yeachan-Heo/gajae-code"
 WEBSITE_REPOSITORY = "Yeachan-Heo/gajae-code-website"
 GOLDEN_EVIDENCE_FIXTURE = SCRIPTS / "fixtures" / "release-evidence-v1-golden.json"
-GOLDEN_EXPECTED_EVIDENCE_SHA256 = "4416b26a8e0c0fa674423101c394891a52c03dbc7f68679971881958f1f20395"
-GOLDEN_FINAL_EVIDENCE_SHA256 = "8faaa18358e07eff7c55d7cdee3f8e788474e7fde477e5fc0f27f03033e1899c"
+GOLDEN_EXPECTED_EVIDENCE_SHA256 = "36d4e147a45ad8e823f22b92a82717b5494056395bcff8e010528df8c398cef1"
+GOLDEN_FINAL_EVIDENCE_SHA256 = "231892257a6e141b9cc5c2ee2120e2198f59869f52dd9fc1221399728d6e0c80"
 
 
 def load_script(name: str, module_name: str) -> Any:
@@ -787,6 +787,13 @@ class ResolverGeneratorFixture(unittest.TestCase):
             write(agent_manifest_path, canonical_json(base_agent_manifest))
 
 
+
+    def test_changelog_plain_greater_than_is_escaped_but_less_than_stays_closed(self) -> None:
+        rendered, links = SYNC.render_inline("model > preset", "CHANGELOG.md", 1)
+        self.assertEqual(rendered, "model &gt; preset")
+        self.assertEqual(links, 0)
+        with self.assertRaisesRegex(SYNC.ReleaseSyncError, "unsupported changelog inline syntax"):
+            SYNC.render_inline("model < preset", "CHANGELOG.md", 1)
 
     def test_changelog_continuations_reject_nested_and_block_markdown(self) -> None:
         for continuation in (
