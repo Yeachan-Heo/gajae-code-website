@@ -436,8 +436,10 @@ h1, h2, h3, h4 {
   width: 100%;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 3.5rem;
+  /* The synced hero art is 16:9, so the visual column carries the wider share
+     to keep the illustration's on-screen presence. */
+  grid-template-columns: 0.92fr 1.08fr;
+  gap: 3rem;
   align-items: center;
 }
 
@@ -537,7 +539,9 @@ h1, h2, h3, h4 {
 .hero__illustration {
   position: relative;
   width: 100%;
-  max-width: 520px;
+  /* hero.png is 1672x941; 720px keeps the wide art at the visual footprint the
+     original square hero occupied instead of a short 16:9 strip. */
+  max-width: 720px;
 }
 
 .hero__illustration img {
@@ -1449,6 +1453,21 @@ table.data tr:hover {
   font-size: 0.92rem;
 }
 
+/* Brand marks upgrade from their emoji fallback to the active theme's pet. */
+.brand-pet {
+  display: block;
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+}
+
+.docs-topbar__brand .brand-pet,
+.docs-sidebar__brand .brand-pet,
+.docs-brand .brand-pet {
+  width: 20px;
+  height: 20px;
+}
+
 .pet-anim {
   position: relative;
   z-index: 2;               /* above the stretched theme-apply control */
@@ -1497,8 +1516,9 @@ table.data tr:hover {
   position: absolute;
   left: -30px;
   bottom: -20px;
-  width: 96px;
-  height: 96px;
+  width: clamp(72px, 18%, 128px);
+  aspect-ratio: 1;
+  height: auto;
   image-rendering: pixelated;
   transform: rotate(-8deg);
   filter: drop-shadow(0 12px 26px rgba(var(--accent-rgb), 0.38));
@@ -1509,8 +1529,7 @@ table.data tr:hover {
   .hero-pet {
     left: -10px;
     bottom: -14px;
-    width: 72px;
-    height: 72px;
+    width: clamp(56px, 16%, 88px);
   }
 }
 
