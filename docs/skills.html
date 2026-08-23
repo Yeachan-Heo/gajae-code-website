@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Reusable Gajae Code workflows for interviewing, planning, durable goals, and coordinated agent execution." />
+  <meta name="description" content="Reusable Gajae Code workflows for interviewing, planning, durable goals, and goal-directed research." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>" />
   <title>Skills · Gajae Code Docs</title>
   <link rel="stylesheet" href="../css/styles.css?v=20260810.2" />
@@ -25,7 +25,7 @@
         <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.21)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
-        <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
+        <a class="docs-nav-link" href="autoresearch.html">Autoresearch</a>
         <a class="docs-nav-link " href="computer-use.html">Computer tool</a>
         <a class="docs-nav-link " href="browser-use.html">Browser tool</a>
       </div>
@@ -49,9 +49,10 @@
   </aside>
 
     <main class="docs-main">
-      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Skills</h1><p>Reusable Gajae Code workflows for interviewing, planning, durable goals, and coordinated agent execution.</p></section>
+      <section class="docs-hero"><p class="eyebrow">Documentation</p><h1>Skills</h1><p>Reusable Gajae Code workflows for interviewing, planning, durable goals, and goal-directed research.</p></section>
 
-      <section class="docs-section"><h2>Core workflow skills</h2><p>The default product surface remains four bundled workflow skills:</p><div class="doc-grid"><article><h3>Deep interview</h3><p>Clarify ambiguous tasks, inspect constraints, identify risks, and define acceptance criteria before code changes.</p></article><article><h3>Ralplan</h3><p>Turn a shaped task into an execution plan with critique points, validation commands, and success conditions.</p></article><article><h3>Ultragoal</h3><p>Drive implementation as a durable goal: act, check, revise, and report evidence instead of stopping at a patch.</p></article><article><h3>Team</h3><p>Coordinate multiple workers only when parallelism is genuinely useful and the merge plan is clear.</p></article></div></section>
+      <section class="docs-section"><h2>Core workflow skills</h2><p>The default product surface is four bundled workflow skills and four role agents — a method people can hold without overhead. Worker coordination is IRC, not a fifth skill. <code>gjc team</code> and <code>gjc rlm</code> are gone.</p><div class="doc-grid"><article><h3>Deep interview</h3><p>Clarify ambiguous tasks, inspect constraints, identify risks, and define acceptance criteria before code changes.</p></article><article><h3>Ralplan</h3><p>Turn a shaped task into an execution plan with critique points, validation commands, and success conditions.</p></article><article><h3>Ultragoal</h3><p>Drive implementation as a durable goal: act, check, revise, and report evidence instead of stopping at a patch.</p></article><article><h3>Autoresearch</h3><p>Run a goal-directed research mission that interleaves web research with the persistent Python REPL and ends on a structured verdict. Use it before an interview to map a landscape, or after a spec to gather evidence — never to implement.</p></article></div></section>
+      <section class="docs-section"><h2>Role agents</h2><p>The matching four role agents stay read-only except <code>executor</code>:</p><div class="doc-grid"><article><h3>Executor</h3><p>Bounded implementation, fixes, and refactors.</p></article><article><h3>Architect</h3><p>Read-only architecture and code-review assessment.</p></article><article><h3>Planner</h3><p>Read-only sequencing and acceptance criteria.</p></article><article><h3>Critic</h3><p>Read-only plan critique and actionability review.</p></article></div></section>
       <section class="docs-section"><h2><code>gjc-session</code> helper</h2><p><code>gjc-session</code> provides <code>scripts/gjc-session/create.sh</code> for a human operator who needs a visible TUI with a named, worktree-backed session. It is not a fifth bundled workflow skill, not an automation interface, and does not grant automation authority.</p><p>For lifecycle control, task submission, status, and evidence boundaries, see <a href="harness.html">Harness</a>. Automated integrations use Coordinator MCP or the SDK; the visible <code>gjc-session</code> TUI remains human-operated.</p></section>
       <section class="docs-section"><h2>Skill discipline</h2><p>Skills are not magic prompts. They encode repeatable operating habits: context first, scoped authority, visible progress, and validation before completion.</p></section>
 

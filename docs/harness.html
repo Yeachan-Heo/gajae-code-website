@@ -25,7 +25,7 @@
         <a class="docs-nav-link " href="whats-new.html"><!-- release-sync:docs-nav-release-label:start -->What's new (v0.12.21)<!-- release-sync:docs-nav-release-label:end --></a>
       </div>
       <div class="docs-nav-section"><p class="docs-nav-section__title">Modes &amp; tools</p>
-        <a class="docs-nav-link " href="rlm.html">RLM research mode</a>
+        <a class="docs-nav-link" href="autoresearch.html">Autoresearch</a>
         <a class="docs-nav-link " href="computer-use.html">Computer tool</a>
         <a class="docs-nav-link " href="browser-use.html">Browser tool</a>
       </div>
@@ -57,7 +57,7 @@
 /skill:deep-interview
 /skill:ralplan
 gjc ultragoal create-goals --brief "implement, verify, and report evidence"
-gjc ultragoal complete-goals</code></pre></section>
+gjc ultragoal complete-goals</code></pre><p>Default loop is interview → plan → prove. Run <code>/skill:autoresearch</code> only when evidence must ground that loop — before the interview or after the spec — never as a fourth sequential step.</p></section>
       <section class="docs-section"><h2>Visible interactive sessions</h2><p>For human-operated, visible-TUI work, <code>scripts/gjc-session/create.sh &lt;session-name&gt; &lt;worktree-path&gt;</code> can start or reuse a named worktree-backed session. Use this only to set up the interactive workspace; it is not an automation or evidence interface.</p><p>Automations must use Coordinator MCP or the SDK for lifecycle control, task submission, status, and evidence. Do not inject prompts, scrape panes, or treat terminal output or tmux ownership as authoritative.</p></section>
       <section class="docs-section"><h2>Operational guardrails</h2><ul><li>Use dedicated worktrees for risky implementation and review work.</li><li>Keep branch metadata aligned with the actual checkout.</li><li>Use Coordinator MCP or the SDK for automated task routing and lifecycle checks.</li><li>Keep interactive sessions human-operated and visible when using the TUI.</li><li>Retire completed workspaces and sessions instead of leaving stale state behind.</li></ul></section>
 

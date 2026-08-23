@@ -87,6 +87,7 @@
     {
       "anchors": [
         {"kind": "nav", "path": "docs/architecture.html"},
+        {"kind": "nav", "path": "docs/autoresearch.html"},
         {"kind": "nav", "path": "docs/browser-use.html"},
         {"kind": "self_nav", "path": "docs/bridge-rpc.html"},
         {"kind": "nav", "path": "docs/computer-use.html"},
@@ -116,6 +117,7 @@
       "paths": [
         "index.html",
         "docs/architecture.html",
+        "docs/autoresearch.html",
         "docs/browser-use.html",
         "docs/bridge-rpc.html",
         "docs/computer-use.html",
