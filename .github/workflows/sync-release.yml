@@ -825,7 +825,7 @@ jobs:
         id: tuple
         env:
           WEBSITE: ${{ github.workspace }}/website
-          SNAPSHOT: ${{ runner.temp }}/release-resolve/snapshot.json
+          SNAPSHOT: ${{ github.workspace }}/release-resolve/snapshot.json
           CANDIDATE_SHA: ${{ steps.candidate.outputs.candidate_sha }}
           HAS_CHANGES: ${{ steps.candidate.outputs.has_changes }}
           PINNED_BASE_SHA: ${{ steps.fetch-main.outputs.base_sha }}
@@ -966,7 +966,7 @@ jobs:
         env:
           WEBSITE: ${{ github.workspace }}/website
           TRUSTED: ${{ github.workspace }}/trusted
-          SNAPSHOT: ${{ runner.temp }}/release-resolve/snapshot.json
+          SNAPSHOT: ${{ github.workspace }}/release-resolve/snapshot.json
           EXPECTED_TUPLE: ${{ runner.temp }}/release-sync-prewrite-tuple.json
           WRITER_TOKEN: ${{ steps.writer-token.outputs.token }}
           CANDIDATE_SHA: ${{ steps.candidate.outputs.candidate_sha }}
