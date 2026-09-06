@@ -996,15 +996,22 @@ def parse_changelog(changelog_bytes: bytes, version: str, published_at: str, pat
     return categories
 
 
-def validate_changelog_url(url: str, path: str, line: int) -> str:
+def changelog_url_is_linkable(url: str) -> bool:
+    """Report whether a changelog URL may become a real anchor on the site."""
     parsed = urlparse(url)
     if parsed.scheme != "https" or parsed.username or parsed.password or parsed.fragment or parsed.query:
-        fail(f"unsupported changelog URL at {path}:{line}")
+        return False
     if parsed.netloc == "github.com" and re.fullmatch(
         r"/Yeachan-Heo/gajae-code/(?:issues|pull|releases)/[^/]+(?:/[^/]+)*", parsed.path
     ):
-        return url
+        return True
     if parsed.netloc == "gajae-code.com" and parsed.path.startswith("/") and parsed.path != "/":
+        return True
+    return False
+
+
+def validate_changelog_url(url: str, path: str, line: int) -> str:
+    if changelog_url_is_linkable(url):
         return url
     fail(f"unsupported changelog URL at {path}:{line}")
 
@@ -1084,11 +1091,23 @@ def render_inline(text: str, path: str, line: int, *, nested: bool = False) -> t
             if close_url <= close_label + 2:
                 fail(f"unsupported changelog inline syntax at {path}:{line}")
             label = text[index + 1 : close_label]
-            if any(character in label for character in ("*", "`", "[", "]", "<", ">", "&", "#", "\\")):
-                fail(f"unsupported changelog inline syntax at {path}:{line}")
-            url = validate_changelog_url(text[close_label + 2 : close_url], path, line)
-            output.append(f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{html.escape(label, quote=False)}</a>')
-            nonlocal_links[0] += 1
+            # A changelog may cite third-party hosts or source-relative paths.
+            # Those never become anchors on the site, but they must not freeze
+            # release reconciliation either: the citation degrades to its label,
+            # rendered with the same inline grammar as ordinary text.
+            candidate_url = text[close_label + 2 : close_url]
+            if changelog_url_is_linkable(candidate_url):
+                if any(character in label for character in ("*", "`", "[", "]", "<", ">", "&", "#", "\\")):
+                    fail(f"unsupported changelog inline syntax at {path}:{line}")
+                output.append(
+                    f'<a href="{html.escape(candidate_url, quote=True)}" target="_blank" rel="noopener noreferrer">{html.escape(label, quote=False)}</a>'
+                )
+                nonlocal_links[0] += 1
+            else:
+                inner, nested_links = render_inline(label, path, line, nested=True)
+                if nested_links:
+                    fail(f"unsupported changelog inline syntax at {path}:{line}")
+                output.append(inner)
             index = close_url + 1
             plain_start = index
             continue
@@ -1097,9 +1116,14 @@ def render_inline(text: str, path: str, line: int, *, nested: bool = False) -> t
             close = text.find(">", index + 1)
             if close <= index + 1:
                 fail(f"unsupported changelog inline syntax at {path}:{line}")
-            url = validate_changelog_url(text[index + 1 : close], path, line)
-            output.append(f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{html.escape(url, quote=False)}</a>')
-            nonlocal_links[0] += 1
+            candidate_url = text[index + 1 : close]
+            if changelog_url_is_linkable(candidate_url):
+                output.append(
+                    f'<a href="{html.escape(candidate_url, quote=True)}" target="_blank" rel="noopener noreferrer">{html.escape(candidate_url, quote=False)}</a>'
+                )
+                nonlocal_links[0] += 1
+            else:
+                output.append(html.escape(candidate_url, quote=False))
             index = close + 1
             plain_start = index
             continue
