@@ -795,6 +795,63 @@ class ResolverGeneratorFixture(unittest.TestCase):
         with self.assertRaisesRegex(SYNC.ReleaseSyncError, "unsupported changelog inline syntax"):
             SYNC.render_inline("model < preset", "CHANGELOG.md", 1)
 
+    def test_unlinkable_changelog_urls_degrade_to_inert_text(self) -> None:
+        """A third-party or source-relative citation must not freeze a release."""
+        rendered, links = SYNC.render_inline(
+            "see [Paseo](https://paseo.sh) and [`docs/x.md`](../../docs/x.md)",
+            "CHANGELOG.md",
+            1,
+        )
+        self.assertEqual(rendered, "see Paseo and <code>docs/x.md</code>")
+        self.assertEqual(links, 0)
+        self.assertEqual(SYNC.validate_rendered_changelog_item(rendered, "CHANGELOG.md", 1), 0)
+
+    def test_allowlisted_changelog_urls_still_render_real_anchors(self) -> None:
+        for url in (
+            "https://github.com/Yeachan-Heo/gajae-code/issues/9",
+            "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.16.4",
+            "https://gajae-code.com/docs/",
+        ):
+            with self.subTest(url=url):
+                self.assertTrue(SYNC.changelog_url_is_linkable(url))
+                rendered, links = SYNC.render_inline(f"see [ref]({url})", "CHANGELOG.md", 1)
+                self.assertEqual(
+                    rendered,
+                    'see <a href="' + url + '" target="_blank" rel="noopener noreferrer">ref</a>',
+                )
+                self.assertEqual(links, 1)
+
+    def test_unlinkable_changelog_urls_never_reach_generated_anchors(self) -> None:
+        for url in (
+            "https://paseo.sh",
+            "javascript:alert",
+            "https://github.com/other/repo/issues/1",
+            "https://gajae-code.com/?q=1",
+            "../../docs/x.md",
+        ):
+            with self.subTest(url=url):
+                self.assertFalse(SYNC.changelog_url_is_linkable(url))
+                rendered, links = SYNC.render_inline(f"see [ref]({url})", "CHANGELOG.md", 1)
+                self.assertEqual(rendered, "see ref")
+                self.assertEqual(links, 0)
+                with self.assertRaisesRegex(SYNC.ReleaseSyncError, "unsupported changelog URL"):
+                    SYNC.validate_changelog_url(url, "CHANGELOG.md", 1)
+                markup = (
+                    '<a href="' + url + '" target="_blank" rel="noopener noreferrer">ref</a>'
+                )
+                with self.assertRaises(SYNC.ReleaseSyncError):
+                    SYNC.validate_rendered_changelog_item(markup, "CHANGELOG.md", 1)
+
+    def test_autolink_form_degrades_for_unlinkable_hosts(self) -> None:
+        rendered, links = SYNC.render_inline("see <https://paseo.sh>", "CHANGELOG.md", 1)
+        self.assertEqual(rendered, "see https://paseo.sh")
+        self.assertEqual(links, 0)
+        rendered, links = SYNC.render_inline(
+            "see <https://gajae-code.com/docs/>", "CHANGELOG.md", 1
+        )
+        self.assertEqual(links, 1)
+        self.assertIn('href="https://gajae-code.com/docs/"', rendered)
+
     def test_changelog_continuations_reject_nested_and_block_markdown(self) -> None:
         for continuation in (
             "- nested bullet",
