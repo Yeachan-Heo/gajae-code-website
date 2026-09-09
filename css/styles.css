@@ -1169,6 +1169,80 @@ table.data tr:hover {
 }
 
 /* ============================================================
+   14b. Teams
+   ============================================================ */
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.team-card {
+  text-align: center;
+  padding: 2rem 1.6rem 1.8rem;
+  background: linear-gradient(180deg, rgba(var(--foam-rgb), 0.035), transparent 24%), rgba(var(--mantle-rgb), 0.9);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.team-card__photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 1.1rem;
+  border: 2px solid rgba(var(--accent-rgb), 0.45);
+  box-shadow: 0 10px 24px rgba(var(--accent-rgb), 0.22);
+}
+
+.team-card__name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.team-card__role {
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-light);
+  margin-bottom: 0.85rem;
+}
+
+.team-card__bio {
+  font-size: 0.94rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.team-card__links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.team-card__links a {
+  color: var(--text-primary);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.35);
+}
+
+.team-card__links a:hover {
+  color: var(--accent-light);
+  border-bottom-color: var(--accent-light);
+}
+
+.team-card__links span {
+  color: var(--text-tertiary);
+}
+
+/* ============================================================
    15. Footer
    ============================================================ */
 .footer {
