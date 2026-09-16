@@ -1,16 +1,16 @@
 {
-  "generated_content_sha256": "db327776a894f20b3661c928c3b24053dc76facf6677c4b9ae243c9d2537dc3d",
+  "generated_content_sha256": "0e7a90f3c0a4a992a53c90fcf9b29f00110cdc4d6ef8c611f7a0f8415e76f9b0",
   "release": {
-    "id": 383272368,
-    "published_at": "2026-09-05T14:36:36Z",
-    "tag": "v0.16.4",
-    "url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.16.4",
-    "version": "0.16.4"
+    "id": 384169140,
+    "published_at": "2026-09-07T15:03:59Z",
+    "tag": "v0.16.6",
+    "url": "https://github.com/Yeachan-Heo/gajae-code/releases/tag/v0.16.6",
+    "version": "0.16.6"
   },
   "schema_version": 1,
   "source": {
     "changelog_path": "packages/coding-agent/CHANGELOG.md",
-    "commit_sha": "f50b17a7fa9faab5935cbf2c358794597b1bd760",
+    "commit_sha": "f238c66de513d9a8b1b8d2544d413bd04e1c43db",
     "repository": "Yeachan-Heo/gajae-code"
   }
 }
